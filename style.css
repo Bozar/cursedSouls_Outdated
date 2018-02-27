@@ -1,0 +1,10 @@
+body {
+  font-size: 10px;
+  margin: 0;
+  background-color: grey;
+}
+
+div#game canvas {
+  display: block;
+  margin: 2rem auto;
+}
