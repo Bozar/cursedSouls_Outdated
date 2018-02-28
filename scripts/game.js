@@ -17,8 +17,11 @@ Game.ui.stat = {}
 Game.ui.stat._width = 20
 
 Game.ui.message = {}
-// 2.5 = 1(padding-left) + 1(padding-right) + 0.5(margin(message-stat))
-Game.ui.message._width = Game.ui.canvas._width - Game.ui.stat._width - 2.5
+// TODO: auto-resize canvas to fit the browser window?
+
+// left -> right: 1 | message | 1 | stat | 1
+// top -> down: 0.5 | ??? | map | 1 | message | keyHint | 0.5
+Game.ui.message._width = Game.ui.canvas._width - Game.ui.stat._width - 3
 Game.ui.message._height = 5
 Game.ui.message._msgList = (function () {
   let emptyList = new Array(Game.ui.message._height)
@@ -61,6 +64,35 @@ Game.test.upper = function (text) {
   return text.toUpperCase()
 }
 
+Game.test.showKey = function (e) {
+  Game.display.clear()
+  if (e.key === 'Escape') {
+    // window.removeEventListener('keyup', Game.test.showKey)
+    window.removeEventListener('keydown', Game.test.showKey)
+    Game.display.drawText(1, 1, 'stop listening')
+    console.log('no longer listen keyboard input')
+  } else if (e.shiftKey) {
+    if (e.key === 'S') {
+      Game.display.drawText(1, 1, '!!!S')
+      console.log('shift s')
+    } else {
+      Game.display.drawText(1, 1, e.key)
+      console.log('shift only')
+    }
+  } else if (e.altKey) {
+    if (e.key === 's') {
+      Game.display.drawText(1, 1, '!!!alt: s')
+      console.log('alt: ' + e.key)
+    } else {
+      Game.display.drawText(1, 1, 'alt: ' + e.key)
+      console.log('alt only')
+    }
+  } else {
+    Game.display.draw(1, 1, e.key)
+    console.log(e.key)
+  }
+}
+
 // ===== Test End =====
 
 window.onload = function () {
@@ -70,6 +102,9 @@ window.onload = function () {
   }
   document.getElementById('game').appendChild(Game.display.getContainer())
 
+  // window.addEventListener('keyup', Game.test.showKey)
+  window.addEventListener('keydown', Game.test.showKey)
+
   Game.display.drawText(70 - 0.5 - Game.version.length, 0.5, Game.version, '#619DD8')
   Game.display.drawText(5, 3, '1234567890', '#619DD8')
   Game.display.draw(5, 4, '@', '#619DD8', 'red')
@@ -77,7 +112,9 @@ window.onload = function () {
   Game.display.drawText(5, 6,
     `%c{yellow}%b{grey}great%b{} ${Game.test.upper('hero')}%c{}!`, 6)
 
+  Game.display.drawText(1, Game.ui.canvas._height - 8.5, '—')
   Game.display.drawText(1, Game.ui.canvas._height - 7.5, 'top')
+  Game.display.drawText(4, Game.ui.canvas._height - 7.5, '|hi')
   Game.display.drawText(1, Game.ui.canvas._height - 1.5, 'bottom')
   Game.ui.message.add('123456789')
   Game.ui.message.add('1234567890#')
