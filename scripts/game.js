@@ -93,17 +93,35 @@ Game.test.showKey = function (e) {
   }
 }
 
-// ===== Test End =====
-
-window.onload = function () {
-  if (!ROT.isSupported()) {
-    window.alert('Rot.js is not supported by your browser.')
-    return
+Game.test.switchKey = function (e) {
+  if (e.key === ' ') {
+    Game.test.screens.initial.exit()
+    window.removeEventListener('keydown', Game.test.switchKey)
+    console.log('exit inital screen')
+    console.log('current screen name: ' + Game.test.screens.currentScreen)
+  } else {
+    console.log('key input: ' + e.key)
   }
-  document.getElementById('game').appendChild(Game.display.getContainer())
+}
 
-  // window.addEventListener('keyup', Game.test.showKey)
-  window.addEventListener('keydown', Game.test.showKey)
+Game.test.Screen = function (name) {
+  this.name = name || null
+}
+
+Game.test.Screen.prototype.enter = function () {
+}
+Game.test.Screen.prototype.exit = function () {
+  Game.display.clear()
+  Game.test.screens.currentScreen = null
+}
+
+Game.test.screens = {}
+
+Game.test.screens.currentScreen = null
+
+Game.test.screens.initial = new Game.test.Screen('initial')
+Game.test.screens.initial.enter = function () {
+  Game.test.screens.currentScreen = this.name
 
   Game.display.drawText(70 - 0.5 - Game.version.length, 0.5, Game.version, '#619DD8')
   Game.display.drawText(5, 3, '1234567890', '#619DD8')
@@ -123,4 +141,25 @@ window.onload = function () {
   Game.ui.message.add('1234567890123#')
   Game.ui.message.add('12345678901234567890123456789012345678901234567890#')
   Game.ui.message.print()
+
+  window.addEventListener('keydown', Game.test.switchKey)
+}
+
+// ===== Test End =====
+
+window.onload = function () {
+  if (!ROT.isSupported()) {
+    window.alert('Rot.js is not supported by your browser.')
+    return
+  }
+  document.getElementById('game').appendChild(Game.display.getContainer())
+
+  // window.addEventListener('keyup', Game.test.showKey)
+  // window.addEventListener('keydown', Game.test.showKey)
+
+  console.log('before enter: ' + Game.test.screens.currentScreen)
+  Game.test.screens.initial.enter()
+  console.log('after enter: ' + Game.test.screens.currentScreen)
+
+  // window.addEventListener('keydown', Game.test.switchKey)
 }
