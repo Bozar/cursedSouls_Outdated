@@ -67,83 +67,57 @@ Game.display = new ROT.Display({
   fontFamily: Game.ui.canvas._fontFamily
 })
 
-// ===== Test =====
-Game.test = {}
-Game.test.upper = function (text) {
-  return text.toUpperCase()
+Game.Screen = function (name, mode) {
+  this._name = name || 'Unnamed Screen'
+  this._mode = mode || 'main'
 }
 
-Game.test.showKey = function (e) {
-  Game.display.clear()
-  if (e.key === 'Escape') {
-    // window.removeEventListener('keyup', Game.test.showKey)
-    window.removeEventListener('keydown', Game.test.showKey)
-    Game.display.drawText(1, 1, 'stop listening')
-    console.log('no longer listen keyboard input')
-  } else if (e.shiftKey) {
-    if (e.key === 'S') {
-      Game.display.drawText(1, 1, '!!!S')
-      console.log('shift s')
+Game.Screen.prototype.getName = function () { return this._name }
+Game.Screen.prototype.getMode = function () { return this._mode }
+Game.Screen.prototype.setMode = function (mode) {
+  this._mode = mode || 'main'
+}
+
+// Screen.key.init()            <-- overwrite this when necessary
+// Screen.key.lookAround()      <-- keybindings for different modes
+// Screen.key.inventoryMenu()   <-- ... and menus
+Game.Screen.prototype.key = {}
+Game.Screen.prototype.key.init = function (e) {
+  if (Game.getDevelop()) {
+    console.log('Press Esc to test keybinding')
+    if (e.key === 'Escape') {
+      console.log('Esc pressed')
     } else {
-      Game.display.drawText(1, 1, e.key)
-      console.log('shift only')
+      console.log('Key: ' + e.key)
     }
-  } else if (e.altKey) {
-    if (e.key === 's') {
-      Game.display.drawText(1, 1, '!!!alt: s')
-      console.log('alt: ' + e.key)
-    } else {
-      Game.display.drawText(1, 1, 'alt: ' + e.key)
-      console.log('alt only')
-    }
-  } else {
-    Game.display.draw(1, 1, e.key)
-    console.log(e.key)
   }
 }
 
-Game.test.switchKey = function (e) {
-  if (e.key === ' ') {
-    Game.test.screens.initial.exit()
-    window.removeEventListener('keydown', Game.test.switchKey)
-    console.log('exit inital screen')
-    console.log('current screen name: ' + Game.test.screens.currentScreen)
-  } else {
-    console.log('key input: ' + e.key)
-  }
+Game.Screen.prototype.enter = function (display) {
+  Game.screens.currentScreen._name = this.getName()
+  Game.screens.currentScreen._mode = this.getMode()
+
+  display()
+  window.addEventListener('keydown', this.key.init)
 }
 
-// Screen prototype
-Game.test.Screen = function (name) {
-  this.name = name || null
-}
+Game.Screen.prototype.exit = function () {
+  Game.screens.currentScreen._name = null
+  Game.screens.currentScreen._mode = null
 
-Game.test.Screen.prototype.key = {}
-Game.test.Screen.prototype.key.initial = function (e) {
-  if (Game.getDevelop() && e.key === 'Escape') {
-    console.log('Esc pressed.')
-  }
-}
-
-Game.test.Screen.prototype.enter = function (draw) {
-  Game.test.screens.currentScreen = this.name
-  draw()
-  window.addEventListener('keydown', this.key.initial)
-}
-Game.test.Screen.prototype.exit = function () {
-  window.removeEventListener('keydown', this.key.initial)
   Game.display.clear()
-  Game.test.screens.currentScreen = null
+  window.removeEventListener('keydown', this.key.init)
 }
 
-Game.test.screens = {}
+Game.screens = {}
 
-Game.test.screens.currentScreen = null
+Game.screens.currentScreen = {}
+Game.screens.currentScreen._name = null
+Game.screens.currentScreen._mode = null
 
-Game.test.screens.initial = new Game.test.Screen('initial')
-Game.test.screens.initial.draw = function () {
-  // Game.test.screens.currentScreen = this.name
+Game.screens.welcome = new Game.Screen('welcome')
 
+Game.screens.welcome.drawScreen = function () {
   let version = ''
   if (Game.getDevelop()) {
     version = 'Wiz|' + Game.version
@@ -168,49 +142,58 @@ Game.test.screens.initial.draw = function () {
   Game.ui.message.add('1234567890123#')
   Game.ui.message.add('12345678901234567890123456789012345678901234567890#')
   Game.ui.message.print()
-
-  // window.addEventListener('keydown', Game.test.switchKey)
 }
 
-Game.test.screens.initial.key.explore = function (e) {
-  // window.removeEventListener('keydown', Game.test.screens.initial.key.initial)
+Game.screens.welcome.key.init = function (e) {
+  let welcome = Game.screens.welcome
 
-  if (e.key === 'l') {
-    console.log('left')
-  } else if (e.key === 'h') {
-    console.log('right')
-  } else if (e.key === 'Escape') {
-      // return 'exit'
-    window.removeEventListener('keydown', Game.test.screens.initial.key.explore)
-    window.addEventListener('keydown', Game.test.screens.initial.key.initial)
-    console.log('exit explore mode')
-    //   console.log('bind new key')
-      // window.addEventListener('keydown', initial.initial)
-      // console.log('exit explore mode')
-  } else {
-    console.log('unknown input')
-  }
-}
-
-Game.test.screens.initial.key.initial = function (e) {
-  let initial = Game.test.screens.initial.key
   if (e.key === 'Escape') {
-    Game.test.screens.initial.exit()
+    Game.screens.welcome.exit()
     if (Game.getDevelop()) {
       console.log('exit screen')
     }
   } else if (e.shiftKey) {
     if (e.key === 'X') {
-      window.removeEventListener('keydown', initial.initial)
-
+      window.removeEventListener('keydown', welcome.key.init)
       console.log('enter explore mode')
-      window.addEventListener('keydown', initial.explore)
+      window.addEventListener('keydown', welcome.key.explore)
     } else {
       console.log(e.key)
     }
+  } else if (e.key === '=') {
+    console.log(welcome._name)
+    console.log(welcome._mode)
   } else if (Game.getDevelop()) {
     console.log(e.key)
   }
+}
+
+Game.screens.welcome.key.explore = function (e) {
+  let welcome = Game.screens.welcome
+  welcome.setMode('explore')
+  Game.screens.currentScreen._mode = welcome.getMode()
+
+  if (e.key === 'l') {
+    console.log('left')
+  } else if (e.key === 'h') {
+    console.log('right')
+  } else if (e.key === '=') {
+    console.log(Game.screens.currentScreen._name)
+    console.log(Game.screens.currentScreen._mode)
+  } else if (e.key === 'Escape') {
+    window.removeEventListener('keydown', welcome.key.explore)
+    window.addEventListener('keydown', welcome.key.init)
+    console.log('exit explore mode')
+  } else {
+    console.log('unknown input')
+  }
+  welcome.setMode()
+}
+
+// ===== Test =====
+Game.test = {}
+Game.test.upper = function (text) {
+  return text.toUpperCase()
 }
 
 // ===== Test End =====
@@ -222,7 +205,5 @@ window.onload = function () {
   }
   document.getElementById('game').appendChild(Game.display.getContainer())
 
-  console.log('before enter: ' + Game.test.screens.currentScreen)
-  Game.test.screens.initial.enter(Game.test.screens.initial.draw)
-  console.log('after enter: ' + Game.test.screens.currentScreen)
+  Game.screens.welcome.enter(Game.screens.welcome.drawScreen)
 }
