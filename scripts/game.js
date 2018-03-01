@@ -3,68 +3,125 @@
 var Game = {}
 Game.version = '0.0.1-dev'
 Game._develop = true
+Game.getDevelop = function () { return Game._develop || false }
 
-Game.getDevelop = function () {
-  return Game._develop ? Game._develop : false
+Game.UI = function (width, height, top, right, bottom, left) {
+  this._width = width
+  this._height = height
+  this._padTop = top
+  this._padRight = right
+  this._padBottom = bottom
+  this._padLeft = left
 }
 
-Game.ui = {}
+Game.UI.prototype.getWidth = function () { return this._width }
+Game.UI.prototype.getHeight = function () { return this._height }
+Game.UI.prototype.getPadTop = function () { return this._padTop }
+Game.UI.prototype.getPadRight = function () { return this._padRight }
+Game.UI.prototype.getPadBottom = function () { return this._padBottom }
+Game.UI.prototype.getPadLeft = function () { return this._padLeft }
 
-Game.ui.canvas = {}
-Game.ui.canvas._width = 70
-Game.ui.canvas._height = 25
-Game.ui.canvas._fgColor = '#abb2bf'
-Game.ui.canvas._bgColor = '#262626'
-Game.ui.canvas._fontSize = 20
-Game.ui.canvas._fontFamily = 'dejavu sans mono'
-Game.ui.canvas._fontFamily += ', consolas'
-Game.ui.canvas._fontFamily += ', monospace'
+Game.UI.prototype.getPadHorizonal = function () {
+  return this._padLeft + this._padRight
+}
+Game.UI.prototype.getPadVertical = function () {
+  return this._padTop + this._padBottom
+}
+Game.UI.prototype.getBoxWidth = function () {
+  return this._width + this._padLeft + this._padRight
+}
+Game.UI.prototype.getBoxHeight = function () {
+  return this._height + this._padTop + this._padBottom
+}
 
-Game.ui.stat = {}
-Game.ui.stat._width = 20
+Game.UI.canvas = new Game.UI(70, 25)
+Game.UI.canvas._fgColor = '#abb2bf'
+Game.UI.canvas._bgColor = '#262626'
+Game.UI.canvas._fontSize = 20
+Game.UI.canvas._fontFamily = 'dejavu sans mono'
+Game.UI.canvas._fontFamily += ', consolas'
+Game.UI.canvas._fontFamily += ', monospace'
 
-Game.ui.message = {}
+Game.UI.stat = new Game.UI(20, null, 0.5, 0.5, 0.5, 0)
+Game.UI.stat._height =
+  Game.UI.canvas.getHeight() - Game.UI.stat.getPadVertical()
+
+Game.UI.modeLine = new Game.UI(null, 1, 0, 0, 0.5, 1)
+Game.UI.modeLine._width =
+  Game.UI.canvas.getWidth() - Game.UI.modeLine.getPadHorizonal() -
+  Game.UI.stat.getBoxWidth()
+
+Game.UI.message = new Game.UI(Game.UI.modeLine.getWidth(), 5,
+  0.5, Game.UI.modeLine.getPadRight(),
+  0, Game.UI.modeLine.getPadLeft())
 // TODO: auto-resize canvas to fit the browser window?
 
-// left -> right: 1 | message | 1 | stat | 1
-// top -> down: 0.5 | ??? | map | 1 | message | keyHint | 0.5
-Game.ui.message._width = Game.ui.canvas._width - Game.ui.stat._width - 3
-Game.ui.message._height = 5
-Game.ui.message._msgList = (function () {
-  let emptyList = new Array(Game.ui.message._height)
+Game.UI.message._msgList = (function () {
+  let emptyList = new Array(Game.UI.message.getHeight())
   for (let i = 0; i < emptyList.length; i++) {
     emptyList[i] = ''
   }
   return emptyList
 }())
 
-Game.ui.message.add = function (msg) {
-  let updatedMsg = Game.ui.message._msgList.slice(
-    Math.ceil(msg.length / Game.ui.message._width))
+Game.UI.message.add = function (msg) {
+  let updatedMsg = Game.UI.message._msgList.slice(
+    Math.ceil(msg.length / Game.UI.message.getWidth()))
 
   updatedMsg.push(msg)
-  Game.ui.message._msgList = updatedMsg
+  Game.UI.message._msgList = updatedMsg
 }
 
-Game.ui.message.print = function () {
-  let msgList = Game.ui.message._msgList
+Game.UI.message.print = function () {
+  let msgList = Game.UI.message._msgList
 
   for (let i = 0; i < msgList.length; i++) {
     Game.display.drawText(
-      1,
-      Game.ui.canvas._height - Game.ui.message._height - 1.5 + i,
+      Game.UI.message.getPadLeft(),     // x
+      Game.UI.canvas.getHeight() -
+      Game.UI.modeLine.getBoxHeight() - Game.UI.message.getBoxHeight() +
+      Game.UI.message.getPadTop() + i,  // y
       msgList[i],
-      Game.ui.message._width)
+      Game.UI.message.getWidth())
   }
 }
 
+Game.UI.key = {}
+Game.UI.key.bindings = new Map()
+// [mode1: [keybind1], mode2: [keybind2], ...]
+// keybind1 -> [action1: [key1_1, key1_2, ...],
+//              action2: [key2_1, key2_2, ...], ...]
+Game.UI.key.bindings.set('decide', new Map([
+  ['yes', ['y']], ['Yes', ['Y']], ['no', ['n']], ['No', ['N']],
+  ['continue', [' ', 'Enter']], ['cancel', ['Escape']],
+  ['chooseA', ['a', 'A']], ['chooseB', ['b', 'B']], ['chooseC', ['c', 'C']]
+]))
+
+Game.UI.key.bindings.set('move', new Map([
+  ['left', ['h', 'ArrowLeft']], ['down', ['j', 'ArrowDown']],
+  ['up', ['k', 'ArrowUp']], ['right', ['l', 'ArrowRight']],
+  ['upLeft', ['y']], ['upRight', ['u']],
+  ['downLeft', ['b']], ['downRight', ['n']]
+]))
+
+Game.UI.key.check = function (keyboardInput, mode, bindMap) {
+  let bindings = bindMap || Game.UI.key.bindings
+
+  for (const [key, value] of bindings.get(mode)) {
+    if (value.indexOf(keyboardInput.key) > -1) {
+      return key
+    }
+  }
+  return null
+}
+
 Game.display = new ROT.Display({
-  width: Game.ui.canvas._width,
-  height: Game.ui.canvas._height,
-  fg: Game.ui.canvas._fgColor,
-  bg: Game.ui.canvas._bgColor,
-  fontSize: Game.ui.canvas._fontSize,
-  fontFamily: Game.ui.canvas._fontFamily
+  width: Game.UI.canvas._width,
+  height: Game.UI.canvas._height,
+  fg: Game.UI.canvas._fgColor,
+  bg: Game.UI.canvas._bgColor,
+  fontSize: Game.UI.canvas._fontSize,
+  fontFamily: Game.UI.canvas._fontFamily
 })
 
 Game.Screen = function (name, mode) {
@@ -110,44 +167,61 @@ Game.Screen.prototype.exit = function () {
 }
 
 Game.screens = {}
-
 Game.screens.currentScreen = {}
 Game.screens.currentScreen._name = null
 Game.screens.currentScreen._mode = null
 
-Game.screens.welcome = new Game.Screen('welcome')
-
-Game.screens.welcome.drawScreen = function () {
+Game.screens.draw = {}
+Game.screens.draw.version = function () {
   let version = ''
   if (Game.getDevelop()) {
     version = 'Wiz|' + Game.version
   } else {
     version = Game.version
   }
-  Game.display.drawText(70 - 0.5 - version.length, 0.5, version, '#619DD8')
+  Game.display.drawText(
+    Game.UI.canvas.getWidth() - Game.UI.stat.getPadRight() - version.length,
+    Game.UI.stat.getPadTop(),
+    version)
+}
+
+Game.screens.draw.bottom = function (text) {
+  Game.display.drawText(
+    Game.UI.modeLine.getPadLeft(),
+    Game.UI.canvas.getHeight() - Game.UI.modeLine.getBoxHeight() +
+    Game.UI.modeLine.getPadTop(),
+    text)
+}
+
+Game.screens.welcome = new Game.Screen('welcome')
+
+Game.screens.welcome.drawScreen = function () {
+  Game.screens.draw.version()
   Game.display.drawText(5, 3, '1234567890', '#619DD8')
   Game.display.draw(5, 4, '@', '#619DD8', 'red')
   Game.display.drawText(5, 5, '%c{green}hello%c{} world,')
   Game.display.drawText(5, 6,
     `%c{yellow}%b{grey}great%b{} ${Game.test.upper('hero')}%c{}!`, 6)
 
-  Game.display.drawText(1, Game.ui.canvas._height - 8.5, '—')
-  Game.display.drawText(1, Game.ui.canvas._height - 7.5, 'top')
-  Game.display.drawText(4, Game.ui.canvas._height - 7.5, '|hi')
-  Game.display.drawText(1, Game.ui.canvas._height - 1.5, 'bottom')
-  Game.ui.message.add('123456789')
-  Game.ui.message.add('1234567890#')
-  Game.ui.message.add('12345678901#')
-  Game.ui.message.add('123456789012#')
-  Game.ui.message.add('1234567890123#')
-  Game.ui.message.add('12345678901234567890123456789012345678901234567890#')
-  Game.ui.message.print()
+  Game.display.drawText(1, Game.UI.canvas._height - 8.5, '—')
+  Game.display.drawText(1, Game.UI.canvas._height - 7.5, 'top')
+  Game.display.drawText(4, Game.UI.canvas._height - 7.5, '|hi')
+  Game.screens.draw.bottom('Press space to continue, esc to skip')
+  // Game.display.drawText(1, Game.UI.canvas._height - 1.5, 'bottom')
+  Game.UI.message.add('123456789')
+  Game.UI.message.add('1234567890#')
+  Game.UI.message.add('12345678901#')
+  Game.UI.message.add('123456789012#')
+  Game.UI.message.add('1234567890123#')
+  Game.UI.message.add('12345678901234567890123456789012345678901234567890#')
+  Game.UI.message.print()
 }
 
 Game.screens.welcome.key.init = function (e) {
   let welcome = Game.screens.welcome
 
-  if (e.key === 'Escape') {
+  if (Game.UI.key.check(e, 'decide') === 'cancel') {
+    // if (e.key === 'Escape') {
     Game.screens.welcome.exit()
     if (Game.getDevelop()) {
       console.log('exit screen')
@@ -173,14 +247,14 @@ Game.screens.welcome.key.explore = function (e) {
   welcome.setMode('explore')
   Game.screens.currentScreen._mode = welcome.getMode()
 
-  if (e.key === 'l') {
+  if (Game.UI.key.check(e, 'move') === 'left') {
     console.log('left')
-  } else if (e.key === 'h') {
+  } else if (Game.UI.key.check(e, 'move') === 'right') {
     console.log('right')
   } else if (e.key === '=') {
     console.log(Game.screens.currentScreen._name)
     console.log(Game.screens.currentScreen._mode)
-  } else if (e.key === 'Escape') {
+  } else if (Game.UI.key.check(e, 'decide') === 'cancel') {
     window.removeEventListener('keydown', welcome.key.explore)
     window.addEventListener('keydown', welcome.key.init)
     console.log('exit explore mode')
