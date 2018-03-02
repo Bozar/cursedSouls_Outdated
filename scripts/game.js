@@ -12,12 +12,12 @@ Game._develop = true
 Game.getDevelop = function () { return Game._develop }
 
 Game.UI = function (width, height, top, right, bottom, left) {
-  this._width = width
-  this._height = height
-  this._padTop = top
-  this._padRight = right
-  this._padBottom = bottom
-  this._padLeft = left
+  this._width = width || null
+  this._height = height || null
+  this._padTop = top || null
+  this._padRight = right || null
+  this._padBottom = bottom || null
+  this._padLeft = left || null
 
   this._x = null
   this._y = null
@@ -40,13 +40,23 @@ Game.UI.prototype.getBoxHeight = function () {
 }
 
 Game.UI.canvas = new Game.UI(70, 25)
-Game.UI.canvas._fgColor = '#abb2bf'
-Game.UI.canvas._bgColor = '#262626'
-Game.UI.canvas._fontSize = 20
-Game.UI.canvas._fontFamily = 'dejavu sans mono'
-Game.UI.canvas._fontFamily += ', consolas'
-Game.UI.canvas._fontFamily += ', monospace'
 
+Game.display = new ROT.Display({
+  width: Game.UI.canvas.getWidth(),
+  height: Game.UI.canvas.getHeight(),
+  fg: '#abb2bf',
+  bg: '#262626',
+  fontSize: 20,
+  fontFamily: (function () {
+    let family = 'dejavu sans mono'
+    family += ', consolas'
+    family += ', monospace'
+
+    return family
+  }())
+})
+
+// TODO: ?? Nethack Fourk, auto-resize canvas to fit the browser window
 // | Spell    (2) | Stat |
 // | Dungeon  (?) | Stat |
 // | Message  (5) | Stat |
@@ -76,7 +86,6 @@ Game.UI.spell._y = Game.UI.stat.getY()
 
 Game.UI.message = new Game.UI(Game.UI.modeLine.getWidth(), 5,
   0, 0, 0, Game.UI.modeLine.getPadLeft())
-// TODO: ?? Nethack Fourk, auto-resize canvas to fit the browser window
 
 Game.UI.message._x = Game.UI.modeLine.getX()
 Game.UI.message._y = Game.UI.canvas.getHeight() -
@@ -92,43 +101,56 @@ Game.UI.dungeon = new Game.UI(Game.UI.modeLine.getWidth(),
 Game.UI.dungeon._x = Game.UI.modeLine.getX()
 Game.UI.dungeon._y = Game.UI.spell.getBoxHeight() + Game.UI.dungeon.getPadTop()
 
-Game.UI.key = {}
-Game.UI.key.bindings = new Map()
+Game.UI.start = new Game.UI(Game.UI.canvas.getWidth() - 10,
+  Game.UI.dungeon.getBoxHeight() + Game.UI.message.getBoxHeight(),
+  0, 0, 0, 0)
+
+Game.UI.start._x = 5
+Game.UI.start._y = Game.UI.dungeon.getY()
+
+Game.keyboard = {}
+Game.keyboard.bindMap = new Map()
 // [mode1: [keybind1], mode2: [keybind2], ...]
 // keybind1 -> [action1: [key1_1, key1_2, ...],
 //              action2: [key2_1, key2_2, ...], ...]
-Game.UI.key.bindings.set('decide', new Map([
+Game.keyboard.bindMap.set('decide', new Map([
   ['yes', ['y']], ['Yes', ['Y']], ['no', ['n']], ['No', ['N']],
   ['space', [' ']], ['enter', ['Enter']], ['escape', ['Escape']],
   ['chooseA', ['a', 'A']], ['chooseB', ['b', 'B']], ['chooseC', ['c', 'C']]
 ]))
 
-Game.UI.key.bindings.set('move', new Map([
+Game.keyboard.bindMap.set('move', new Map([
   ['left', ['h', 'ArrowLeft']], ['down', ['j', 'ArrowDown']],
   ['up', ['k', 'ArrowUp']], ['right', ['l', 'ArrowRight']],
   ['upLeft', ['y']], ['upRight', ['u']],
   ['downLeft', ['b']], ['downRight', ['n']]
 ]))
 
-Game.UI.key.check = function (keyboardInput, mode, bindMap) {
-  let bindings = bindMap || Game.UI.key.bindings
+Game.keyboard.getAction = function (keyInput, mode, bindMap) {
+  if (!mode) {
+    if (Game.getDevelop()) {
+      console.log('ERROR: Mode undefined!\nCurrent screen: ' +
+        Game.screens._currentName + '.')
+    }
+    return null
+  }
+
+  let bindings = bindMap || Game.keyboard.bindMap
 
   for (const [key, value] of bindings.get(mode)) {
-    if (value.indexOf(keyboardInput.key) > -1) {
+    if (value.indexOf(keyInput.key) > -1) {
       return key
     }
   }
-  return null
 }
 
-Game.display = new ROT.Display({
-  width: Game.UI.canvas._width,
-  height: Game.UI.canvas._height,
-  fg: Game.UI.canvas._fgColor,
-  bg: Game.UI.canvas._bgColor,
-  fontSize: Game.UI.canvas._fontSize,
-  fontFamily: Game.UI.canvas._fontFamily
-})
+Game.keyboard.listenEvent = function (event, handler) {
+  if (event === 'add') {
+    window.addEventListener('keydown', handler)
+  } else if (event === 'remove') {
+    window.removeEventListener('keydown', handler)
+  }
+}
 
 Game.Screen = function (name, mode) {
   this._name = name || 'Unnamed Screen'
@@ -139,41 +161,37 @@ Game.Screen.prototype.getName = function () { return this._name }
 Game.Screen.prototype.getMode = function () { return this._mode }
 Game.Screen.prototype.setMode = function (mode) { this._mode = mode || 'main' }
 
-// Screen.key.init()            <-- overwrite this when necessary
-// Screen.key.lookAround()      <-- keybindings for different modes
-// Screen.key.inventoryMenu()   <-- ... and menus
-Game.Screen.prototype.key = {}
-Game.Screen.prototype.key.init = function (e) {
-  if (Game.getDevelop()) {
-    if (e.key === 'Escape') {
-      console.log('Esc pressed')
-    } else {
-      console.log('Key: ' + e.key)
-    }
-  }
-}
-
 Game.Screen.prototype.enter = function (display) {
-  Game.screens.currentScreen._name = this.getName()
-  Game.screens.currentScreen._mode = this.getMode()
+  Game.screens._currentName = this.getName()
+  Game.screens._currentMode = this.getMode()
 
-  Game.screens.draw.version()
+  Game.screens.drawVersion()
+  Game.screens.drawSeed()
   display()
-  window.addEventListener('keydown', this.key.init)
 }
 
 Game.Screen.prototype.exit = function () {
-  Game.screens.currentScreen._name = null
-  Game.screens.currentScreen._mode = null
+  Game.screens._currentName = null
+  Game.screens._currentMode = null
 
   Game.display.clear()
-  window.removeEventListener('keydown', this.key.init)
+}
+
+Game.Screen.prototype.display = function () {
+  Game.display.drawText(1, 1, 'Testing screen')
+  Game.display.drawText(1, 2, 'Name: ' + Game.screens._currentName)
+  Game.display.drawText(1, 3, 'Mode: ' + Game.screens._currentMode)
+}
+
+Game.Screen.prototype.keyInput = function (e) {
+  if (Game.getDevelop()) {
+    console.log('Key pressed: ' + e.key)
+  }
 }
 
 Game.screens = {}
-Game.screens.currentScreen = {}
-Game.screens.currentScreen._name = null
-Game.screens.currentScreen._mode = null
+Game.screens._currentName = null
+Game.screens._currentMode = null
 
 // general version
 // Game.screens.clearBlock = function (x, y, width, height, fillText) {
@@ -195,8 +213,7 @@ Game.screens.clearBlock = function (block, fillText) {
   }
 }
 
-Game.screens.draw = {}
-Game.screens.draw.version = function () {
+Game.screens.drawVersion = function () {
   let version = Game.getVersion()
 
   if (Game.getDevelop()) {
@@ -208,10 +225,8 @@ Game.screens.draw.version = function () {
     version)
 }
 
-Game.screens.draw.seed = function () {
-  if (!Game.getSeed()) {
-    return
-  }
+Game.screens.drawSeed = function () {
+  if (!Game.getSeed()) { return }
 
   Game.display.drawText(
     Game.UI.stat.getX() + Game.UI.stat.getWidth() - Game.getSeed().length,
@@ -219,23 +234,43 @@ Game.screens.draw.seed = function () {
     Game.getSeed())
 }
 
-Game.screens.draw.modeLine = function (text) {
+Game.screens.drawModeLine = function (text) {
   Game.display.drawText(Game.UI.modeLine.getX(), Game.UI.modeLine.getY(), text)
 }
 
 Game.screens.classSeed = new Game.Screen('classSeed')
+Game.screens.classSeed.display = function () {
+  Game.display.drawText(Game.UI.start.getX(), Game.UI.start.getY(),
+    'This is the first screen', Game.UI.start.getWidth())
+}
+
+Game.screens.classSeed.keyInput = function (e) {
+  if (Game.keyboard.getAction(e, 'decide') === 'yes') {
+    console.log('confirmed')
+    Game.keyboard.listenEvent('remove', Game.screens.classSeed.keyInput)
+    Game.screens.classSeed.exit()
+
+    Game.setSeed('1234')
+    Game.screens.prologue.enter(Game.screens.prologue.display)
+    Game.keyboard.listenEvent('add', Game.screens.prologue.keyInput)
+  }
+}
 
 Game.screens.prologue = new Game.Screen('prologue')
 Game.screens.prologue.display = function () {
-  Game.screens.draw.seed('helloWorld')
-
-  Game.display.drawText(5, Game.UI.dungeon.getY(),
-    Game.text.prologue(Game.test.PC), Game.UI.canvas.getWidth() - 10)
+  Game.display.drawText(Game.UI.start.getX(), Game.UI.start.getY(),
+    Game.text.prologue(Game.test.PC), Game.UI.start.getWidth())
 }
 
-Game.screens.prologue.key.init = function (e) {
-  if (Game.UI.key.check(e, 'decide') === 'space') {
+Game.screens.prologue.keyInput = function (e) {
+  if (Game.keyboard.getAction(e, 'decide') === 'space') {
     console.log('switch screen')
+  } else if (e.shiftKey) {
+    if (Game.keyboard.getAction(e, 'decide') === 'Yes') {
+      console.log('Yes pressed')
+    } else {
+      console.log('not Yes ' + e.key)
+    }
   }
 }
 
@@ -280,78 +315,6 @@ Game.UI.message.print = function () {
   }
 }
 
-// Game.screens.welcome = new Game.Screen('welcome')
-
-// Game.screens.welcome.drawScreen = function () {
-//   Game.screens.draw.version(Game.getVersion())
-//   Game.screens.draw.seed('helloWorld')
-
-//   Game.display.drawText(5, 3, '1234567890', '#619DD8')
-//   Game.display.draw(5, 4, '@', '#619DD8', 'red')
-//   Game.display.drawText(5, 5, '%c{green}hello%c{} world,')
-//   Game.display.drawText(5, 6,
-//     `%c{yellow}%b{grey}great%b{} ${Game.test.upper('hero')}%c{}!`, 6)
-
-//   Game.display.drawText(1, Game.UI.canvas._height - 8.5, '—')
-//   Game.display.drawText(1, Game.UI.canvas._height - 7.5, 'top')
-//   Game.display.drawText(4, Game.UI.canvas._height - 7.5, '|hi')
-//   Game.screens.draw.modeLine('Press space to continue, esc to skip')
-//   // Game.display.drawText(1, Game.UI.canvas._height - 1.5, 'bottom')
-//   Game.UI.message.add('123456789')
-//   Game.UI.message.add('1234567890#')
-//   Game.UI.message.add('12345678901#')
-//   Game.UI.message.add('123456789012#')
-//   Game.UI.message.add('1234567890123#')
-//   Game.UI.message.add('12345678901234567890123456789012345678901234567890#')
-//   Game.UI.message.print()
-// }
-
-// Game.screens.welcome.key.init = function (e) {
-//   let welcome = Game.screens.welcome
-
-//   if (Game.UI.key.check(e, 'decide') === 'cancel') {
-//     // if (e.key === 'Escape') {
-//     Game.screens.welcome.exit()
-//     if (Game.getDevelop()) {
-//       console.log('exit screen')
-//     }
-//   } else if (e.shiftKey) {
-//     if (e.key === 'X') {
-//       window.removeEventListener('keydown', welcome.key.init)
-//       console.log('enter explore mode')
-//       window.addEventListener('keydown', welcome.key.explore)
-//     } else {
-//       console.log(e.key)
-//     }
-//   } else if (e.key === '=') {
-//     console.log(welcome._name)
-//     console.log(welcome._mode)
-//   } else if (Game.getDevelop()) {
-//     console.log(e.key)
-//   }
-// }
-
-// Game.screens.welcome.key.explore = function (e) {
-//   let welcome = Game.screens.welcome
-//   welcome.setMode('explore')
-//   Game.screens.currentScreen._mode = welcome.getMode()
-
-//   if (Game.UI.key.check(e, 'move') === 'left') {
-//     console.log('left')
-//   } else if (Game.UI.key.check(e, 'move') === 'right') {
-//     console.log('right')
-//   } else if (e.key === '=') {
-//     console.log(Game.screens.currentScreen._name)
-//     console.log(Game.screens.currentScreen._mode)
-//   } else if (Game.UI.key.check(e, 'decide') === 'cancel') {
-//     window.removeEventListener('keydown', welcome.key.explore)
-//     window.addEventListener('keydown', welcome.key.init)
-//     console.log('exit explore mode')
-//   } else {
-//     console.log('unknown input')
-//   }
-//   welcome.setMode()
-// }
 // ===== Test End =====
 
 window.onload = function () {
@@ -361,7 +324,14 @@ window.onload = function () {
   }
   document.getElementById('game').appendChild(Game.display.getContainer())
 
-  Game.setSeed('helloWorld')
-  Game.screens.prologue.enter(Game.screens.prologue.display)
-  Game.screens.draw.modeLine('Press Space to continue')
+  Game.screens.classSeed.enter(Game.screens.classSeed.display)
+  Game.keyboard.listenEvent('add', Game.screens.classSeed.keyInput)
+
+  ROT.RNG.setSeed(123456789012345)
+  // http://www.gridsagegames.com/blog/2017/05/working-seeds/
+  // a: 2, b: 3, c: 4, ...
+  // if (num.length < 16) {num1*num2} else {num1/num2}
+  Game.display.draw(10, 5, ROT.RNG.getUniform())
+  Game.display.draw(10, 6, ROT.RNG.getUniform())
+  Game.display.draw(10, 7, ROT.RNG.getUniform())
 }

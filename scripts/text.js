@@ -8,19 +8,19 @@ like a nameless body in the morgue, who is neither known to anyone in life, \
 nor in death. Sea of shadows surrounds you. Weepings and whispers, \
 as gentle as a breeze, blows in your mind.\n\n`
 
-  let striker = `choose striker`
-  let enhancer = `choose enhancer`
-  let controller = `choose controller`
+  let dio = `choose striker`
+  let hulk = `choose enhancer`
+  let lasombra = `choose controller`
 
   switch (choice) {
     case 'chooseA':
-      text += striker
+      text += dio
       break
     case 'chooseB':
-      text += enhancer
+      text += hulk
       break
     case 'chooseC':
-      text += controller
+      text += lasombra
       break
   }
 
