@@ -1,9 +1,15 @@
 'use strict'
 
 var Game = {}
-Game.version = '0.0.1-dev'
+Game._version = '0.0.1-dev'
+Game.getVersion = function () { return Game._version }
+
+Game._seed = ''
+Game.setSeed = function (seed) { this._seed = seed }
+Game.getSeed = function () { return Game._seed }
+
 Game._develop = true
-Game.getDevelop = function () { return Game._develop || false }
+Game.getDevelop = function () { return Game._develop }
 
 Game.UI = function (width, height, top, right, bottom, left) {
   this._width = width
@@ -151,6 +157,7 @@ Game.Screen.prototype.enter = function (display) {
   Game.screens.currentScreen._name = this.getName()
   Game.screens.currentScreen._mode = this.getMode()
 
+  Game.screens.draw.version()
   display()
   window.addEventListener('keydown', this.key.init)
 }
@@ -168,8 +175,30 @@ Game.screens.currentScreen = {}
 Game.screens.currentScreen._name = null
 Game.screens.currentScreen._mode = null
 
+// general version
+// Game.screens.clearBlock = function (x, y, width, height, fillText) {
+//   for (let i = x; i < x + width; i++) {
+//     for (let j = y; j < y + height; j++) {
+//       Game.display.draw(i, j, fillText || ' ')  // space by default
+//     }
+//   }
+// }
+
+Game.screens.clearBlock = function (block, fillText) {
+  let x = block.getX()
+  let y = block.getY()
+
+  for (let i = x; i < x + block.getWidth(); i++) {
+    for (let j = y; j < y + block.getHeight(); j++) {
+      Game.display.draw(i, j, fillText || ' ')  // space by default
+    }
+  }
+}
+
 Game.screens.draw = {}
-Game.screens.draw.version = function (version) {
+Game.screens.draw.version = function () {
+  let version = Game.getVersion()
+
   if (Game.getDevelop()) {
     version = 'Wizard|' + version
   }
@@ -179,21 +208,25 @@ Game.screens.draw.version = function (version) {
     version)
 }
 
-Game.screens.draw.seed = function (seed) {
-  Game.UI.modeLine.getPadTop()
+Game.screens.draw.seed = function () {
+  if (!Game.getSeed()) {
+    return
+  }
+
   Game.display.drawText(
-    Game.UI.stat.getX() + Game.UI.stat.getWidth() - seed.length,
+    Game.UI.stat.getX() + Game.UI.stat.getWidth() - Game.getSeed().length,
     Game.UI.stat.getY() + Game.UI.stat.getHeight() - 1,
-    seed)
+    Game.getSeed())
 }
 
 Game.screens.draw.modeLine = function (text) {
   Game.display.drawText(Game.UI.modeLine.getX(), Game.UI.modeLine.getY(), text)
 }
 
+Game.screens.classSeed = new Game.Screen('classSeed')
+
 Game.screens.prologue = new Game.Screen('prologue')
 Game.screens.prologue.display = function () {
-  Game.screens.draw.version(Game.version)
   Game.screens.draw.seed('helloWorld')
 
   Game.display.drawText(5, Game.UI.dungeon.getY(),
@@ -250,7 +283,7 @@ Game.UI.message.print = function () {
 // Game.screens.welcome = new Game.Screen('welcome')
 
 // Game.screens.welcome.drawScreen = function () {
-//   Game.screens.draw.version(Game.version)
+//   Game.screens.draw.version(Game.getVersion())
 //   Game.screens.draw.seed('helloWorld')
 
 //   Game.display.drawText(5, 3, '1234567890', '#619DD8')
@@ -328,6 +361,7 @@ window.onload = function () {
   }
   document.getElementById('game').appendChild(Game.display.getContainer())
 
+  Game.setSeed('helloWorld')
   Game.screens.prologue.enter(Game.screens.prologue.display)
   Game.screens.draw.modeLine('Press Space to continue')
 }
