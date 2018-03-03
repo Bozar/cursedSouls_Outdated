@@ -2,6 +2,30 @@
 
 Game.text = {}
 
+Game.text.selectClass = function (choice) {
+  switch (choice) {
+    case 'dio':
+      return '\nYour choice: Striker'
+    case 'hulk':
+      return '\nYour choice: Enhancer'
+    case 'lasombra':
+      return '\nYour choice: Controller'
+    default:    // initial screen
+      return `Please read the manual.\n\nChoose your class:\
+\n\nA. Striker    (Easy)\nB. Enhancer   (Normal)\nC. Controller (Hard)`
+  }
+}
+
+Game.text.describeSeed = function () {
+  return `Enter your seed:\n\n\
+* No more than 15 case-insensitive alphabets\n\
+* Leave blank for a random seed\n\n[               ]`
+}
+
+Game.text.confirmDecision = function () {
+  return `Would you like to continue?`
+}
+
 Game.text.prologue = function (choice) {
   let text = `You find yourself lying on the moist ground, \
 like a nameless body in the morgue, who is neither known to anyone in life, \
@@ -13,16 +37,24 @@ as gentle as a breeze, blows in your mind.\n\n`
   let lasombra = `choose controller`
 
   switch (choice) {
-    case 'chooseA':
-      text += dio
-      break
-    case 'chooseB':
-      text += hulk
-      break
-    case 'chooseC':
-      text += lasombra
-      break
+    case 'dio':
+      return (text += dio)
+    case 'hulk':
+      return (text += hulk)
+    case 'lasombra':
+      return (text += lasombra)
   }
+}
 
-  return text
+Game.text.modeLine = function (mode) {
+  switch (mode) {
+    case 'select':
+      return 'Press a, b or c'
+    case 'enter':
+      return 'Press Enter to confirm'
+    case 'backspace':
+      return ', Backspace to delete'
+    case 'yesNoLower':
+      return 'Press y or n'
+  }
 }
