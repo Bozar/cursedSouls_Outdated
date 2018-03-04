@@ -40,8 +40,8 @@ Game.feedRNG = function () {
     let seed = Game.getSeed()
 
     // use random number as seed
-    if (Number.isInteger(Number.parseInt(seed, 10))) {
-      return [seed]
+    if (seed.match(/^\d{5}$/)) {
+      return [Number.parseInt(seed, 10)]
     }
 
     if (seed.match(/^#/)) {
@@ -60,7 +60,7 @@ Game.feedRNG = function () {
   function list2Number () {
     let rngSeed = 1
     for (let i = 0; i < seedList.length; i++) {
-      rngSeed.length < 16 ? rngSeed *= seedList[i] : rngSeed /= seedList[i]
+      rngSeed.length < 15 ? rngSeed *= seedList[i] : rngSeed /= seedList[i]
     }
     return rngSeed
   }
@@ -326,7 +326,7 @@ Game.screens.classSeed.keyInput = function (e) {
   }
 
   function verifySeed (e) {
-    if (e.key.match(/^[a-zA-Z]$/) && seedList.length < 16) {
+    if (e.key.match(/^[a-zA-Z]$/) && seedList.length < 15) {
       seedList.push(e.key)
       drawSeed()
     } else if (e.key === 'Backspace' && seedList.length > 0) {
@@ -374,7 +374,7 @@ Game.screens.classSeed.keyInput = function (e) {
 
   function drawSeed () {
     seedString = seedList.join('')
-    while (seedString.length < 16) { seedString += ' ' }
+    while (seedString.length < 15) { seedString += ' ' }
     seedString = '[' + seedString + ']'
 
     Game.screens.clearBlock(Game.UI.inputSeed)
