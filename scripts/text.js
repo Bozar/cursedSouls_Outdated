@@ -60,11 +60,19 @@ Game.text.modeLine = function (mode) {
 }
 
 Game.text.dev = function (error) {
+  let message = ''
+
   switch (error) {
     case 'mode':
-      return `ERROR: Mode undefined!\nCurrent screen: ` +
+      message = `Mode undefined!\nCurrent screen: ` +
         Game.screens._currentName + `.`
+      break
     case 'seed':
-      return `ERROR: Invalid seed: ` + Game.getSeed() + `.`
+      message = `Invalid seed: ` + Game.getSeed() + `.`
+      break
+    case 'browser':
+      message = `Rot.js is not supported by your browser.`
+      break
   }
+  return 'Error: ' + message
 }

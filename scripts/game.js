@@ -24,19 +24,25 @@ Game.getSeed = function () { return Game._seed }
 
 Game.feedRNG = function () {
   let seedList = str2List()
-  if (!seedList) {
-    if (Game.getDevelop()) {
-      console.log(Game.text.dev('seed'))
-    }
-  } else {
-    ROT.RNG.setSeed(list2Number())
-    Game.getDevelop()
-      ? console.log('RNG start: ' + ROT.RNG.getPercentage())
-      : ROT.RNG.getPercentage()
-  }
+  let randNumber = []
+
+  seedList
+    ? (function () {
+      ROT.RNG.setSeed(list2Number())
+      for (let i = 0; i < 10; i++) { randNumber.push(ROT.RNG.getUniform()) }
+
+      Game.getDevelop() && console.log('RNG start: ' +
+        JSON.stringify(randNumber, null, 2))
+    }())
+    : Game.getDevelop() && console.log(Game.text.dev('seed'))
 
   function str2List () {
     let seed = Game.getSeed()
+
+    // use random number as seed
+    if (Number.isInteger(Number.parseInt(seed, 10))) {
+      return [seed]
+    }
 
     if (seed.match(/^#/)) {
       seed = seed.slice(1)
@@ -46,15 +52,9 @@ Game.feedRNG = function () {
       seed.forEach((aplhabet, index, seedList) => {
         seedList[index] = aplhabet.charCodeAt(0) - 95
       })
-    } else if (seed.match(/^\d+$/)) {
-      seed = seed.split('')
     }
 
-    if (Array.isArray(seed)) {
-      return seed
-    } else {
-      return null   // invalid seed
-    }
+    return Array.isArray(seed) ? seed : null   // invalid seed
   }
 
   function list2Number () {
@@ -181,21 +181,24 @@ Game.keyboard.bindMap.set('move', new Map([
 
 Game.keyboard.getAction = function (keyInput, mode, bindMap) {
   if (!mode) {
-    if (Game.getDevelop()) { console.log(Game.text.dev('mode')) }
+    Game.getDevelop() && console.log(Game.text.dev('mode'))
     return null
   }
   let bindings = bindMap || Game.keyboard.bindMap
 
   for (const [key, value] of bindings.get(mode)) {
-    if (value.indexOf(keyInput.key) > -1) { return key }
+    return value.indexOf(keyInput.key) > -1 ? key : null
   }
 }
 
 Game.keyboard.listenEvent = function (event, handler) {
-  if (event === 'add') {
-    window.addEventListener('keydown', handler)
-  } else if (event === 'remove') {
-    window.removeEventListener('keydown', handler)
+  switch (event) {
+    case 'add':
+      window.addEventListener('keydown', handler)
+      break
+    case 'remove':
+      window.removeEventListener('keydown', handler)
+      break
   }
 }
 
@@ -214,9 +217,7 @@ Game.Screen.prototype.enter = function () {
 
   Game.screens.drawVersion()
   // do not show seed in the first screen
-  if (Game.screens._currentName !== 'classSeed') {
-    Game.screens.drawSeed()
-  }
+  Game.screens._currentName !== 'classSeed' && Game.screens.drawSeed()
   this.display()
 }
 
@@ -234,7 +235,7 @@ Game.Screen.prototype.display = function () {
 }
 
 Game.Screen.prototype.keyInput = function (e) {
-  if (Game.getDevelop()) { console.log('Key pressed: ' + e.key) }
+  Game.getDevelop() && console.log('Key pressed: ' + e.key)
 }
 
 Game.screens = {}
@@ -265,9 +266,7 @@ Game.screens.clearBlock = function (block, fillText) {
 Game.screens.drawVersion = function () {
   let version = Game.getVersion()
 
-  if (Game.getDevelop()) {
-    version = 'Wizard|' + version
-  }
+  Game.getDevelop() && (version = 'Wizard|' + version)
   Game.display.drawText(
     Game.UI.stat.getX() + Game.UI.stat.getWidth() - version.length,
     Game.UI.stat.getY(),
@@ -346,26 +345,30 @@ Game.screens.classSeed.keyInput = function (e) {
   }
 
   function confirm (e) {
-    if (e.key === 'y') {
-      Game.keyboard.listenEvent('remove', confirm)
+    switch (e.key) {
+      case 'y':
+        Game.keyboard.listenEvent('remove', confirm)
 
-      Game.screens.classSeed.exit()
-      Game.screens.prologue.enter()
-      Game.feedRNG()
+        Game.screens.classSeed.exit()
+        Game.screens.prologue.enter()
+        Game.feedRNG()
 
-      Game.keyboard.listenEvent('add', Game.screens.prologue.keyInput)
-    } else if (e.key === 'n') {
-      Game.keyboard.listenEvent('remove', confirm)
+        Game.keyboard.listenEvent('add', Game.screens.prologue.keyInput)
+        break
+      case 'n':
+        Game.keyboard.listenEvent('remove', confirm)
 
-      if (!(Game.getSeed() && Game.getSeed().match(/^#/))) {
-        // do not overwrite internal seed: '#1234567', '#abcdefg', etc.
-        Game.setSeed(null)
-      }
-      Game.test.store.PC = null
+        if (!(Game.getSeed() && Game.getSeed().match(/^#/))) {
+          // do not overwrite internal seed: '#1234567', '#abcdefg', etc.
+          Game.setSeed(null)
+        }
+        Game.test.store.PC = null
 
-      Game.screens.classSeed.exit()
-      Game.screens.classSeed.enter()
-      Game.keyboard.listenEvent('add', Game.screens.classSeed.keyInput)
+        Game.screens.classSeed.exit()
+        Game.screens.classSeed.enter()
+
+        Game.keyboard.listenEvent('add', Game.screens.classSeed.keyInput)
+        break
     }
   }
 
@@ -443,20 +446,11 @@ Game.UI.message.print = function () {
 
 window.onload = function () {
   if (!ROT.isSupported()) {
-    window.alert('Rot.js is not supported by your browser.')
+    window.alert(Game.text.dev('browser'))
     return
   }
   document.getElementById('game').appendChild(Game.display.getContainer())
 
   Game.screens.classSeed.enter()
   Game.keyboard.listenEvent('add', Game.screens.classSeed.keyInput)
-
-  // ROT.RNG.setSeed(123456789012345)
-  // http://www.gridsagegames.com/blog/2017/05/working-seeds/
-  // a: 2, b: 3, c: 4, ...
-  // if (num.length < 16) {num1*num2} else {num1/num2}
-  // Game.display.draw(10, 5, ROT.RNG.getUniform())
-  // Game.display.draw(10, 6, ROT.RNG.getUniform())
-  // Game.display.draw(10, 7, ROT.RNG.getUniform())
-  // Game.display.draw(10, 8, '[A]')
 }
