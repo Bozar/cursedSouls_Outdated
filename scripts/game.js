@@ -2,14 +2,69 @@
 
 var Game = {}
 Game._version = '0.0.1-dev'
+Game._develop = true
 Game.getVersion = function () { return Game._version }
+Game.getDevelop = function () { return Game._develop }
 
-Game._seed = ''
-Game.setSeed = function (seed) { this._seed = seed }
+Game._seed = null
+// Game._seed = '#helloWorld'
+// Game._seed = '#12345'
+Game.setSeed = function (seed) {
+  // set a testing seed (beginning with '#') in game.js
+  if (this._seed && this._seed.match(/^#/)) { return }
+
+  if (seed && seed.match(/^[a-zA-z]+$/)) {
+    this._seed = seed
+  } else if (seed === '') {
+    this._seed =
+      Math.floor((Math.random() * 9 + 1) * Math.pow(10, 4)).toString()
+  }
+}
 Game.getSeed = function () { return Game._seed }
 
-Game._develop = true
-Game.getDevelop = function () { return Game._develop }
+Game.feedRNG = function () {
+  let seedList = str2List()
+  if (!seedList) {
+    if (Game.getDevelop()) {
+      console.log(Game.text.dev('seed'))
+    }
+  } else {
+    ROT.RNG.setSeed(list2Number())
+    Game.getDevelop()
+      ? console.log('RNG start: ' + ROT.RNG.getPercentage())
+      : ROT.RNG.getPercentage()
+  }
+
+  function str2List () {
+    let seed = Game.getSeed()
+
+    if (seed.match(/^#/)) {
+      seed = seed.slice(1)
+    }
+    if (seed.match(/^[a-zA-z]+$/)) {
+      seed = seed.toLowerCase().split('')
+      seed.forEach((aplhabet, index, seedList) => {
+        seedList[index] = aplhabet.charCodeAt(0) - 95
+      })
+    } else if (seed.match(/^\d+$/)) {
+      seed = seed.split('')
+    }
+
+    if (Array.isArray(seed)) {
+      return seed
+    } else {
+      return null   // invalid seed
+    }
+  }
+
+  function list2Number () {
+    let rngSeed = 1
+    for (let i = 0; i < seedList.length; i++) {
+      rngSeed.length < 16 ? rngSeed *= seedList[i] : rngSeed /= seedList[i]
+    }
+    return rngSeed
+  }
+}
 
 Game.UI = function (width, height, top, right, bottom, left) {
   this._width = width || null
@@ -126,10 +181,7 @@ Game.keyboard.bindMap.set('move', new Map([
 
 Game.keyboard.getAction = function (keyInput, mode, bindMap) {
   if (!mode) {
-    if (Game.getDevelop()) {
-      console.log('ERROR: Mode undefined!\nCurrent screen: ' +
-        Game.screens._currentName + '.')
-    }
+    if (Game.getDevelop()) { console.log(Game.text.dev('mode')) }
     return null
   }
   let bindings = bindMap || Game.keyboard.bindMap
@@ -156,13 +208,16 @@ Game.Screen.prototype.getName = function () { return this._name }
 Game.Screen.prototype.getMode = function () { return this._mode }
 Game.Screen.prototype.setMode = function (mode) { this._mode = mode || 'main' }
 
-Game.Screen.prototype.enter = function (display) {
+Game.Screen.prototype.enter = function () {
   Game.screens._currentName = this.getName()
   Game.screens._currentMode = this.getMode()
 
   Game.screens.drawVersion()
-  Game.screens.drawSeed()
-  display()
+  // do not show seed in the first screen
+  if (Game.screens._currentName !== 'classSeed') {
+    Game.screens.drawSeed()
+  }
+  this.display()
 }
 
 Game.Screen.prototype.exit = function () {
@@ -179,9 +234,7 @@ Game.Screen.prototype.display = function () {
 }
 
 Game.Screen.prototype.keyInput = function (e) {
-  if (Game.getDevelop()) {
-    console.log('Key pressed: ' + e.key)
-  }
+  if (Game.getDevelop()) { console.log('Key pressed: ' + e.key) }
 }
 
 Game.screens = {}
@@ -203,7 +256,8 @@ Game.screens.clearBlock = function (block, fillText) {
 
   for (let i = x; i < x + block.getWidth(); i++) {
     for (let j = y; j < y + block.getHeight(); j++) {
-      Game.display.draw(i, j, fillText || null)  // blank by default
+      // blank by default
+      Game.display.draw(i, j, fillText || null)
     }
   }
 }
@@ -296,17 +350,21 @@ Game.screens.classSeed.keyInput = function (e) {
       Game.keyboard.listenEvent('remove', confirm)
 
       Game.screens.classSeed.exit()
-      Game.screens.prologue.enter(Game.screens.prologue.display)
+      Game.screens.prologue.enter()
+      Game.feedRNG()
 
       Game.keyboard.listenEvent('add', Game.screens.prologue.keyInput)
     } else if (e.key === 'n') {
       Game.keyboard.listenEvent('remove', confirm)
 
-      Game.setSeed(null)
+      if (!(Game.getSeed() && Game.getSeed().match(/^#/))) {
+        // do not overwrite internal seed: '#1234567', '#abcdefg', etc.
+        Game.setSeed(null)
+      }
       Game.test.store.PC = null
 
       Game.screens.classSeed.exit()
-      Game.screens.classSeed.enter(Game.screens.classSeed.display)
+      Game.screens.classSeed.enter()
       Game.keyboard.listenEvent('add', Game.screens.classSeed.keyInput)
     }
   }
@@ -346,7 +404,7 @@ Game.test.upper = function (text) {
 }
 
 Game.test.store = {}
-Game.test.store.PC = 'chooseA'
+Game.test.store.PC = null
 
 // TODO: move the methods of UI.message to somewhere else
 Game.UI.message._msgList = (function () {
@@ -370,7 +428,7 @@ Game.UI.message.print = function () {
 
   for (let i = 0; i < msgList.length; i++) {
     Game.display.drawText(
-      Game.UI.message.getX(),     // x
+      Game.UI.message.getX(),
       // Game.UI.message.getPadLeft(),     // x
       Game.UI.message.getY() + i,
       // Game.UI.canvas.getHeight() -
@@ -390,7 +448,7 @@ window.onload = function () {
   }
   document.getElementById('game').appendChild(Game.display.getContainer())
 
-  Game.screens.classSeed.enter(Game.screens.classSeed.display)
+  Game.screens.classSeed.enter()
   Game.keyboard.listenEvent('add', Game.screens.classSeed.keyInput)
 
   // ROT.RNG.setSeed(123456789012345)

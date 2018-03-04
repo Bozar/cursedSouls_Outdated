@@ -58,3 +58,13 @@ Game.text.modeLine = function (mode) {
       return 'Press y or n'
   }
 }
+
+Game.text.dev = function (error) {
+  switch (error) {
+    case 'mode':
+      return `ERROR: Mode undefined!\nCurrent screen: ` +
+        Game.screens._currentName + `.`
+    case 'seed':
+      return `ERROR: Invalid seed: ` + Game.getSeed() + `.`
+  }
+}
