@@ -50,6 +50,8 @@ Game.text.modeLine = function (mode) {
   switch (mode) {
     case 'select':
       return 'Press a, b or c'
+    case 'space':
+      return 'Press Space to continue'
     case 'enter':
       return 'Press Enter to confirm'
     case 'backspace':
@@ -74,5 +76,6 @@ Game.text.dev = function (error) {
       message = `Rot.js is not supported by your browser.`
       break
   }
+
   return 'Error: ' + message
 }

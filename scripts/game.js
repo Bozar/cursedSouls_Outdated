@@ -29,7 +29,7 @@ Game.feedRNG = function () {
   seedList
     ? (function () {
       ROT.RNG.setSeed(list2Number())
-      for (let i = 0; i < 10; i++) { randNumber.push(ROT.RNG.getUniform()) }
+      for (let i = 0; i < 5; i++) { randNumber.push(ROT.RNG.getUniform()) }
 
       Game.getDevelop() && console.log('RNG start: ' +
         JSON.stringify(randNumber, null, 2))
@@ -39,7 +39,6 @@ Game.feedRNG = function () {
   function str2List () {
     let seed = Game.getSeed()
 
-    // use random number as seed
     if (seed.match(/^\d{5}$/)) {
       return [Number.parseInt(seed, 10)]
     }
@@ -241,6 +240,7 @@ Game.Screen.prototype.keyInput = function (e) {
 Game.screens = {}
 Game.screens._currentName = null
 Game.screens._currentMode = null
+Game.screens._message = []
 
 // general version
 // Game.screens.clearBlock = function (x, y, width, height, fillText) {
@@ -284,6 +284,32 @@ Game.screens.drawSeed = function () {
 
 Game.screens.drawModeLine = function (text) {
   Game.display.drawText(Game.UI.modeLine.getX(), Game.UI.modeLine.getY(), text)
+}
+
+Game.screens.drawMessage = function (message) {
+  message = message ? String(message) : 'Testing message'
+  let uiWidth = Game.UI.message.getWidth()
+  let uiHeight = Game.UI.message.getHeight()
+  let msgList = Game.screens._message
+
+  msgList.push(message)
+  while (blockHeight() > uiHeight) {
+    msgList = msgList.slice(1)
+  }
+
+  Game.screens.clearBlock(Game.UI.message)
+  Game.display.drawText(Game.UI.message.getX(),
+      Game.UI.message.getY() + uiHeight - blockHeight(),
+      msgList.join('\n'),
+      uiWidth)
+
+  function blockHeight () {
+    let height = 0
+    for (let i = 0; i < msgList.length; i++) {
+      height += Math.ceil(msgList[i].length / uiWidth)
+    }
+    return height
+  }
 }
 
 Game.screens.classSeed = new Game.Screen('classSeed')
@@ -386,19 +412,22 @@ Game.screens.prologue = new Game.Screen('prologue')
 Game.screens.prologue.display = function () {
   Game.display.drawText(Game.UI.start.getX(), Game.UI.start.getY(),
     Game.text.prologue(Game.test.store.PC), Game.UI.start.getWidth())
+
+  Game.screens.drawModeLine(Game.text.modeLine('space'))
 }
 
 Game.screens.prologue.keyInput = function (e) {
   if (e.key === ' ') {
-    console.log('switch screen')
-  } else if (e.shiftKey) {
-    if (e.key === 'Y') {
-      console.log('Yes pressed')
-    } else {
-      console.log('not Yes ' + e.key)
-    }
+    Game.keyboard.listenEvent('remove', Game.screens.prologue.keyInput)
+
+    Game.screens.prologue.exit()
+    Game.screens.main.enter()
+
+    Game.keyboard.listenEvent('add', Game.screens.main.keyInput)
   }
 }
+
+Game.screens.main = new Game.Screen('main')
 
 // ===== Test =====
 Game.test = {}
@@ -409,39 +438,6 @@ Game.test.upper = function (text) {
 Game.test.store = {}
 Game.test.store.PC = null
 
-// TODO: move the methods of UI.message to somewhere else
-Game.UI.message._msgList = (function () {
-  let emptyList = new Array(Game.UI.message.getHeight())
-  for (let i = 0; i < emptyList.length; i++) {
-    emptyList[i] = ''
-  }
-  return emptyList
-}())
-
-Game.UI.message.add = function (msg) {
-  let updatedMsg = Game.UI.message._msgList.slice(
-    Math.ceil(msg.length / Game.UI.message.getWidth()))
-
-  updatedMsg.push(msg)
-  Game.UI.message._msgList = updatedMsg
-}
-
-Game.UI.message.print = function () {
-  let msgList = Game.UI.message._msgList
-
-  for (let i = 0; i < msgList.length; i++) {
-    Game.display.drawText(
-      Game.UI.message.getX(),
-      // Game.UI.message.getPadLeft(),     // x
-      Game.UI.message.getY() + i,
-      // Game.UI.canvas.getHeight() -
-      // Game.UI.modeLine.getBoxHeight() - Game.UI.message.getBoxHeight() +
-      // Game.UI.message.getPadTop() + i,  // y
-      msgList[i],
-      Game.UI.message.getWidth())
-  }
-}
-
 // ===== Test End =====
 
 window.onload = function () {
@@ -450,7 +446,7 @@ window.onload = function () {
     return
   }
   document.getElementById('game').appendChild(Game.display.getContainer())
-
   Game.screens.classSeed.enter()
+
   Game.keyboard.listenEvent('add', Game.screens.classSeed.keyInput)
 }
