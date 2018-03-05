@@ -3,79 +3,77 @@
 Game.text = {}
 
 Game.text.selectClass = function (choice) {
-  switch (choice) {
-    case 'dio':
-      return '\nYour choice: Striker'
-    case 'hulk':
-      return '\nYour choice: Enhancer'
-    case 'lasombra':
-      return '\nYour choice: Controller'
-    default:    // initial screen
-      return `Please read the manual.\n\nChoose your class:\
-\n\nA. Striker    (Easy)\nB. Enhancer   (Normal)\nC. Controller (Hard)`
-  }
+  let text = new Map()
+
+  text.set('initial', `Please read the manual.\n\nChoose your class:\
+\n\nA. Striker    (Easy)\nB. Enhancer   (Normal)\nC. Controller (Hard)`)
+
+  text.set('dio', '\nYour choice: Striker')
+  text.set('hulk', '\nYour choice: Enhancer')
+  text.set('lasombra', '\nYour choice: Controller')
+
+  return text.get(choice)
 }
 
-Game.text.describeSeed = function () {
-  return `Enter your seed:\n\n\
+Game.text.enterSeed = function (when) {
+  let text = new Map()
+
+  text.set('enter', `Enter your seed:\n\n\
 * No more than 15 case-insensitive alphabets\n\
-* Leave blank for a random seed\n\n[               ]`
-}
+* Leave blank for a random seed\n\n[               ]`)
 
-Game.text.confirmDecision = function () {
-  return `Would you like to continue?`
+  text.set('confirm', 'Would you like to continue?')
+
+  return text.get(when)
 }
 
 Game.text.prologue = function (choice) {
-  let text = `You find yourself lying on the moist ground, \
+  let text = new Map()
+
+  text.set('para1', `You find yourself lying on the moist ground, \
 like a nameless body in the morgue, who is neither known to anyone in life, \
 nor in death. Sea of shadows surrounds you. Weepings and whispers, \
-as gentle as a breeze, blows in your mind.\n\n`
+as gentle as a breeze, blows in your mind.\n\n`)
 
-  let dio = `choose striker`
-  let hulk = `choose enhancer`
-  let lasombra = `choose controller`
+  text.set('dio', `choose striker`)
+  text.set('hulk', `choose enhancer`)
+  text.set('lasombra', `choose controller`)
 
-  switch (choice) {
-    case 'dio':
-      return (text += dio)
-    case 'hulk':
-      return (text += hulk)
-    case 'lasombra':
-      return (text += lasombra)
-  }
+  return text.get('para1') + text.get(choice)
+}
+
+Game.text.spell = function (pcClass, level) {
+
 }
 
 Game.text.modeLine = function (mode) {
-  switch (mode) {
-    case 'select':
-      return 'Press a, b or c'
-    case 'space':
-      return 'Press Space to continue'
-    case 'enter':
-      return 'Press Enter to confirm'
-    case 'backspace':
-      return ', Backspace to delete'
-    case 'yesNoLower':
-      return 'Press y or n'
-  }
+  let text = new Map()
+
+  text.set('select', 'Press a, b or c')
+  text.set('space', 'Press Space to continue')
+  text.set('enter', 'Press Enter to confirm')
+  text.set('backspace', ', Backspace to delete')
+  text.set('yesNoLower', 'Press y or n')
+
+  return text.get(mode)
 }
 
-Game.text.dev = function (error) {
-  let message = ''
+Game.text.devError = function (error) {
+  let text = new Map()
 
-  switch (error) {
-    case 'mode':
-      message = `Mode undefined!\nCurrent screen: ` +
-        Game.screens._currentName + `.`
-      break
-    case 'seed':
-      message = `Invalid seed: ` + Game.getSeed() + `.`
-      break
-    case 'browser':
-      message = `Rot.js is not supported by your browser.`
-      break
-  }
+  text.set('mode',
+    'Mode undefined!\nCurrent screen: ' + Game.screens._currentName + '.')
+  text.set('seed', 'Invalid seed: ' + Game.getSeed() + '.')
+  text.set('browser', 'Rot.js is not supported by your browser.')
+  text.set('message', 'Game.screens.drawMessage() has no argument.')
 
-  return 'Error: ' + message
+  return '[Error] ' + text.get(error)
+}
+
+Game.text.devNote = function (note) {
+  let text = new Map()
+
+  text.set('rng', 'RNG start: ')
+
+  return '[Note] ' + text.get(note)
 }
