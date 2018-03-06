@@ -115,7 +115,7 @@ Game.display = new ROT.Display({
 // | Dungeon  (?) | Stat |
 // | Message  (5) | Stat |
 // | Modeline (1) | Stat |
-Game.UI.stat = new Game.UI(15, null, 0.5, 1, 0.5, 0)
+Game.UI.stat = new Game.UI(15, null, 0.5, 1, 0.5, 1)
 Game.UI.stat._height = Game.UI.canvas.getHeight() -
   Game.UI.stat.getPadTop() - Game.UI.stat.getPadBottom()
 
@@ -123,7 +123,7 @@ Game.UI.stat._x = Game.UI.canvas.getWidth() -
   Game.UI.stat.getPadRight() - Game.UI.stat.getWidth()
 Game.UI.stat._y = Game.UI.stat.getPadTop()
 
-Game.UI.modeLine = new Game.UI(null, 1, 0, 0, Game.UI.stat.getPadBottom(), 1)
+Game.UI.modeLine = new Game.UI(null, 1, 0.3, 0, Game.UI.stat.getPadBottom(), 1)
 Game.UI.modeLine._width = Game.UI.canvas.getWidth() -
   Game.UI.modeLine.getPadLeft() - Game.UI.modeLine.getPadRight() -
   Game.UI.stat.getBoxWidth()
@@ -149,7 +149,7 @@ Game.UI.column2._padLeft = 0
 Game.UI.column2._x = Game.UI.column1.getX() + Game.UI.column1.getWidth()
 
 Game.UI.message = new Game.UI(Game.UI.modeLine.getWidth(), 5,
-  0, 0, 0, Game.UI.modeLine.getPadLeft())
+  1, 0, 0, Game.UI.modeLine.getPadLeft())
 
 Game.UI.message._x = Game.UI.modeLine.getX()
 Game.UI.message._y = Game.UI.canvas.getHeight() -
@@ -157,8 +157,8 @@ Game.UI.message._y = Game.UI.canvas.getHeight() -
   Game.UI.message.getPadBottom() - Game.UI.message.getHeight()
 
 Game.UI.dungeon = new Game.UI(Game.UI.modeLine.getWidth(),
-  Game.UI.message.getY() - Game.UI.spell.getY() -
-  Game.UI.message.getPadTop() - Game.UI.spell.getPadBottom(),
+  Game.UI.canvas.getHeight() - Game.UI.spell.getBoxHeight() -
+  Game.UI.message.getBoxHeight() - Game.UI.modeLine.getBoxHeight(),
   0, 0, 0, Game.UI.modeLine.getPadLeft())
 
 Game.UI.dungeon._x = Game.UI.modeLine.getX()
@@ -283,23 +283,25 @@ Game.screens.colorfulText = function (text, color) {
   return '%c{' + Game.screens.getColor(color) + '}' + text + '%c{}'
 }
 
+Game.screens.drawAlignRight = function (x, y, width, text, color) {
+  Game.display.drawText(x + width - text.length, y,
+    color ? Game.screens.colorfulText(text, color) : text)
+}
+
 Game.screens.drawVersion = function () {
   let version = Game.getVersion()
 
   Game.getDevelop() && (version = 'Wiz|' + version)
-  Game.display.drawText(
-    Game.UI.stat.getX() + Game.UI.stat.getWidth() - version.length,
-    Game.UI.stat.getY(),
-    version)
+  Game.screens.drawAlignRight(Game.UI.stat.getX(), Game.UI.stat.getY(),
+    Game.UI.stat.getWidth(), version)
 }
 
 Game.screens.drawSeed = function () {
   if (!Game.getSeed()) { return }
 
-  Game.display.drawText(
-    Game.UI.stat.getX() + Game.UI.stat.getWidth() - Game.getSeed().length,
-    Game.UI.stat.getY() + Game.UI.stat.getHeight() - 1,
-    Game.getSeed())
+  Game.screens.drawAlignRight(
+    Game.UI.stat.getX(), Game.UI.stat.getY() + Game.UI.stat.getHeight() - 1,
+    Game.UI.stat.getWidth(), Game.getSeed())
 }
 
 Game.screens.drawModeLine = function (text) {
@@ -467,26 +469,27 @@ Game.screens.prologue.keyInput = function (e) {
 
 Game.screens.main = new Game.Screen('main')
 Game.screens.main.display = function () {
+  let ui = Game.UI
+
   Game.screens.drawVersion()
   Game.screens.drawSeed()
 
+  Game.display.drawText(ui.stat.getX() + ui.stat.getWidth() - 8,
+    ui.stat.getY() + 1.5, 'En%b{green}hanc%b{}er')
+
   Game.screens.drawSpell()
 
-  for (let i = Game.UI.stat.getY(); i < Game.UI.stat.getHeight(); i++) {
-    Game.display.draw(Game.UI.stat.getX() - 1, i, '|')
+  for (let i = ui.stat.getY(); i < ui.stat.getHeight(); i++) {
+    Game.display.draw(ui.stat.getX() - 1, i, '|')
   }
-  for (let i = Game.UI.spell.getX(); i < Game.UI.spell.getWidth(); i++) {
-    Game.display.draw(i, Game.UI.spell.getHeight() + 0.5, '-')
-    Game.display.draw(i, Game.UI.dungeon.getHeight() + 0.7, '-')
+  for (let i = ui.spell.getX(); i < ui.spell.getWidth() + 1; i++) {
+    Game.display.draw(i, ui.spell.getY() + ui.spell.getHeight(), '-')
+    Game.display.draw(i, ui.dungeon.getY() + ui.dungeon.getHeight(), '-')
   }
 
-  Game.display.drawText(
-    Game.UI.spell.getX() + Game.UI.spell.getWidth() -
-    Game.text.spell(3).length - 1,
-    Game.UI.spell.getY() + 1,
-    Game.screens.colorfulText(Game.text.spell(3),
-      Game.tmp.level === 1 ? 'grey' : null
-    ))
+  Game.screens.drawAlignRight(ui.spell.getX(), ui.spell.getY() + 1,
+    ui.spell.getWidth(), Game.text.spell(3),
+    Game.tmp.level === 1 ? 'grey' : null)
 }
 
 Game.screens.main.keyInput = function (e) {
