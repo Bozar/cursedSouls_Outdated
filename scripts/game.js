@@ -31,10 +31,10 @@ Game.feedRNG = function () {
       ROT.RNG.setSeed(list2Number())
       for (let i = 0; i < 5; i++) { randNumber.push(ROT.RNG.getUniform()) }
 
-      Game.getDevelop() && console.log('RNG start: ' +
+      Game.getDevelop() && console.log(Game.text.devNote('rng') +
         JSON.stringify(randNumber, null, 2))
     }())
-    : Game.getDevelop() && console.log(Game.text.dev('seed'))
+    : Game.getDevelop() && console.log(Game.text.devError('seed'))
 
   function str2List () {
     let seed = Game.getSeed()
@@ -138,6 +138,17 @@ Game.UI.spell = new Game.UI(Game.UI.modeLine.getWidth(), 2,
 Game.UI.spell._x = Game.UI.modeLine.getX()
 Game.UI.spell._y = Game.UI.stat.getY()
 
+Game.UI.column1 = new Game.UI()
+Object.assign(Game.UI.column1, Game.UI.spell)
+Game.UI.column1._width = 21
+
+Game.UI.column2 = new Game.UI()
+Object.assign(Game.UI.column2, Game.UI.spell)
+Game.UI.column2._width = 21
+Game.UI.column2._padLeft = 0
+
+Game.UI.column2._x = Game.UI.column1.getX() + Game.UI.column1.getWidth()
+
 Game.UI.message = new Game.UI(Game.UI.modeLine.getWidth(), 5,
   0, 0, 0, Game.UI.modeLine.getPadLeft())
 
@@ -180,7 +191,7 @@ Game.keyboard.bindMap.set('move', new Map([
 
 Game.keyboard.getAction = function (keyInput, mode, bindMap) {
   if (!mode) {
-    Game.getDevelop() && console.log(Game.text.dev('mode'))
+    Game.getDevelop() && console.log(Game.text.devError('mode'))
     return null
   }
   let bindings = bindMap || Game.keyboard.bindMap
@@ -191,6 +202,10 @@ Game.keyboard.getAction = function (keyInput, mode, bindMap) {
 }
 
 Game.keyboard.listenEvent = function (event, handler) {
+  handler = Game.screens[String(handler)]
+    ? Game.screens[handler].keyInput
+    : handler
+
   switch (event) {
     case 'add':
       window.addEventListener('keydown', handler)
@@ -214,9 +229,6 @@ Game.Screen.prototype.enter = function () {
   Game.screens._currentName = this.getName()
   Game.screens._currentMode = this.getMode()
 
-  Game.screens.drawVersion()
-  // do not show seed in the first screen
-  Game.screens._currentName !== 'classSeed' && Game.screens.drawSeed()
   this.display()
 }
 
@@ -240,7 +252,14 @@ Game.Screen.prototype.keyInput = function (e) {
 Game.screens = {}
 Game.screens._currentName = null
 Game.screens._currentMode = null
+Game.screens._spellLevel = 1
 Game.screens._message = []
+
+Game.screens._color = new Map()
+Game.screens._color.set(null, '')
+Game.screens._color.set('grey', '#666666')
+
+Game.screens.getColor = function (color) { return this._color.get(color) }
 
 // general version
 // Game.screens.clearBlock = function (x, y, width, height, fillText) {
@@ -257,16 +276,19 @@ Game.screens.clearBlock = function (block, fillText) {
 
   for (let i = x; i < x + block.getWidth(); i++) {
     for (let j = y; j < y + block.getHeight(); j++) {
-      // blank by default
-      Game.display.draw(i, j, fillText || null)
+      Game.display.draw(i, j, fillText || null)   // blank by default
     }
   }
+}
+
+Game.screens.colorfulText = function (text, color) {
+  return '%c{' + Game.screens.getColor(color) + '}' + text + '%c{}'
 }
 
 Game.screens.drawVersion = function () {
   let version = Game.getVersion()
 
-  Game.getDevelop() && (version = 'Wizard|' + version)
+  Game.getDevelop() && (version = 'Wiz|' + version)
   Game.display.drawText(
     Game.UI.stat.getX() + Game.UI.stat.getWidth() - version.length,
     Game.UI.stat.getY(),
@@ -287,7 +309,7 @@ Game.screens.drawModeLine = function (text) {
 }
 
 Game.screens.drawMessage = function (message) {
-  message = message ? String(message) : 'Testing message'
+  message = message ? String(message) : Game.text.devError('message')
   let uiWidth = Game.UI.message.getWidth()
   let uiHeight = Game.UI.message.getHeight()
   let msgList = Game.screens._message
@@ -299,9 +321,9 @@ Game.screens.drawMessage = function (message) {
 
   Game.screens.clearBlock(Game.UI.message)
   Game.display.drawText(Game.UI.message.getX(),
-      Game.UI.message.getY() + uiHeight - blockHeight(),
-      msgList.join('\n'),
-      uiWidth)
+    Game.UI.message.getY() + uiHeight - blockHeight(),
+    msgList.join('\n'),
+    uiWidth)
 
   function blockHeight () {
     let height = 0
@@ -312,13 +334,28 @@ Game.screens.drawMessage = function (message) {
   }
 }
 
+Game.screens.drawSpell = function () {
+  Game.display.drawText(
+    Game.UI.column1.getX(), Game.UI.column1.getY(),
+    Game.text.spell(1, Game.screens._spellLevel,
+      Game.screens._spellLevel === 3 ? Game.test.PC : null),
+    Game.UI.column1.getWidth())
+
+  Game.display.drawText(
+    Game.UI.column2.getX(), Game.UI.column2.getY(),
+    Game.text.spell(2, Game.screens._spellLevel, Game.test.PC),
+    Game.UI.column2.getWidth())
+}
+
 Game.screens.classSeed = new Game.Screen('classSeed')
 Game.screens.classSeed.display = function () {
   let x = Game.UI.start.getX()
   let y = Game.UI.start.getY()
   let width = Game.UI.start.getWidth()
 
-  Game.display.drawText(x, y, Game.text.selectClass(), width)
+  Game.screens.drawVersion()
+
+  Game.display.drawText(x, y, Game.text.selectClass('initial'), width)
   Game.screens.drawModeLine(Game.text.modeLine('select'))
 }
 
@@ -331,21 +368,21 @@ Game.screens.classSeed.keyInput = function (e) {
   if (e.key.match(/^[a|b|c]$/)) {
     switch (e.key) {
       case 'a':
-        Game.test.store.PC = 'dio'
+        Game.test.PC = 'dio'
         break
       case 'b':
-        Game.test.store.PC = 'hulk'
+        Game.test.PC = 'hulk'
         break
       case 'c':
-        Game.test.store.PC = 'lasombra'
+        Game.test.PC = 'lasombra'
         break
     }
-    Game.keyboard.listenEvent('remove', Game.screens.classSeed.keyInput)
+    Game.keyboard.listenEvent('remove', 'classSeed')
 
     Game.screens.clearBlock(Game.UI.modeLine)
-    Game.display.drawText(x, y, Game.text.selectClass(Game.test.store.PC))
-    Game.display.drawText(x, y + 3, Game.text.describeSeed())
-    Game.screens.drawModeLine(Game.text.modeLine('enter') +
+    Game.display.drawText(x, y, Game.text.selectClass(Game.test.PC))
+    Game.display.drawText(x, y + 3, Game.text.enterSeed('enter'))
+    Game.screens.drawModeLine(Game.text.modeLine('space') +
       Game.text.modeLine('backspace'))
 
     Game.keyboard.listenEvent('add', verifySeed)
@@ -358,12 +395,12 @@ Game.screens.classSeed.keyInput = function (e) {
     } else if (e.key === 'Backspace' && seedList.length > 0) {
       seedList = seedList.slice(0, seedList.length - 1)
       drawSeed()
-    } else if (e.key === 'Enter') {
+    } else if (e.key === ' ') {
       Game.setSeed(seedList.join(''))
       Game.keyboard.listenEvent('remove', verifySeed)
 
       Game.screens.clearBlock(Game.UI.modeLine)
-      Game.display.drawText(x, y + 10, Game.text.confirmDecision())
+      Game.display.drawText(x, y + 10, Game.text.enterSeed('confirm'))
       Game.screens.drawModeLine(Game.text.modeLine('yesNoLower'))
 
       Game.keyboard.listenEvent('add', confirm)
@@ -379,7 +416,7 @@ Game.screens.classSeed.keyInput = function (e) {
         Game.screens.prologue.enter()
         Game.feedRNG()
 
-        Game.keyboard.listenEvent('add', Game.screens.prologue.keyInput)
+        Game.keyboard.listenEvent('add', 'prologue')
         break
       case 'n':
         Game.keyboard.listenEvent('remove', confirm)
@@ -388,12 +425,12 @@ Game.screens.classSeed.keyInput = function (e) {
           // do not overwrite internal seed: '#1234567', '#abcdefg', etc.
           Game.setSeed(null)
         }
-        Game.test.store.PC = null
+        Game.test.PC = null
 
         Game.screens.classSeed.exit()
         Game.screens.classSeed.enter()
 
-        Game.keyboard.listenEvent('add', Game.screens.classSeed.keyInput)
+        Game.keyboard.listenEvent('add', 'classSeed')
         break
     }
   }
@@ -410,24 +447,53 @@ Game.screens.classSeed.keyInput = function (e) {
 
 Game.screens.prologue = new Game.Screen('prologue')
 Game.screens.prologue.display = function () {
+  Game.screens.drawVersion()
+  Game.screens.drawSeed()
+
   Game.display.drawText(Game.UI.start.getX(), Game.UI.start.getY(),
-    Game.text.prologue(Game.test.store.PC), Game.UI.start.getWidth())
+    Game.text.prologue(Game.test.PC), Game.UI.start.getWidth())
 
   Game.screens.drawModeLine(Game.text.modeLine('space'))
 }
 
 Game.screens.prologue.keyInput = function (e) {
   if (e.key === ' ') {
-    Game.keyboard.listenEvent('remove', Game.screens.prologue.keyInput)
+    Game.keyboard.listenEvent('remove', 'prologue')
 
     Game.screens.prologue.exit()
     Game.screens.main.enter()
 
-    Game.keyboard.listenEvent('add', Game.screens.main.keyInput)
+    Game.keyboard.listenEvent('add', 'main')
   }
 }
 
 Game.screens.main = new Game.Screen('main')
+Game.screens.main.display = function () {
+  Game.screens.drawVersion()
+  Game.screens.drawSeed()
+
+  Game.screens.drawSpell()
+
+  Game.display.drawText(
+    Game.UI.spell.getWidth() - Game.text.spell(3).length,
+    Game.UI.spell.getY() + 1,
+    Game.screens.colorfulText(Game.text.spell(3),
+      Game.test.level === 1 ? 'grey' : null
+    ))
+}
+
+Game.screens.main.keyInput = function (e) {
+  if (e.key === ' ') {
+    Game.screens.clearBlock(Game.UI.column1)
+    Game.screens.clearBlock(Game.UI.column2)
+
+    Game.screens._spellLevel = Game.screens._spellLevel === Game.test.level
+      ? 1
+      : Game.screens._spellLevel + 1
+
+    Game.screens.drawSpell()
+  }
+}
 
 // ===== Test =====
 Game.test = {}
@@ -435,18 +501,18 @@ Game.test.upper = function (text) {
   return text.toUpperCase()
 }
 
-Game.test.store = {}
-Game.test.store.PC = null
+Game.test.PC = null
+Game.test.level = 3
 
 // ===== Test End =====
 
 window.onload = function () {
   if (!ROT.isSupported()) {
-    window.alert(Game.text.dev('browser'))
+    window.alert(Game.text.devError('browser'))
     return
   }
   document.getElementById('game').appendChild(Game.display.getContainer())
   Game.screens.classSeed.enter()
 
-  Game.keyboard.listenEvent('add', Game.screens.classSeed.keyInput)
+  Game.keyboard.listenEvent('add', 'classSeed')
 }
