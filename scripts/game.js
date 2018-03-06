@@ -133,18 +133,17 @@ Game.UI.modeLine._y = Game.UI.canvas.getHeight() -
   Game.UI.modeLine.getPadBottom() - Game.UI.modeLine.getHeight()
 
 Game.UI.spell = new Game.UI(Game.UI.modeLine.getWidth(), 2,
-  Game.UI.stat.getPadTop(), 0, 0, Game.UI.modeLine.getPadLeft())
+  Game.UI.stat.getPadTop(), 0, 1, Game.UI.modeLine.getPadLeft())
 
 Game.UI.spell._x = Game.UI.modeLine.getX()
 Game.UI.spell._y = Game.UI.stat.getY()
 
 Game.UI.column1 = new Game.UI()
 Object.assign(Game.UI.column1, Game.UI.spell)
-Game.UI.column1._width = 21
+Game.UI.column1._width = 22
 
 Game.UI.column2 = new Game.UI()
-Object.assign(Game.UI.column2, Game.UI.spell)
-Game.UI.column2._width = 21
+Object.assign(Game.UI.column2, Game.UI.column1)
 Game.UI.column2._padLeft = 0
 
 Game.UI.column2._x = Game.UI.column1.getX() + Game.UI.column1.getWidth()
@@ -158,9 +157,8 @@ Game.UI.message._y = Game.UI.canvas.getHeight() -
   Game.UI.message.getPadBottom() - Game.UI.message.getHeight()
 
 Game.UI.dungeon = new Game.UI(Game.UI.modeLine.getWidth(),
-  Game.UI.canvas.getHeight() -
-  Game.UI.spell.getBoxHeight() -
-  Game.UI.message.getBoxHeight() - Game.UI.modeLine.getBoxHeight(),
+  Game.UI.message.getY() - Game.UI.spell.getY() -
+  Game.UI.message.getPadTop() - Game.UI.spell.getPadBottom(),
   0, 0, 0, Game.UI.modeLine.getPadLeft())
 
 Game.UI.dungeon._x = Game.UI.modeLine.getX()
@@ -338,12 +336,12 @@ Game.screens.drawSpell = function () {
   Game.display.drawText(
     Game.UI.column1.getX(), Game.UI.column1.getY(),
     Game.text.spell(1, Game.screens._spellLevel,
-      Game.screens._spellLevel === 3 ? Game.test.PC : null),
+      Game.screens._spellLevel === 3 ? Game.tmp.PC : null),
     Game.UI.column1.getWidth())
 
   Game.display.drawText(
     Game.UI.column2.getX(), Game.UI.column2.getY(),
-    Game.text.spell(2, Game.screens._spellLevel, Game.test.PC),
+    Game.text.spell(2, Game.screens._spellLevel, Game.tmp.PC),
     Game.UI.column2.getWidth())
 }
 
@@ -368,22 +366,22 @@ Game.screens.classSeed.keyInput = function (e) {
   if (e.key.match(/^[a|b|c]$/)) {
     switch (e.key) {
       case 'a':
-        Game.test.PC = 'dio'
+        Game.tmp.PC = 'dio'
         break
       case 'b':
-        Game.test.PC = 'hulk'
+        Game.tmp.PC = 'hulk'
         break
       case 'c':
-        Game.test.PC = 'lasombra'
+        Game.tmp.PC = 'lasombra'
         break
     }
     Game.keyboard.listenEvent('remove', 'classSeed')
 
     Game.screens.clearBlock(Game.UI.modeLine)
-    Game.display.drawText(x, y, Game.text.selectClass(Game.test.PC))
+    Game.display.drawText(x, y, Game.text.selectClass(Game.tmp.PC))
     Game.display.drawText(x, y + 3, Game.text.enterSeed('enter'))
-    Game.screens.drawModeLine(Game.text.modeLine('space') +
-      Game.text.modeLine('backspace'))
+    Game.screens.drawModeLine(Game.text.modeLine('enter') +
+      Game.text.modeLine('delete'))
 
     Game.keyboard.listenEvent('add', verifySeed)
   }
@@ -392,10 +390,10 @@ Game.screens.classSeed.keyInput = function (e) {
     if (e.key.match(/^[a-zA-Z]$/) && seedList.length < 15) {
       seedList.push(e.key)
       drawSeed()
-    } else if (e.key === 'Backspace' && seedList.length > 0) {
+    } else if (e.key === 'Escape' && seedList.length > 0) {
       seedList = seedList.slice(0, seedList.length - 1)
       drawSeed()
-    } else if (e.key === ' ') {
+    } else if (e.key === 'Enter') {
       Game.setSeed(seedList.join(''))
       Game.keyboard.listenEvent('remove', verifySeed)
 
@@ -425,7 +423,7 @@ Game.screens.classSeed.keyInput = function (e) {
           // do not overwrite internal seed: '#1234567', '#abcdefg', etc.
           Game.setSeed(null)
         }
-        Game.test.PC = null
+        Game.tmp.PC = null
 
         Game.screens.classSeed.exit()
         Game.screens.classSeed.enter()
@@ -451,7 +449,7 @@ Game.screens.prologue.display = function () {
   Game.screens.drawSeed()
 
   Game.display.drawText(Game.UI.start.getX(), Game.UI.start.getY(),
-    Game.text.prologue(Game.test.PC), Game.UI.start.getWidth())
+    Game.text.prologue(Game.tmp.PC), Game.UI.start.getWidth())
 
   Game.screens.drawModeLine(Game.text.modeLine('space'))
 }
@@ -474,11 +472,20 @@ Game.screens.main.display = function () {
 
   Game.screens.drawSpell()
 
+  for (let i = Game.UI.stat.getY(); i < Game.UI.stat.getHeight(); i++) {
+    Game.display.draw(Game.UI.stat.getX() - 1, i, '|')
+  }
+  for (let i = Game.UI.spell.getX(); i < Game.UI.spell.getWidth(); i++) {
+    Game.display.draw(i, Game.UI.spell.getHeight() + 0.5, '-')
+    Game.display.draw(i, Game.UI.dungeon.getHeight() + 0.7, '-')
+  }
+
   Game.display.drawText(
-    Game.UI.spell.getWidth() - Game.text.spell(3).length,
+    Game.UI.spell.getX() + Game.UI.spell.getWidth() -
+    Game.text.spell(3).length - 1,
     Game.UI.spell.getY() + 1,
     Game.screens.colorfulText(Game.text.spell(3),
-      Game.test.level === 1 ? 'grey' : null
+      Game.tmp.level === 1 ? 'grey' : null
     ))
 }
 
@@ -487,7 +494,7 @@ Game.screens.main.keyInput = function (e) {
     Game.screens.clearBlock(Game.UI.column1)
     Game.screens.clearBlock(Game.UI.column2)
 
-    Game.screens._spellLevel = Game.screens._spellLevel === Game.test.level
+    Game.screens._spellLevel = Game.screens._spellLevel === Game.tmp.level
       ? 1
       : Game.screens._spellLevel + 1
 
@@ -496,13 +503,13 @@ Game.screens.main.keyInput = function (e) {
 }
 
 // ===== Test =====
-Game.test = {}
-Game.test.upper = function (text) {
+Game.tmp = {}
+Game.tmp.upper = function (text) {
   return text.toUpperCase()
 }
 
-Game.test.PC = null
-Game.test.level = 3
+Game.tmp.PC = null
+Game.tmp.level = 3
 
 // ===== Test End =====
 

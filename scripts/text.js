@@ -76,7 +76,7 @@ Game.text.modeLine = function (mode) {
   text.set('select', 'Press a, b or c')
   text.set('space', 'Press Space to continue')
   text.set('enter', 'Press Enter to confirm')
-  text.set('backspace', ', Backspace to delete')
+  text.set('delete', ', Esc to delete')
   text.set('yesNoLower', 'Press y or n')
 
   return text.get(mode)
