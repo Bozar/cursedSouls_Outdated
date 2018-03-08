@@ -1,7 +1,8 @@
 'use strict'
 
 // Entity factory
-Game.factory = function (name) {
+// http://vasir.net/blog/game-development/how-to-build-entity-component-system-in-javascript
+Game.Factory = function (name) {
   this.id = (function () {
     // 12345678-{repeat}-{repeat}-{repeat}
     let randomNumber = ''
@@ -15,16 +16,16 @@ Game.factory = function (name) {
   this.entityName = name
 }
 
-Game.factory.prototype.getID = function () { return this.id }
+Game.Factory.prototype.getID = function () { return this.id }
 
-Game.factory.prototype.addComponent = function (component) {
-  this[component.name] = component
+Game.Factory.prototype.addComponent = function (component) {
+  this[component._name] = component
 }
 
-Game.factory.prototype.removeComponent = function (name) {
+Game.Factory.prototype.removeComponent = function (name) {
   delete this[name]
 }
 
-Game.factory.prototype.print = function () {
+Game.Factory.prototype.print = function () {
   console.log(JSON.stringify(this, null, 2))
 }

@@ -1,10 +1,11 @@
 'use strict'
 
-Game.Components = {}
+Game.Component = {}
 
-// Game.Components.Position = function (x, y) {
-//   this.name = 'position'
+Game.Component.DungeonSize = function (width, height, depth) {
+  this._name = 'DungeonSize'
 
-//   this.x = x
-//   this.y = y
-// }
+  this._width = width
+  this._height = height
+  this._depth = depth || 1
+}

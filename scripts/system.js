@@ -2,17 +2,20 @@
 
 Game.system = {}
 
-// Game.system.drawBall = function (entities) {
-//   for (let i = 0; i < entities.length; i++) {
-//     let e = entities[i]
+// dungeon size & wall/floor position
+Game.system.createDungeon = function (entity) {
+  let e = entity ? entity.DungeonSize : null
+  return (e && cellular())
 
-//     if (e.shape && e.shape.radius) {
-//       Game.canvas.ctx.beginPath()
-//       Game.canvas.ctx.arc(e.position.x, e.position.y,
-//         e.shape.radius, 0, Math.PI * 2)
-//       Game.canvas.ctx.fillStyle = e.shape.color
-//       Game.canvas.ctx.fill()
-//       Game.canvas.ctx.closePath()
-//     }
-//   }
-// }
+  function cellular () {
+    let cell = new ROT.Map.Cellular(e._width, e._height)
+
+    cell.randomize(0.5)
+    for (let i = 0; i < 5; i++) { cell.create() }
+    cell.connect(function (x, y, wall) {
+      Game.entity.collection.get('dungeon').set(x + ',' + y, wall)
+    })
+
+    return true
+  }
+}
