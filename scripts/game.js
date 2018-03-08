@@ -1,5 +1,6 @@
 'use strict'
 
+// ----- Version number, development switch & seed +++++
 var Game = {}
 Game._version = '0.0.1-dev'
 Game._develop = true
@@ -65,6 +66,7 @@ Game.feedRNG = function () {
   }
 }
 
+// ----- The position & size of screen elements +++++
 Game.UI = function (width, height, top, right, bottom, left) {
   this._width = width || null
   this._height = height || null
@@ -164,16 +166,17 @@ Game.UI.dungeon = new Game.UI(Game.UI.modeLine.getWidth(),
 Game.UI.dungeon._x = Game.UI.modeLine.getX()
 Game.UI.dungeon._y = Game.UI.spell.getBoxHeight() + Game.UI.dungeon.getPadTop()
 
-Game.UI.start = new Game.UI(Game.UI.canvas.getWidth() - 10,
+Game.UI.cutScene = new Game.UI(Game.UI.canvas.getWidth() - 10,
   Game.UI.dungeon.getBoxHeight() + Game.UI.message.getBoxHeight())
 
-Game.UI.start._x = 5
-Game.UI.start._y = 3
+Game.UI.cutScene._x = 5
+Game.UI.cutScene._y = 3
 
-Game.UI.inputSeed = new Game.UI(Game.UI.start.getWidth(), 1)
-Game.UI.inputSeed._x = Game.UI.start.getX()
-Game.UI.inputSeed._y = Game.UI.start.getY() + 15
+Game.UI.inputSeed = new Game.UI(Game.UI.cutScene.getWidth(), 1)
+Game.UI.inputSeed._x = Game.UI.cutScene.getX()
+Game.UI.inputSeed._y = Game.UI.cutScene.getY() + 15
 
+// ----- Key-bindings +++++
 Game.keyboard = {}
 Game.keyboard.bindMap = new Map()
 // [mode1: [keybind1], mode2: [keybind2], ...]
@@ -214,6 +217,7 @@ Game.keyboard.listenEvent = function (event, handler) {
   }
 }
 
+// ----- Screen factory: display content, listen keyboard events +++++
 Game.Screen = function (name, mode) {
   this._name = name || 'Unnamed Screen'
   this._mode = mode || 'main'
@@ -247,6 +251,7 @@ Game.Screen.prototype.keyInput = function (e) {
   Game.getDevelop() && console.log('Key pressed: ' + e.key)
 }
 
+// ----- In-game screens & helper functions +++++
 Game.screens = {}
 Game.screens._currentName = null
 Game.screens._currentMode = null
@@ -269,6 +274,7 @@ Game.screens.getColor = function (color) { return this._color.get(color) }
 //   }
 // }
 
+// ``` Helper functions +++
 Game.screens.clearBlock = function (block, fillText) {
   let x = block.getX()
   let y = block.getY()
@@ -348,11 +354,12 @@ Game.screens.drawSpell = function () {
     Game.UI.column2.getWidth())
 }
 
+// ``` In-game screens +++
 Game.screens.classSeed = new Game.Screen('classSeed')
 Game.screens.classSeed.display = function () {
-  let x = Game.UI.start.getX()
-  let y = Game.UI.start.getY()
-  let width = Game.UI.start.getWidth()
+  let x = Game.UI.cutScene.getX()
+  let y = Game.UI.cutScene.getY()
+  let width = Game.UI.cutScene.getWidth()
 
   Game.screens.drawVersion()
 
@@ -361,8 +368,8 @@ Game.screens.classSeed.display = function () {
 }
 
 Game.screens.classSeed.keyInput = function (e) {
-  let x = Game.UI.start.getX()
-  let y = Game.UI.start.getY() + 7
+  let x = Game.UI.cutScene.getX()
+  let y = Game.UI.cutScene.getY() + 7
   let seedList = []       // store in Game._seed
   let seedString = []     // draw on the canvas
 
@@ -395,10 +402,10 @@ Game.screens.classSeed.keyInput = function (e) {
   function verifySeed (e) {
     if (e.key.match(/^[a-zA-Z]$/) && seedList.length < 15) {
       seedList.push(e.key)
-      drawSeed()
+      drawSeedBar()
     } else if (e.key === 'Escape' && seedList.length > 0) {
       seedList = seedList.slice(0, seedList.length - 1)
-      drawSeed()
+      drawSeedBar()
     } else if (e.key === 'Enter') {
       Game.setSeed(seedList.join(''))
       Game.keyboard.listenEvent('remove', verifySeed)
@@ -439,7 +446,7 @@ Game.screens.classSeed.keyInput = function (e) {
     }
   }
 
-  function drawSeed () {
+  function drawSeedBar () {
     seedString = seedList.join('')
     while (seedString.length < 15) { seedString += ' ' }
     seedString = '[' + seedString + ']'
@@ -454,8 +461,8 @@ Game.screens.prologue.display = function () {
   Game.screens.drawVersion()
   Game.screens.drawSeed()
 
-  Game.display.drawText(Game.UI.start.getX(), Game.UI.start.getY(),
-    Game.text.prologue(Game.tmp.PC), Game.UI.start.getWidth())
+  Game.display.drawText(Game.UI.cutScene.getX(), Game.UI.cutScene.getY(),
+    Game.text.prologue(Game.tmp.PC), Game.UI.cutScene.getWidth())
 
   Game.screens.drawModeLine(Game.text.modeLine('space'))
 }
@@ -478,33 +485,44 @@ Game.screens.main.display = function () {
   Game.screens.drawVersion()
   Game.screens.drawSeed()
 
+  // Game.tmp.digger.create(function (x, y, wall) {
+  //   Game.tmp.grid.set(x + ',' + y, wall)
+  // })
+  Game.tmp.cell.randomize(0.5)
+  Game.tmp.cell.create()
+  Game.tmp.cell.create()
+  Game.tmp.cell.create()
+  Game.tmp.cell.create()
+  Game.tmp.cell.connect(function (x, y, wall) {
+    Game.tmp.grid.set(x + ',' + y, wall)
+  })
+
   Game.tmp.drawMap()
 
-  Game.display.draw(Game.UI.dungeon.getX() + Game.UI.dungeon.getWidth() - 1,
-    Game.UI.dungeon.getY(), '$')
+  Game.screens.drawAlignRight(Game.UI.spell.getX(), Game.UI.spell.getY(),
+  Game.UI.spell.getWidth(), '[1.5]')
 
   Game.screens.drawAlignRight(Game.UI.stat.getX(), Game.UI.stat.getY() + 1.5,
-    Game.UI.stat.getWidth(), 'Nameless One', 'red')
-  // Game.UI.stat.getWidth(), Game.tmp.pcClass)
-  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 3, 'Turn: 1.5')
-  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 4.5,
-    'HP [          ]\nCL [          ]')
-  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 7, '1')
-  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 8, '2')
-  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 9, '3')
-  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 10, '4')
-  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 11, '5')
-  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 12.5, '1')
-  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 13.5, '2')
-  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 14.5, '3')
-  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 15.5, '4')
-  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 16.5, '5')
-  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 18, '1')
-  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 19, '2')
-  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 20, '3')
-  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 21, '4')
-  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 22,
-    '5 xxxxxxxxxxxxx')
+  Game.UI.stat.getWidth(), 'Nameless One', 'red')
+// Game.UI.stat.getWidth(), Game.tmp.pcClass)
+  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 3,
+  'HP [          ]\nCL [          ]')
+  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 5.5, '1')
+  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 6.5, '2')
+  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 7.5, '3')
+  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 8.5, '4')
+  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 9.5, '5')
+  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 11, '1')
+  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 12, '2')
+  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 13, '3')
+  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 14, '4')
+  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 15, '5')
+  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 16.5, '1')
+  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 17.5, '2')
+  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 18.5, '3')
+  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 19.5, '4')
+  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 20.5,
+  '5 xxxxxxxxxxxxx')
   Game.screens.drawSpell()
 
   for (let i = ui.stat.getY(); i < ui.stat.getHeight(); i++) {
@@ -516,8 +534,8 @@ Game.screens.main.display = function () {
   }
 
   Game.screens.drawAlignRight(ui.spell.getX(), ui.spell.getY() + 1,
-    ui.spell.getWidth(), Game.text.spell(3),
-    Game.tmp.level === 1 ? 'grey' : null)
+  ui.spell.getWidth(), Game.text.spell(3),
+  Game.tmp.level === 1 ? 'grey' : null)
 }
 
 Game.screens.main.keyInput = function (e) {
@@ -530,28 +548,28 @@ Game.screens.main.keyInput = function (e) {
       : Game.screens._spellLevel + 1
 
     Game.screens.drawSpell()
-  } else if (e.key === 'ArrowLeft' && Game.tmp.deltaX - 1 >= 0) {
+  } else if (e.key === 'ArrowLeft' && Game.tmp.deltaX > 0) {
     Game.tmp.deltaX -= 1
     Game.screens.clearBlock(Game.UI.dungeon)
     Game.tmp.drawMap()
-  } else if (e.key === 'ArrowRight' && Game.tmp.deltaX + 1 <=
+  } else if (e.key === 'ArrowRight' && Game.tmp.deltaX <
     55 - Game.UI.dungeon.getWidth()) {
     Game.tmp.deltaX += 1
     Game.screens.clearBlock(Game.UI.dungeon)
     Game.tmp.drawMap()
-  } else if (e.key === 'ArrowUp' && Game.tmp.deltaY - 1 >= 0) {
+  } else if (e.key === 'ArrowUp' && Game.tmp.deltaY > 0) {
     Game.tmp.deltaY -= 1
     Game.screens.clearBlock(Game.UI.dungeon)
     Game.tmp.drawMap()
   } else if (e.key === 'ArrowDown' &&
-  Game.tmp.deltaY + 1 <= 20 - Game.UI.dungeon.getHeight()) {
+    Game.tmp.deltaY < 20 - Game.UI.dungeon.getHeight()) {
     Game.tmp.deltaY += 1
     Game.screens.clearBlock(Game.UI.dungeon)
     Game.tmp.drawMap()
   }
 }
 
-// ===== Test =====
+// ----- Test +++++
 Game.tmp = {}
 Game.tmp.upper = function (text) {
   return text.toUpperCase()
@@ -562,13 +580,22 @@ Game.tmp.pcClass = null
 Game.tmp.level = 3
 
 Game.tmp.grid = new Map()
-Game.tmp.arena = new ROT.Map.Arena(55, 20)
-Game.tmp.arena.create(function (x, y, wall) {
-  Game.tmp.grid.set(x + ',' + y, wall)
-  // Game.display.draw(Game.UI.dungeon.getX() + x + 1,
-  //   Game.UI.dungeon.getY() + y + 1,
-  //   wall ? '#' : '.')
-})
+Game.tmp.cell = new ROT.Map.Cellular(55, 20)
+// Game.tmp.digger = new ROT.Map.Digger(55, 20, {
+//   roomWidth: [6, 8],
+//   roomHeight: [6, 8],
+//   corridorLength: [4, 6],
+//   dugPercentage: 0.5
+// })
+// Game.tmp.digger.create(function (x, y, wall) {
+//   Game.tmp.grid.set(x + ',' + y, wall)
+// Game.tmp.arena = new ROT.Map.Arena(55, 20)
+// Game.tmp.arena.create(function (x, y, wall) {
+//   Game.tmp.grid.set(x + ',' + y, wall)
+// Game.display.draw(Game.UI.dungeon.getX() + x + 1,
+//   Game.UI.dungeon.getY() + y + 1,
+//   wall ? '#' : '.')
+// })
 
 Game.tmp.deltaX = 0
 Game.tmp.deltaY = 0
@@ -584,12 +611,12 @@ Game.tmp.drawMap = function () {
       Game.display.draw(Game.UI.dungeon.getX() + x - Game.tmp.deltaX,
         Game.UI.dungeon.getY() + y - Game.tmp.deltaY,
         value ? '#' : '.')
+        // value ? ' ' : '#')
     }
   }
 }
 
-// ===== Test End =====
-
+// ----- Initialization +++++
 window.onload = function () {
   if (!ROT.isSupported()) {
     window.alert(Game.text.devError('browser'))
