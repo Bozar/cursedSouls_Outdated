@@ -7,9 +7,7 @@ Game._develop = true
 Game.getVersion = function () { return Game._version }
 Game.getDevelop = function () { return Game._develop }
 
-Game._dungeonSize = new Map()   // level: [width, height]
-Game._dungeonSize.set(1, [55, 20])
-Game.getDungeonSize = function () { return Game._dungeonSize }
+Game._dungeonSize = [55, 20]   // [width, height]
 
 Game._seed = null
 // Game._seed = '#helloWorld'
@@ -261,8 +259,6 @@ Game.screens._currentName = null
 Game.screens._currentMode = null
 Game.screens._spellLevel = 1
 Game.screens._message = []
-Game.screens._deltaX = 0
-Game.screens._deltaY = 0
 
 Game.screens._color = new Map()
 Game.screens._color.set(null, '')
@@ -360,18 +356,23 @@ Game.screens.drawSpell = function () {
     Game.UI.column2.getWidth())
 }
 
-Game.screens.drawMap = function () {
-  let s = Game.screens
-  let d = Game.UI.dungeon
+Game.screens.drawDungeon = function () {
+  let ui = Game.UI.dungeon
+  let dx = Game.entities.get('dungeon').Dungeon.getDeltaX()
+  let dy = Game.entities.get('dungeon').Dungeon.getDeltaY()
 
-  for (const [key, value] of Game.entity.collection.get('dungeon')) {
+  for (const [key, value] of
+    Game.entities.get('dungeon').Dungeon.getTerrain()) {
     let x = parseInt(key.split(',')[0])
     let y = parseInt(key.split(',')[1])
 
-    if ((x - s._deltaX >= 0) && (x - s._deltaX <= d.getWidth() - 1) &&
-      (y - s._deltaY >= 0) && (y - s._deltaY <= d.getHeight() - 1)) {
-      Game.display.draw(d.getX() + x - s._deltaX,
-        d.getY() + y - s._deltaY,
+    if ((x - dx >= 0) &&
+      (x - dx <= ui.getWidth() - 1) &&
+      (y - dy >= 0) &&
+      (y - dy <= ui.getHeight() - 1)) {
+      Game.display.draw(
+        ui.getX() + x - dx,
+        ui.getY() + y - dy,
         value ? '#' : '.')
     }
   }
@@ -487,10 +488,8 @@ Game.screens.prologue.display = function () {
   Game.display.drawText(Game.UI.cutScene.getX(), Game.UI.cutScene.getY(),
     Game.text.prologue(Game.tmp.PC), Game.UI.cutScene.getWidth())
 
-  if (Game.system.createDungeon(Game.entity.dungeon(
-    ...Game.getDungeonSize().get(1)))) {    // Spread operator
-    Game.screens.drawModeLine(Game.text.modeLine('space'))
-  }
+  Game.entity.dungeon(...Game._dungeonSize)    // Spread operator
+  Game.screens.drawModeLine(Game.text.modeLine('space'))
 }
 
 Game.screens.prologue.keyInput = function (e) {
@@ -511,7 +510,7 @@ Game.screens.main.display = function () {
   Game.screens.drawVersion()
   Game.screens.drawSeed()
 
-  Game.screens.drawMap()
+  Game.screens.drawDungeon()
 
   Game.screens.drawAlignRight(Game.UI.spell.getX(), Game.UI.spell.getY(),
     Game.UI.spell.getWidth(), '[1.5]')
@@ -553,6 +552,11 @@ Game.screens.main.display = function () {
 }
 
 Game.screens.main.keyInput = function (e) {
+  let eDungeon = Game.entities.get('dungeon').Dungeon
+  let dx = eDungeon.getDeltaX()
+  let dy = eDungeon.getDeltaY()
+  let ui = Game.UI.dungeon
+
   if (e.key === ' ') {
     Game.screens.clearBlock(Game.UI.column1)
     Game.screens.clearBlock(Game.UI.column2)
@@ -562,24 +566,28 @@ Game.screens.main.keyInput = function (e) {
       : Game.screens._spellLevel + 1
 
     Game.screens.drawSpell()
-  } else if (e.key === 'ArrowLeft' && Game.screens._deltaX > 0) {
-    Game.screens._deltaX -= 1
-    Game.screens.clearBlock(Game.UI.dungeon)
-    Game.screens.drawMap()
-  } else if (e.key === 'ArrowRight' && Game.screens._deltaX <
-    55 - Game.UI.dungeon.getWidth()) {
-    Game.screens._deltaX += 1
-    Game.screens.clearBlock(Game.UI.dungeon)
-    Game.screens.drawMap()
-  } else if (e.key === 'ArrowUp' && Game.screens._deltaY > 0) {
-    Game.screens._deltaY -= 1
-    Game.screens.clearBlock(Game.UI.dungeon)
-    Game.screens.drawMap()
+  } else if (e.key === 'ArrowLeft' && dx > 0) {
+    eDungeon.setDeltaX(-1)
+
+    Game.screens.clearBlock(ui)
+    Game.screens.drawDungeon()
+  } else if (e.key === 'ArrowRight' &&
+    dx < Game._dungeonSize[0] - ui.getWidth()) {
+    eDungeon.setDeltaX(1)
+
+    Game.screens.clearBlock(ui)
+    Game.screens.drawDungeon()
+  } else if (e.key === 'ArrowUp' && dy > 0) {
+    eDungeon.setDeltaY(-1)
+
+    Game.screens.clearBlock(ui)
+    Game.screens.drawDungeon()
   } else if (e.key === 'ArrowDown' &&
-    Game.screens._deltaY < 20 - Game.UI.dungeon.getHeight()) {
-    Game.screens._deltaY += 1
-    Game.screens.clearBlock(Game.UI.dungeon)
-    Game.screens.drawMap()
+    dy < Game._dungeonSize[1] - ui.getHeight()) {
+    eDungeon.setDeltaY(1)
+
+    Game.screens.clearBlock(ui)
+    Game.screens.drawDungeon()
   }
 }
 
