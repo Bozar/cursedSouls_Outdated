@@ -18,3 +18,19 @@ Game.Component.Dungeon = function (width, height) {
   this.setDeltaX = function (delta) { this._deltaX += delta }
   this.setDeltaY = function (delta) { this._deltaY += delta }
 }
+
+Game.Component.Seed = function () {
+  this._name = 'Seed'
+
+  this._seed = null
+
+  this.getSeed = function () { return this._seed }
+  this.setSeed = function (seed) {
+    seed === ''
+      ? this._seed =
+      Math.floor((Math.random() * 9 + 1) * Math.pow(10, 4)).toString()
+      : seed === null
+      ? this._seed = null
+      : this._seed = seed.toString()
+  }
+}

@@ -87,7 +87,8 @@ Game.text.devError = function (error) {
 
   text.set('mode',
     'Mode undefined!\nCurrent screen: ' + Game.screens._currentName + '.')
-  text.set('seed', 'Invalid seed: ' + Game.getSeed() + '.')
+  text.set('seed', 'Invalid seed: ' +
+    Game.entities.get('seed').Seed.getSeed() + '.')
   text.set('browser', 'Rot.js is not supported by your browser.')
   text.set('message', 'Game.screens.drawMessage() has no argument.')
 

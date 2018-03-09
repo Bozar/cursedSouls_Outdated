@@ -3,6 +3,7 @@
 // ----- Store entities +++++
 Game.entities = new Map()
 Game.entities.set('dungeon', null)
+Game.entities.set('seed', null)
 
 // ----- Create a single entity +++++
 Game.entity = {}
@@ -23,4 +24,11 @@ Game.entity.dungeon = function (width, height) {
       e.Dungeon._terrain.set(x + ',' + y, wall)
     })
   }
+}
+
+Game.entity.seed = function () {
+  let e = new Game.Factory('seed')
+  e.addComponent(new Game.Component.Seed())
+
+  Game.entities.set('seed', e)
 }

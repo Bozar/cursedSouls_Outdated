@@ -9,64 +9,9 @@ Game.getDevelop = function () { return Game._develop }
 
 Game._dungeonSize = [55, 20]   // [width, height]
 
-Game._seed = null
-// Game._seed = '#helloWorld'
-// Game._seed = '#12345'
-Game.setSeed = function (seed) {
-  // set a testing seed (beginning with '#') in game.js
-  if (this._seed && this._seed.match(/^#/)) { return }
-
-  if (seed && seed.match(/^[a-zA-z]+$/)) {
-    this._seed = seed
-  } else if (seed === '') {
-    this._seed =
-      Math.floor((Math.random() * 9 + 1) * Math.pow(10, 4)).toString()
-  }
-}
-Game.getSeed = function () { return Game._seed }
-
-Game.feedRNG = function () {
-  let seedList = str2List()
-  let randNumber = []
-
-  seedList
-    ? (function () {
-      ROT.RNG.setSeed(list2Number())
-      for (let i = 0; i < 5; i++) { randNumber.push(ROT.RNG.getUniform()) }
-
-      Game.getDevelop() && console.log(Game.text.devNote('rng') +
-        JSON.stringify(randNumber, null, 2))
-    }())
-    : Game.getDevelop() && console.log(Game.text.devError('seed'))
-
-  function str2List () {
-    let seed = Game.getSeed()
-
-    if (seed.match(/^\d{5}$/)) {
-      return [Number.parseInt(seed, 10)]
-    }
-
-    if (seed.match(/^#/)) {
-      seed = seed.slice(1)
-    }
-    if (seed.match(/^[a-zA-z]+$/)) {
-      seed = seed.toLowerCase().split('')
-      seed.forEach((aplhabet, index, seedList) => {
-        seedList[index] = aplhabet.charCodeAt(0) - 95
-      })
-    }
-
-    return Array.isArray(seed) ? seed : null   // invalid seed
-  }
-
-  function list2Number () {
-    let rngSeed = 1
-    for (let i = 0; i < seedList.length; i++) {
-      rngSeed.length < 15 ? rngSeed *= seedList[i] : rngSeed /= seedList[i]
-    }
-    return rngSeed
-  }
-}
+// set seed manually for testing
+// Game._devSeed = '#finn'
+// Game._devSeed = '#12345'
 
 // ----- The position & size of screen elements +++++
 Game.UI = function (width, height, top, right, bottom, left) {
@@ -306,11 +251,11 @@ Game.screens.drawVersion = function () {
 }
 
 Game.screens.drawSeed = function () {
-  if (!Game.getSeed()) { return }
+  if (!Game.entities.get('seed').Seed.getSeed()) { return }
 
   Game.screens.drawAlignRight(
     Game.UI.stat.getX(), Game.UI.stat.getY() + Game.UI.stat.getHeight() - 1,
-    Game.UI.stat.getWidth(), Game.getSeed())
+    Game.UI.stat.getWidth(), Game.entities.get('seed').Seed.getSeed())
 }
 
 Game.screens.drawModeLine = function (text) {
@@ -394,7 +339,7 @@ Game.screens.classSeed.display = function () {
 Game.screens.classSeed.keyInput = function (e) {
   let x = Game.UI.cutScene.getX()
   let y = Game.UI.cutScene.getY() + 7
-  let seedList = []       // store in Game._seed
+  let seedList = []       // will be stored in Game.entities.get('seed')
   let seedString = []     // draw on the canvas
 
   if (e.key.match(/^[a|b|c]$/)) {
@@ -431,7 +376,12 @@ Game.screens.classSeed.keyInput = function (e) {
       seedList = seedList.slice(0, seedList.length - 1)
       drawSeedBar()
     } else if (e.key === 'Enter') {
-      Game.setSeed(seedList.join(''))
+      Game.entity.seed()
+
+      Game._devSeed
+        ? Game.entities.get('seed').Seed.setSeed(Game._devSeed)
+        : Game.entities.get('seed').Seed.setSeed(seedList.join(''))
+
       Game.keyboard.listenEvent('remove', verifySeed)
 
       Game.screens.clearBlock(Game.UI.modeLine)
@@ -447,7 +397,8 @@ Game.screens.classSeed.keyInput = function (e) {
       case 'y':
         Game.keyboard.listenEvent('remove', confirm)
 
-        Game.feedRNG()
+        Game.system.feedRNG(Game.entities.get('seed'))
+
         Game.screens.classSeed.exit()
         Game.screens.prologue.enter()
 
@@ -456,10 +407,8 @@ Game.screens.classSeed.keyInput = function (e) {
       case 'n':
         Game.keyboard.listenEvent('remove', confirm)
 
-        if (!(Game.getSeed() && Game.getSeed().match(/^#/))) {
-          // do not overwrite internal seed: '#1234567', '#abcdefg', etc.
-          Game.setSeed(null)
-        }
+        // do not overwrite internal seed: '#1234567', '#abcdefg', etc.
+        !Game._devSeed && Game.entities.get('seed').Seed.setSeed(null)
         Game.tmp.PC = null
 
         Game.screens.classSeed.exit()
