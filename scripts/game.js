@@ -292,7 +292,7 @@ Game.screens.drawMessage = function (message) {
 }
 
 Game.screens.drawSpell = function () {
-  let pcName = Game.entities.get('pc').Display.getTrueName()
+  let pcName = Game.entities.get('pc').ActorName.getTrueName()
 
   Game.display.drawText(
     Game.UI.column1.getX(), Game.UI.column1.getY(),
@@ -351,27 +351,28 @@ Game.screens.classSeed.keyInput = function (e) {
   let y = Game.UI.cutScene.getY() + 7
   let seedList = []       // will be stored in Game.entities.get('seed')
   let seedString = []     // draw on the canvas
-  let pc = Game.entities.get('pc').Display
+  let pcDisplay = Game.entities.get('pc').Display
+  let pcName = Game.entities.get('pc').ActorName
 
   if (e.key.match(/^[a|b|c]$/)) {
     switch (e.key) {
       case 'a':
-        pc.setTrueName('dio')
-        pc.setFgColor('orange')
+        pcName.setTrueName('dio')
+        pcDisplay.setFgColor('orange')
         break
       case 'b':
-        pc.setTrueName('hulk')
-        pc.setFgColor('greenWater')
+        pcName.setTrueName('hulk')
+        pcDisplay.setFgColor('greenWater')
         break
       case 'c':
-        pc.setTrueName('lasombra')
-        pc.setFgColor('grey')
+        pcName.setTrueName('lasombra')
+        pcDisplay.setFgColor('grey')
         break
     }
     Game.keyboard.listenEvent('remove', 'classSeed')
 
     Game.screens.clearBlock(Game.UI.modeLine)
-    Game.display.drawText(x, y, Game.text.selectClass(pc.getTrueName()))
+    Game.display.drawText(x, y, Game.text.selectClass(pcName.getTrueName()))
     Game.display.drawText(x, y + 3, Game.text.enterSeed('enter'))
     Game.screens.drawModeLine(Game.text.modeLine('enter') +
       Game.text.modeLine('delete'))
@@ -418,7 +419,7 @@ Game.screens.classSeed.keyInput = function (e) {
 
         // do not overwrite internal seed: '#1234567', '#abcdefg', etc.
         !Game._devSeed && Game.entities.get('seed').Seed.setSeed(null)
-        pc.setTrueName(null)
+        pcName.setTrueName(null)
 
         Game.screens.classSeed.exit()
         Game.screens.classSeed.enter()
@@ -445,7 +446,7 @@ Game.screens.prologue.display = function () {
   Game.screens.drawSeed()
 
   Game.display.drawText(Game.UI.cutScene.getX(), Game.UI.cutScene.getY(),
-    Game.text.prologue(Game.entities.get('pc').Display.getTrueName()),
+    Game.text.prologue(Game.entities.get('pc').ActorName.getTrueName()),
     Game.UI.cutScene.getWidth())
 
   Game.entity.dungeon(...Game._dungeonSize)    // Spread operator
@@ -466,7 +467,9 @@ Game.screens.prologue.keyInput = function (e) {
 Game.screens.main = new Game.Screen('main')
 Game.screens.main.display = function () {
   let ui = Game.UI
-  let pc = Game.entities.get('pc').Display
+  let pcDisplay = Game.entities.get('pc').Display
+  let pcName = Game.entities.get('pc').ActorName
+  let pcCurse = Game.entities.get('pc').Curse
 
   Game.screens.drawVersion()
   Game.screens.drawSeed()
@@ -477,7 +480,7 @@ Game.screens.main.display = function () {
     Game.UI.spell.getWidth(), '[1.5]')
 
   Game.screens.drawAlignRight(Game.UI.stat.getX(), Game.UI.stat.getY() + 1.5,
-    Game.UI.stat.getWidth(), pc.getStageName(), pc.getFgColor())
+    Game.UI.stat.getWidth(), pcName.getStageName(), pcDisplay.getFgColor())
   Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 3,
     'HP [          ]\nCL [          ]')
   Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 5.5, '1')
@@ -495,7 +498,7 @@ Game.screens.main.display = function () {
   Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 18.5, '3')
   Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 19.5, '4')
   Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 20.5,
-  '5 xxxxxxxxxxxxx')
+    '5 xxxxxxxxxxxxx')
   Game.screens.drawSpell()
 
   for (let i = ui.stat.getY(); i < ui.stat.getHeight(); i++) {
@@ -508,7 +511,7 @@ Game.screens.main.display = function () {
 
   Game.screens.drawAlignRight(ui.spell.getX(), ui.spell.getY() + 1,
     ui.spell.getWidth(), Game.text.spell(3),
-    Game.tmp.level === 1 ? 'grey' : null)
+    pcCurse.getLevel() < 2 ? 'grey' : null)
 }
 
 Game.screens.main.keyInput = function (e) {
@@ -521,9 +524,10 @@ Game.screens.main.keyInput = function (e) {
     Game.screens.clearBlock(Game.UI.column1)
     Game.screens.clearBlock(Game.UI.column2)
 
-    Game.screens._spellLevel = Game.screens._spellLevel === Game.tmp.level
-      ? 1
-      : Game.screens._spellLevel + 1
+    Game.screens._spellLevel =
+      Game.screens._spellLevel < Game.entities.get('pc').Curse.getLevel()
+        ? Game.screens._spellLevel + 1
+        : 1
 
     Game.screens.drawSpell()
   } else if (e.key === 'ArrowLeft' && dx > 0) {

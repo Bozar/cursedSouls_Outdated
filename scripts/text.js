@@ -42,7 +42,7 @@ as gentle as a breeze, blows in your mind.\n\n`)
   return text.get('para1') + text.get(choice)
 }
 
-Game.text.spell = function (column, level, pcClass) {
+Game.text.spell = function (column, level, trueName) {
   let text = new Map()
 
   text.set('1,1,', '[Q] Fire Arrow\n[W] Healing Spring')
@@ -67,7 +67,7 @@ Game.text.spell = function (column, level, pcClass) {
 
   text.set('3,,', '[Space]')
 
-  return text.get([column, level, pcClass].join(','))
+  return text.get([column, level, trueName].join(','))
 }
 
 Game.text.modeLine = function (mode) {

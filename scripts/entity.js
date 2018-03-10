@@ -36,7 +36,9 @@ Game.entity.seed = function () {
 
 Game.entity.pc = function () {
   let e = new Game.Factory('pc')
-  e.addComponent(new Game.Component.Display('Nameless One', null, '@'))
+  e.addComponent(new Game.Component.ActorName('Nameless One', null))
+  e.addComponent(new Game.Component.Display('@'))
+  e.addComponent(new Game.Component.Curse())
 
   Game.entities.set('pc', e)
 }

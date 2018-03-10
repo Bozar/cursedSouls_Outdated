@@ -35,21 +35,45 @@ Game.Component.Seed = function () {
   }
 }
 
-Game.Component.Display = function (stageN, trueN, char, fgColor, bgColor) {
-  this._name = 'Display'
+Game.Component.ActorName = function (stageN, trueN) {
+  this._name = 'ActorName'
 
   this._stageName = stageN        // player can see
   this._trueName = trueN          // internal ID
+
+  this.getStageName = function () { return this._stageName }
+  this.getTrueName = function () { return this._trueName }
+  this.setTrueName = function (name) { this._trueName = name }
+}
+
+Game.Component.Display = function (char, fgColor, bgColor) {
+  this._name = 'Display'
+
   this._character = char | '烫'    // use '烫' for testing
   this._fgColor = fgColor | ''    // default: Game.display, '#abb2bf'
   this._bgColor = bgColor | ''    // default: Game.display, '#262626'
 
-  this.getStageName = function () { return this._stageName }
-  this.getTrueName = function () { return this._trueName }
   this.getCharacter = function () { return this._character }
   this.getFgColor = function () { return this._fgColor }
   this.getBgColor = function () { return this._bgColor }
-  this.setTrueName = function (name) { this._trueName = name }
+
   this.setFgColor = function (color) { this._fgColor = color }
   this.setBgColor = function (color) { this._bgColor = color }
+}
+
+Game.Component.Curse = function () {
+  this._name = 'Curse'
+
+  this._cursedPoint = 0
+  this._hasCurse = []
+
+  this.getPoint = function () { return this._cursedPoint }
+  this.getCurse = function () { return this._hasCurse }
+  this.getLevel = function () { return Math.ceil(this._hasCurse.length / 2) }
+
+  this.addPoint = function (point) { this._cursedPoint += point }
+  this.setPoint = function (point) { this._cursedPoint = point }
+
+  this.addCurse = function (curse) { this._hasCurse.push(curse) }
+  this.removeCurse = function () { this._hasCurse.pop() }
 }
