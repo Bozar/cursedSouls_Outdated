@@ -208,9 +208,12 @@ Game.screens._message = []
 Game.screens._color = new Map()
 Game.screens._color.set(null, '')
 Game.screens._color.set('grey', '#666666')
-Game.screens._color.set('red', '#FF9900')
+Game.screens._color.set('orange', '#FF9900')
+Game.screens._color.set('greenWater', '#A0D86C')
 
-Game.screens.getColor = function (color) { return this._color.get(color) }
+Game.screens.getColor = function (color) {
+  return Game.screens._color.get(color)
+}
 
 // general version
 // Game.screens.clearBlock = function (x, y, width, height, fillText) {
@@ -289,20 +292,23 @@ Game.screens.drawMessage = function (message) {
 }
 
 Game.screens.drawSpell = function () {
+  let pcName = Game.entities.get('pc').Display.getTrueName()
+
   Game.display.drawText(
     Game.UI.column1.getX(), Game.UI.column1.getY(),
     Game.text.spell(1, Game.screens._spellLevel,
-      Game.screens._spellLevel === 3 ? Game.tmp.PC : null),
+      Game.screens._spellLevel === 3 ? pcName : null),
     Game.UI.column1.getWidth())
 
   Game.display.drawText(
     Game.UI.column2.getX(), Game.UI.column2.getY(),
-    Game.text.spell(2, Game.screens._spellLevel, Game.tmp.PC),
+    Game.text.spell(2, Game.screens._spellLevel, pcName),
     Game.UI.column2.getWidth())
 }
 
 Game.screens.drawDungeon = function () {
   let ui = Game.UI.dungeon
+  let color = Game.screens.getColor
   let dx = Game.entities.get('dungeon').Dungeon.getDeltaX()
   let dy = Game.entities.get('dungeon').Dungeon.getDeltaY()
 
@@ -318,7 +324,8 @@ Game.screens.drawDungeon = function () {
       Game.display.draw(
         ui.getX() + x - dx,
         ui.getY() + y - dy,
-        value ? '#' : '.')
+        value ? '#' : '.',
+        value ? color('grey') : color(null))
     }
   }
 }
@@ -332,6 +339,9 @@ Game.screens.classSeed.display = function () {
 
   Game.screens.drawVersion()
 
+  !Game.entities.get('seed') && Game.entity.seed()
+  Game.entity.pc()
+
   Game.display.drawText(x, y, Game.text.selectClass('initial'), width)
   Game.screens.drawModeLine(Game.text.modeLine('select'))
 }
@@ -341,26 +351,27 @@ Game.screens.classSeed.keyInput = function (e) {
   let y = Game.UI.cutScene.getY() + 7
   let seedList = []       // will be stored in Game.entities.get('seed')
   let seedString = []     // draw on the canvas
+  let pc = Game.entities.get('pc').Display
 
   if (e.key.match(/^[a|b|c]$/)) {
     switch (e.key) {
       case 'a':
-        Game.tmp.PC = 'dio'
-        Game.tmp.pcClass = 'Striker'
+        pc.setTrueName('dio')
+        pc.setFgColor('orange')
         break
       case 'b':
-        Game.tmp.PC = 'hulk'
-        Game.tmp.pcClass = 'Enhancer'
+        pc.setTrueName('hulk')
+        pc.setFgColor('greenWater')
         break
       case 'c':
-        Game.tmp.PC = 'lasombra'
-        Game.tmp.pcClass = 'Controller'
+        pc.setTrueName('lasombra')
+        pc.setFgColor('grey')
         break
     }
     Game.keyboard.listenEvent('remove', 'classSeed')
 
     Game.screens.clearBlock(Game.UI.modeLine)
-    Game.display.drawText(x, y, Game.text.selectClass(Game.tmp.PC))
+    Game.display.drawText(x, y, Game.text.selectClass(pc.getTrueName()))
     Game.display.drawText(x, y + 3, Game.text.enterSeed('enter'))
     Game.screens.drawModeLine(Game.text.modeLine('enter') +
       Game.text.modeLine('delete'))
@@ -376,8 +387,6 @@ Game.screens.classSeed.keyInput = function (e) {
       seedList = seedList.slice(0, seedList.length - 1)
       drawSeedBar()
     } else if (e.key === 'Enter') {
-      Game.entity.seed()
-
       Game._devSeed
         ? Game.entities.get('seed').Seed.setSeed(Game._devSeed)
         : Game.entities.get('seed').Seed.setSeed(seedList.join(''))
@@ -409,7 +418,7 @@ Game.screens.classSeed.keyInput = function (e) {
 
         // do not overwrite internal seed: '#1234567', '#abcdefg', etc.
         !Game._devSeed && Game.entities.get('seed').Seed.setSeed(null)
-        Game.tmp.PC = null
+        pc.setTrueName(null)
 
         Game.screens.classSeed.exit()
         Game.screens.classSeed.enter()
@@ -425,7 +434,8 @@ Game.screens.classSeed.keyInput = function (e) {
     seedString = '[' + seedString + ']'
 
     Game.screens.clearBlock(Game.UI.inputSeed)
-    Game.display.drawText(x, y + 8, seedString)
+    Game.display.drawText(Game.UI.inputSeed.getX(), Game.UI.inputSeed.getY(),
+      seedString)
   }
 }
 
@@ -435,7 +445,8 @@ Game.screens.prologue.display = function () {
   Game.screens.drawSeed()
 
   Game.display.drawText(Game.UI.cutScene.getX(), Game.UI.cutScene.getY(),
-    Game.text.prologue(Game.tmp.PC), Game.UI.cutScene.getWidth())
+    Game.text.prologue(Game.entities.get('pc').Display.getTrueName()),
+    Game.UI.cutScene.getWidth())
 
   Game.entity.dungeon(...Game._dungeonSize)    // Spread operator
   Game.screens.drawModeLine(Game.text.modeLine('space'))
@@ -455,6 +466,7 @@ Game.screens.prologue.keyInput = function (e) {
 Game.screens.main = new Game.Screen('main')
 Game.screens.main.display = function () {
   let ui = Game.UI
+  let pc = Game.entities.get('pc').Display
 
   Game.screens.drawVersion()
   Game.screens.drawSeed()
@@ -465,8 +477,7 @@ Game.screens.main.display = function () {
     Game.UI.spell.getWidth(), '[1.5]')
 
   Game.screens.drawAlignRight(Game.UI.stat.getX(), Game.UI.stat.getY() + 1.5,
-    Game.UI.stat.getWidth(), 'Nameless One', 'red')
-  // Game.UI.stat.getWidth(), Game.tmp.pcClass)
+    Game.UI.stat.getWidth(), pc.getStageName(), pc.getFgColor())
   Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 3,
     'HP [          ]\nCL [          ]')
   Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 5.5, '1')
@@ -484,7 +495,7 @@ Game.screens.main.display = function () {
   Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 18.5, '3')
   Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 19.5, '4')
   Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 20.5,
-    '5 xxxxxxxxxxxxx')
+  '5 xxxxxxxxxxxxx')
   Game.screens.drawSpell()
 
   for (let i = ui.stat.getY(); i < ui.stat.getHeight(); i++) {
@@ -546,8 +557,6 @@ Game.tmp.upper = function (text) {
   return text.toUpperCase()
 }
 
-Game.tmp.PC = null
-Game.tmp.pcClass = null
 Game.tmp.level = 3
 
 // ----- Initialization +++++

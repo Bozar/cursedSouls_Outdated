@@ -4,6 +4,7 @@
 Game.entities = new Map()
 Game.entities.set('dungeon', null)
 Game.entities.set('seed', null)
+Game.entities.set('pc', null)
 
 // ----- Create a single entity +++++
 Game.entity = {}
@@ -31,4 +32,11 @@ Game.entity.seed = function () {
   e.addComponent(new Game.Component.Seed())
 
   Game.entities.set('seed', e)
+}
+
+Game.entity.pc = function () {
+  let e = new Game.Factory('pc')
+  e.addComponent(new Game.Component.Display('Nameless One', null, '@'))
+
+  Game.entities.set('pc', e)
 }

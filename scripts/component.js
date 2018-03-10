@@ -30,7 +30,26 @@ Game.Component.Seed = function () {
       ? this._seed =
       Math.floor((Math.random() * 9 + 1) * Math.pow(10, 4)).toString()
       : seed === null
-      ? this._seed = null
-      : this._seed = seed.toString()
+        ? this._seed = null
+        : this._seed = seed.toString()
   }
+}
+
+Game.Component.Display = function (stageN, trueN, char, fgColor, bgColor) {
+  this._name = 'Display'
+
+  this._stageName = stageN        // player can see
+  this._trueName = trueN          // internal ID
+  this._character = char | '烫'    // use '烫' for testing
+  this._fgColor = fgColor | ''    // default: Game.display, '#abb2bf'
+  this._bgColor = bgColor | ''    // default: Game.display, '#262626'
+
+  this.getStageName = function () { return this._stageName }
+  this.getTrueName = function () { return this._trueName }
+  this.getCharacter = function () { return this._character }
+  this.getFgColor = function () { return this._fgColor }
+  this.getBgColor = function () { return this._bgColor }
+  this.setTrueName = function (name) { this._trueName = name }
+  this.setFgColor = function (color) { this._fgColor = color }
+  this.setBgColor = function (color) { this._bgColor = color }
 }
