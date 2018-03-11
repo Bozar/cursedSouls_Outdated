@@ -254,8 +254,11 @@ Game.screens.clearBlock = function (block, fillText) {
   }
 }
 
-Game.screens.colorfulText = function (text, color) {
-  return '%c{' + Game.screens.getColor(color) + '}' + text + '%c{}'
+Game.screens.colorfulText = function (text, fgColor, bgColor) {
+  return bgColor
+    ? '%c{' + Game.screens.getColor(fgColor) + '}%b{' +
+    Game.screens.getColor(bgColor) + '}' + text + '%b{}%c{}'
+    : '%c{' + Game.screens.getColor(fgColor) + '}' + text + '%c{}'
 }
 
 Game.screens.drawAlignRight = function (x, y, width, text, color) {
@@ -268,7 +271,7 @@ Game.screens.drawVersion = function () {
 
   Game.getDevelop() && (version = 'Wiz|' + version)
   Game.screens.drawAlignRight(Game.UI.stat.getX(), Game.UI.stat.getY(),
-    Game.UI.stat.getWidth(), version)
+    Game.UI.stat.getWidth(), version, 'grey')
 }
 
 Game.screens.drawSeed = function () {
@@ -276,7 +279,7 @@ Game.screens.drawSeed = function () {
 
   Game.screens.drawAlignRight(
     Game.UI.stat.getX(), Game.UI.stat.getY() + Game.UI.stat.getHeight() - 1,
-    Game.UI.stat.getWidth(), Game.entities.get('seed').Seed.getSeed())
+    Game.UI.stat.getWidth(), Game.entities.get('seed').Seed.getSeed(), 'grey')
 }
 
 Game.screens.drawModeLine = function (text) {
@@ -328,8 +331,16 @@ Game.screens.drawCurse = function () {
   let curse = Game.entities.get('pc').Curse.getCurse()
   for (let i = 0; i < curse.length; i++) {
     Game.display.drawText(Game.UI.curse.getX(), Game.UI.curse.getY() + i,
-    Game.screens.colorfulText(Game.text.curse(curse[i]), 'grey'))
+      Game.screens.colorfulText(Game.text.curse(curse[i]), 'grey'))
   }
+}
+
+Game.screens.drawLevelBar = function (progress) {
+  let colored = Game.screens.colorfulText('#'.repeat(progress), 'grey', 'grey')
+  let blank = ' '.repeat(10 - progress)
+
+  Game.display.drawText(Game.UI.cl.getX(), Game.UI.cl.getY(),
+    'CL [' + colored + blank + ']')
 }
 
 Game.screens.drawDungeon = function () {
@@ -493,9 +504,10 @@ Game.screens.prologue.keyInput = function (e) {
 Game.screens.main = new Game.Screen('main')
 Game.screens.main.display = function () {
   let ui = Game.UI
-  let pcDisplay = Game.entities.get('pc').Display
-  let pcName = Game.entities.get('pc').ActorName
-  let pcCurse = Game.entities.get('pc').Curse
+  let pcEntity = Game.entities.get('pc')
+  let pcDisplay = pcEntity.Display
+  let pcName = pcEntity.ActorName
+  let pcCurse = pcEntity.Curse
 
   Game.screens.drawVersion()
   Game.screens.drawSeed()
@@ -510,10 +522,8 @@ Game.screens.main.display = function () {
 
   Game.display.drawText(Game.UI.hp.getX(), Game.UI.hp.getY(),
     'HP [' + ' '.repeat(10) + ']')
-  Game.display.drawText(Game.UI.cl.getX(), Game.UI.cl.getY(),
-    'CL [' + ' '.repeat(10) + ']')
 
-  Game.system.updateCurse('add', Game.entities.get('pc'))
+  Game.system.updateLevel(25, pcEntity)
 
   Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 11, '1')
   Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 12, '2')

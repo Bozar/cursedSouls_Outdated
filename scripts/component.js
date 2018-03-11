@@ -65,9 +65,11 @@ Game.Component.Curse = function () {
   this._name = 'Curse'
 
   this._cursedPoint = 0
+  this._maxPoint = 25
   this._hasCurse = []
 
   this.getPoint = function () { return this._cursedPoint }
+  this.getMaxPoint = function () { return this._maxPoint }
   this.getCurse = function () { return this._hasCurse }
   this.getLevel = function () { return Math.ceil(this._hasCurse.length / 2) }
 
