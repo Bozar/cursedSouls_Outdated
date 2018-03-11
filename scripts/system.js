@@ -91,3 +91,29 @@ Game.system.updateCurse = function (what, e) {
     }
   }
 }
+
+Game.system.updateLevel = function (point, e) {
+  e && e.Curse && update()
+
+  function update () {
+    e.Curse.getPoint() + point >= e.Curse.getMaxPoint()
+      ? overMax()
+      : e.Curse.getPoint() + point >= 0
+        ? e.Curse.addPoint(point)
+        : belowZero()
+
+    Game.screens.clearBlock(Game.UI.cl)
+    Game.screens.drawLevelBar(
+      Math.floor(e.Curse.getPoint() / e.Curse.getMaxPoint() * 10))
+  }
+
+  function overMax () {
+    e.Curse.setPoint(e.Curse.getPoint() + point - e.Curse.getMaxPoint())
+    Game.system.updateCurse('add', e)
+  }
+
+  function belowZero () {
+    e.Curse.setPoint(e.Curse.getPoint() + point + e.Curse.getMaxPoint())
+    Game.system.updateCurse('remove', e)
+  }
+}
