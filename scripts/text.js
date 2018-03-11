@@ -2,6 +2,7 @@
 
 Game.text = {}
 
+// ----- the first screen +++++
 Game.text.selectClass = function (choice) {
   let text = new Map()
 
@@ -27,6 +28,7 @@ Game.text.enterSeed = function (when) {
   return text.get(when)
 }
 
+// ----- the second screen +++++
 Game.text.prologue = function (choice) {
   let text = new Map()
 
@@ -42,6 +44,7 @@ as gentle as a breeze, blows in your mind.\n\n`)
   return text.get('para1') + text.get(choice)
 }
 
+// ----- main screen +++++
 Game.text.spell = function (column, level, trueName) {
   let text = new Map()
 
@@ -82,6 +85,30 @@ Game.text.modeLine = function (mode) {
   return text.get(mode)
 }
 
+Game.text.curse = function (curse, returnMap) {
+  let text = new Map()
+
+  // level 1
+  text.set('death', 'Last Words')
+  text.set('hp', 'Bleeding Cuts')
+
+  // level 2, public
+  text.set('spell', 'Rigid Tongue')
+
+  // level 2, private
+  text.set('attack', 'Shaking Hands')
+  text.set('resist', 'Cornered Beast')
+  text.set('control', 'Confused Mind')
+
+  // level 3
+  text.set('shroud', 'Death Shroud')
+
+  return returnMap
+    ? text
+    : text.get(curse)
+}
+
+// ----- develop +++++
 Game.text.devError = function (error) {
   let text = new Map()
 

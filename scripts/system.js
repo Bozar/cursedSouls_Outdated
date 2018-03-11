@@ -51,3 +51,43 @@ Game.system.feedRNG = function (e) {
     return result
   }
 }
+
+Game.system.updateCurse = function (what, e) {
+  e && e.Curse && update()
+
+  function update () {
+    switch (what) {
+      case 'add':
+        addCurse()
+        break
+      case 'remove':
+        e.Curse.getCurse().pop()
+        break
+    }
+    Game.screens.clearBlock(Game.UI.curse)
+    Game.screens.drawCurse()
+  }
+
+  function addCurse () {
+    let fullList = Array.from(Game.text.curse(null, true).keys())
+    let curseLen = e.Curse.getCurse().length
+
+    if (curseLen < 3) {
+      e.Curse.addCurse(fullList[curseLen])
+    } else if (curseLen === 3) {
+      switch (e.ActorName.getTrueName()) {
+        case 'dio':
+          e.Curse.addCurse('attack')
+          break
+        case 'hulk':
+          e.Curse.addCurse('resist')
+          break
+        case 'lasombra':
+          e.Curse.addCurse('control')
+          break
+      }
+    } else if (curseLen === 4) {
+      e.Curse.addCurse('shroud')
+    }
+  }
+}

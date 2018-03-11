@@ -59,6 +59,7 @@ Game.display = new ROT.Display({
   }())
 })
 
+// ``` The main screen +++
 // TODO: ?? Nethack Fourk, auto-resize canvas to fit the browser window
 // | Spell    (2) | Stat |
 // | Dungeon  (?) | Stat |
@@ -87,16 +88,6 @@ Game.UI.spell = new Game.UI(Game.UI.modeLine.getWidth(), 2,
 Game.UI.spell._x = Game.UI.modeLine.getX()
 Game.UI.spell._y = Game.UI.stat.getY()
 
-Game.UI.column1 = new Game.UI()
-Object.assign(Game.UI.column1, Game.UI.spell)
-Game.UI.column1._width = 22
-
-Game.UI.column2 = new Game.UI()
-Object.assign(Game.UI.column2, Game.UI.column1)
-Game.UI.column2._padLeft = 0
-
-Game.UI.column2._x = Game.UI.column1.getX() + Game.UI.column1.getWidth()
-
 Game.UI.message = new Game.UI(Game.UI.modeLine.getWidth(), 5,
   1, 0, 0, Game.UI.modeLine.getPadLeft())
 
@@ -113,6 +104,33 @@ Game.UI.dungeon = new Game.UI(Game.UI.modeLine.getWidth(),
 Game.UI.dungeon._x = Game.UI.modeLine.getX()
 Game.UI.dungeon._y = Game.UI.spell.getBoxHeight() + Game.UI.dungeon.getPadTop()
 
+// ``` Sub screens +++
+Game.UI.column1 = new Game.UI()
+Object.assign(Game.UI.column1, Game.UI.spell)
+Game.UI.column1._width = 22
+
+Game.UI.column2 = new Game.UI()
+Object.assign(Game.UI.column2, Game.UI.column1)
+Game.UI.column2._padLeft = 0
+
+Game.UI.column2._x = Game.UI.column1.getX() + Game.UI.column1.getWidth()
+
+Game.UI.hp = new Game.UI(Game.UI.stat.getWidth(), 1)
+
+Game.UI.hp._x = Game.UI.stat.getX()
+Game.UI.hp._y = Game.UI.stat.getY() + 3
+
+Game.UI.cl = new Game.UI()
+Object.assign(Game.UI.cl, Game.UI.hp)
+
+Game.UI.cl._y = Game.UI.hp.getY() + 1
+
+Game.UI.curse = new Game.UI(Game.UI.stat.getWidth(), 5)
+
+Game.UI.curse._x = Game.UI.cl.getX()
+Game.UI.curse._y = Game.UI.cl.getY() + 1.5
+
+// ``` The first & sceond screen +++
 Game.UI.cutScene = new Game.UI(Game.UI.canvas.getWidth() - 10,
   Game.UI.dungeon.getBoxHeight() + Game.UI.message.getBoxHeight())
 
@@ -306,6 +324,14 @@ Game.screens.drawSpell = function () {
     Game.UI.column2.getWidth())
 }
 
+Game.screens.drawCurse = function () {
+  let curse = Game.entities.get('pc').Curse.getCurse()
+  for (let i = 0; i < curse.length; i++) {
+    Game.display.drawText(Game.UI.curse.getX(), Game.UI.curse.getY() + i,
+    Game.screens.colorfulText(Game.text.curse(curse[i]), 'grey'))
+  }
+}
+
 Game.screens.drawDungeon = function () {
   let ui = Game.UI.dungeon
   let color = Game.screens.getColor
@@ -476,18 +502,19 @@ Game.screens.main.display = function () {
 
   Game.screens.drawDungeon()
 
+  Game.screens.drawAlignRight(Game.UI.stat.getX(), Game.UI.stat.getY() + 1.5,
+    Game.UI.stat.getWidth(), pcName.getStageName(), pcDisplay.getFgColor())
+
   Game.screens.drawAlignRight(Game.UI.spell.getX(), Game.UI.spell.getY(),
     Game.UI.spell.getWidth(), '[1.5]')
 
-  Game.screens.drawAlignRight(Game.UI.stat.getX(), Game.UI.stat.getY() + 1.5,
-    Game.UI.stat.getWidth(), pcName.getStageName(), pcDisplay.getFgColor())
-  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 3,
-    'HP [          ]\nCL [          ]')
-  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 5.5, '1')
-  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 6.5, '2')
-  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 7.5, '3')
-  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 8.5, '4')
-  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 9.5, '5')
+  Game.display.drawText(Game.UI.hp.getX(), Game.UI.hp.getY(),
+    'HP [' + ' '.repeat(10) + ']')
+  Game.display.drawText(Game.UI.cl.getX(), Game.UI.cl.getY(),
+    'CL [' + ' '.repeat(10) + ']')
+
+  Game.system.updateCurse('add', Game.entities.get('pc'))
+
   Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 11, '1')
   Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 12, '2')
   Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 13, '3')
