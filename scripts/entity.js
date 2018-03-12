@@ -39,6 +39,7 @@ Game.entity.pc = function () {
   e.addComponent(new Game.Component.ActorName('Nameless One', null))
   e.addComponent(new Game.Component.Display('@'))
   e.addComponent(new Game.Component.Curse())
+  e.addComponent(new Game.Component.HitPoint(64))
 
   Game.entities.set('pc', e)
 }

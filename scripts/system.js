@@ -57,10 +57,10 @@ Game.system.updateCurse = function (what, e) {
 
   function update () {
     switch (what) {
-      case 'add':
-        addCurse()
+      case 'gain':
+        gainCurse()
         break
-      case 'remove':
+      case 'lose':
         e.Curse.getCurse().pop()
         break
     }
@@ -68,7 +68,7 @@ Game.system.updateCurse = function (what, e) {
     Game.screens.drawCurse()
   }
 
-  function addCurse () {
+  function gainCurse () {
     let fullList = Array.from(Game.text.curse(null, true).keys())
     let curseLen = e.Curse.getCurse().length
 
@@ -109,11 +109,49 @@ Game.system.updateLevel = function (point, e) {
 
   function overMax () {
     e.Curse.setPoint(e.Curse.getPoint() + point - e.Curse.getMaxPoint())
-    Game.system.updateCurse('add', e)
+    Game.system.updateCurse('gain', e)
   }
 
   function belowZero () {
     e.Curse.setPoint(e.Curse.getPoint() + point + e.Curse.getMaxPoint())
-    Game.system.updateCurse('remove', e)
+    Game.system.updateCurse('lose', e)
+  }
+}
+
+Game.system.gainHP = function (self, debuff) {
+  self && self.HitPoint && debuff && debuff.HitPoint && heal()
+
+  function heal () {
+    let healed = self.HitPoint.getCurrent() + debuff.HitPoint.getHeal()
+    let max = debuff.HitPoint.getMax()
+
+    healed < max
+      ? self.HitPoint.setCurrent(healed)
+      : self.HitPoint.setCurrent(max)
+
+    Game.screens.clearBlock(Game.UI.hp)
+    Game.screens.drawHPBar(
+      Math.floor(self.HitPoint.getCurrent() / self.HitPoint.getMax() * 10), 0)
+  }
+}
+
+Game.system.loseHP = function (e, damage) {
+  e && e.HitPoint && damage && takeDamage()
+
+  function takeDamage () {
+    let beforeHit = e.HitPoint.getCurrent()
+    let afterHit = e.HitPoint.getCurrent() - damage
+
+    afterHit > 0
+      ? e.HitPoint.setCurrent(afterHit)
+      : (function () {
+        e.HitPoint.setCurrent(0)
+        damage = beforeHit
+      }())
+
+    Game.screens.clearBlock(Game.UI.hp)
+    Game.screens.drawHPBar(
+      Math.floor(beforeHit / e.HitPoint.getMax() * 10),
+      Math.floor(damage / e.HitPoint.getMax() * 10))
   }
 }

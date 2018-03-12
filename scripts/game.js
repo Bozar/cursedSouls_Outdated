@@ -228,6 +228,8 @@ Game.screens._color.set(null, '')
 Game.screens._color.set('grey', '#666666')
 Game.screens._color.set('orange', '#FF9900')
 Game.screens._color.set('greenWater', '#A0D86C')
+Game.screens._color.set('yellow', '#FFE272')
+Game.screens._color.set('red', '#FF4C4C')
 
 Game.screens.getColor = function (color) {
   return Game.screens._color.get(color)
@@ -347,6 +349,21 @@ Game.screens.drawLevelBar = function (progress) {
 
   Game.display.drawText(Game.UI.cl.getX(), Game.UI.cl.getY(),
     'CL [' + colored + blank + ']')
+}
+
+Game.screens.drawHPBar = function (current, damage) {
+  let color = current - damage > 6
+    ? 'greenWater'
+    : current - damage > 3
+      ? 'yellow'
+      : 'red'
+  let afterHit = Game.screens.colorfulText('#'.repeat(current - damage),
+    color, color)
+  let hit = Game.screens.colorfulText('#'.repeat(damage), 'grey', 'grey')
+  let blank = ' '.repeat(10 - current)
+
+  Game.display.drawText(Game.UI.hp.getX(), Game.UI.hp.getY(),
+    'HP [' + afterHit + hit + blank + ']')
 }
 
 Game.screens.drawDungeon = function () {
@@ -526,10 +543,9 @@ Game.screens.main.display = function () {
   Game.screens.drawAlignRight(Game.UI.spell.getX(), Game.UI.spell.getY(),
     Game.UI.spell.getWidth(), '[1.5]')
 
-  Game.display.drawText(Game.UI.hp.getX(), Game.UI.hp.getY(),
-    'HP [' + ' '.repeat(10) + ']')
+  Game.system.gainHP(pcEntity, pcEntity)
 
-  Game.system.updateLevel(25, pcEntity)
+  Game.system.updateLevel(24, pcEntity)
 
   Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 11, '1')
   Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 12, '2')

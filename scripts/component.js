@@ -79,3 +79,17 @@ Game.Component.Curse = function () {
   this.addCurse = function (curse) { this._hasCurse.push(curse) }
   this.removeCurse = function () { this._hasCurse.pop() }
 }
+
+Game.Component.HitPoint = function (maxHp) {
+  this._name = 'HitPoint'
+
+  this._maxHP = maxHp
+  this._currentHP = maxHp
+
+  this.getMax = function () { return this._maxHP }
+  this.getCurrent = function () { return this._currentHP }
+  this.getHeal = function () { return Math.floor(this._maxHP / 4) }
+
+  this.setMax = function (hp) { this._maxHP = hp }
+  this.setCurrent = function (hp) { this._currentHP = hp }
+}
