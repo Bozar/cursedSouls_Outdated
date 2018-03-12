@@ -275,11 +275,17 @@ Game.screens.drawVersion = function () {
 }
 
 Game.screens.drawSeed = function () {
-  if (!Game.entities.get('seed').Seed.getSeed()) { return }
-
-  Game.screens.drawAlignRight(
-    Game.UI.stat.getX(), Game.UI.stat.getY() + Game.UI.stat.getHeight() - 1,
-    Game.UI.stat.getWidth(), Game.entities.get('seed').Seed.getSeed(), 'grey')
+  Game.entities.get('seed') && Game.entities.get('seed').Seed &&
+    Game.entities.get('seed').Seed.getSeed() &&
+    Game.screens.drawAlignRight(
+      Game.UI.stat.getX(),
+      Game.UI.stat.getY() + Game.UI.stat.getHeight() - 1,
+      Game.UI.stat.getWidth(),
+      Game.entities.get('seed').Seed.getSeed().match(/^#{0,1}\d{10}$/)
+        ? Game.entities.get('seed').Seed.getSeed().replace(
+          /^(#{0,1}\d{5})(\d{5})$/, '$1-$2')
+        : Game.entities.get('seed').Seed.getSeed(),
+      'grey')
 }
 
 Game.screens.drawModeLine = function (text) {
