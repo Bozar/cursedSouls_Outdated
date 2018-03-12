@@ -127,8 +127,13 @@ Game.UI.cl._y = Game.UI.hp.getY() + 1
 
 Game.UI.curse = new Game.UI(Game.UI.stat.getWidth(), 5)
 
-Game.UI.curse._x = Game.UI.cl.getX()
+Game.UI.curse._x = Game.UI.stat.getX()
 Game.UI.curse._y = Game.UI.cl.getY() + 1.5
+
+Game.UI.buff = new Game.UI()
+Object.assign(Game.UI.buff, Game.UI.curse)
+
+Game.UI.buff._y += 1.5
 
 // ``` The first & sceond screen +++
 Game.UI.cutScene = new Game.UI(Game.UI.canvas.getWidth() - 10,
@@ -227,7 +232,7 @@ Game.screens._color = new Map()
 Game.screens._color.set(null, '')
 Game.screens._color.set('grey', '#666666')
 Game.screens._color.set('orange', '#FF9900')
-Game.screens._color.set('greenWater', '#A0D86C')
+Game.screens._color.set('green', '#A0D86C')
 Game.screens._color.set('yellow', '#FFE272')
 Game.screens._color.set('red', '#FF4C4C')
 
@@ -353,7 +358,7 @@ Game.screens.drawLevelBar = function (progress) {
 
 Game.screens.drawHPBar = function (current, damage) {
   let color = current - damage > 6
-    ? 'greenWater'
+    ? 'green'
     : current - damage > 3
       ? 'yellow'
       : 'red'
@@ -364,6 +369,15 @@ Game.screens.drawHPBar = function (current, damage) {
 
   Game.display.drawText(Game.UI.hp.getX(), Game.UI.hp.getY(),
     'HP [' + afterHit + hit + blank + ']')
+}
+
+Game.screens.drawBuff = function (buff, turn) {
+  for (let i = 0; i < buff.length; i++) {
+    Game.display.drawText(Game.UI.buff.getX(), Game.UI.buff.getY() + i,
+      Game.screens.colorfulText(buff[i], 'green'))
+    Game.screens.drawAlignRight(Game.UI.buff.getX(), Game.UI.buff.getY() + i,
+      Game.UI.buff.getWidth(), turn[i].toString())
+  }
 }
 
 Game.screens.drawDungeon = function () {
@@ -422,7 +436,7 @@ Game.screens.classSeed.keyInput = function (e) {
         break
       case 'b':
         pcName.setTrueName('hulk')
-        pcDisplay.setFgColor('greenWater')
+        pcDisplay.setFgColor('green')
         break
       case 'c':
         pcName.setTrueName('lasombra')
@@ -545,13 +559,10 @@ Game.screens.main.display = function () {
 
   Game.system.gainHP(pcEntity, pcEntity)
 
-  Game.system.updateLevel(24, pcEntity)
+  Game.screens.drawBuff([Game.text.buff('+mov'), Game.text.buff('+acc')],
+    [1.5, 1])
 
-  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 11, '1')
-  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 12, '2')
-  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 13, '3')
-  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 14, '4')
-  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 15, '5')
+  Game.system.updateLevel(24, pcEntity)
   Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 16.5, '1')
   Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 17.5, '2')
   Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 18.5, '3')
@@ -619,8 +630,6 @@ Game.tmp = {}
 Game.tmp.upper = function (text) {
   return text.toUpperCase()
 }
-
-Game.tmp.level = 3
 
 // ----- Initialization +++++
 window.onload = function () {

@@ -108,6 +108,18 @@ Game.text.curse = function (curse, returnMap) {
     : text.get(curse)
 }
 
+Game.text.buff = function (buffID) {
+  let text = new Map()
+
+  text.set('+mov', 'Movement++')
+  text.set('+acc', 'Accuracy++')
+  text.set('+def', 'Defense++')
+  text.set('+imm', 'Immunity')
+  text.set('+spl', 'Casting++')
+
+  return text.get(buffID)
+}
+
 // ----- develop +++++
 Game.text.devError = function (error) {
   let text = new Map()
