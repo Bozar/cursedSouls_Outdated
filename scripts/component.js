@@ -73,11 +73,11 @@ Game.Component.Curse = function () {
   this.getCurse = function () { return this._hasCurse }
   this.getLevel = function () { return Math.ceil(this._hasCurse.length / 2) }
 
-  this.addPoint = function (point) { this._cursedPoint += point }
+  this.gainPoint = function (point) { this._cursedPoint += point }
   this.setPoint = function (point) { this._cursedPoint = point }
 
-  this.addCurse = function (curse) { this._hasCurse.push(curse) }
-  this.removeCurse = function () { this._hasCurse.pop() }
+  this.gainCurse = function (curse) { this._hasCurse.push(curse) }
+  this.loseCurse = function () { this._hasCurse.pop() }
 }
 
 Game.Component.HitPoint = function (maxHp) {
@@ -92,4 +92,29 @@ Game.Component.HitPoint = function (maxHp) {
 
   this.setMax = function (hp) { this._maxHP = hp }
   this.setCurrent = function (hp) { this._currentHP = hp }
+}
+
+// Single buff or debuff
+Game.Component.Status = function (id, turn) {
+  this._name = 'Status'
+
+  this._statusID = id
+  this._maxTurn = turn
+  this._currentTurn = 0
+
+  this.getID = function () { return this._statusID }
+  this.getMax = function () { return this._maxTurn }
+  this.getCurrent = function () { return this._currentTurn }
+
+  this.setCurrent = function (turn) { this._currentTurn = turn }
+}
+
+// The map of active buffs, add into actor entity
+Game.Component.Buff = function () {
+  this._name = 'Buff'
+
+  this._buff = new Map()
+
+  this.gainStatus = function (buff) { this._buff.set(buff.getID(), buff) }
+  this.getStatus = function (id) { return id ? this._buff.get(id) : this._buff }
 }

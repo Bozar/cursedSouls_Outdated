@@ -36,10 +36,19 @@ Game.entity.seed = function () {
 
 Game.entity.pc = function () {
   let e = new Game.Factory('pc')
+
   e.addComponent(new Game.Component.ActorName('Nameless One', null))
   e.addComponent(new Game.Component.Display('@'))
   e.addComponent(new Game.Component.Curse())
   e.addComponent(new Game.Component.HitPoint(64))
+  e.addComponent(new Game.Component.Buff())
+
+  // Map {buffID => Map {buffID ==> turn}}
+  e.Buff.gainStatus(new Game.Component.Status('+acc', 3))
+  e.Buff.gainStatus(new Game.Component.Status('+def', 3))
+  e.Buff.gainStatus(new Game.Component.Status('+imm', 3))
+  e.Buff.gainStatus(new Game.Component.Status('+mov', 1.5))
+  e.Buff.gainStatus(new Game.Component.Status('+spl', 5))
 
   Game.entities.set('pc', e)
 }

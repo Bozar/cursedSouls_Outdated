@@ -133,7 +133,7 @@ Game.UI.curse._y = Game.UI.cl.getY() + 1.5
 Game.UI.buff = new Game.UI()
 Object.assign(Game.UI.buff, Game.UI.curse)
 
-Game.UI.buff._y += 1.5
+Game.UI.buff._y += Game.UI.curse.getHeight() + 0.5
 
 // ``` The first & sceond screen +++
 Game.UI.cutScene = new Game.UI(Game.UI.canvas.getWidth() - 10,
@@ -371,12 +371,13 @@ Game.screens.drawHPBar = function (current, damage) {
     'HP [' + afterHit + hit + blank + ']')
 }
 
-Game.screens.drawBuff = function (buff, turn) {
-  for (let i = 0; i < buff.length; i++) {
+Game.screens.drawBuff = function (buffTurn) {
+  // [[buff1, turn1], [buff2, turn2], ...]
+  for (let i = 0; i < buffTurn.length; i++) {
     Game.display.drawText(Game.UI.buff.getX(), Game.UI.buff.getY() + i,
-      Game.screens.colorfulText(buff[i], 'green'))
+      Game.screens.colorfulText(buffTurn[i][0], 'green'))
     Game.screens.drawAlignRight(Game.UI.buff.getX(), Game.UI.buff.getY() + i,
-      Game.UI.buff.getWidth(), turn[i].toString())
+      Game.UI.buff.getWidth(), buffTurn[i][1].toString())
   }
 }
 
@@ -559,10 +560,13 @@ Game.screens.main.display = function () {
 
   Game.system.gainHP(pcEntity, pcEntity)
 
-  Game.screens.drawBuff([Game.text.buff('+mov'), Game.text.buff('+acc')],
-    [1.5, 1])
+  Game.system.updateStatus('Buff', '+mov', -4, pcEntity)
+  Game.system.updateStatus('Buff', '+mov', 1, pcEntity)
+  Game.system.updateStatus('Buff', '+imm', 4, pcEntity)
 
   Game.system.updateLevel(24, pcEntity)
+  Game.system.updateLevel(24, pcEntity)
+
   Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 16.5, '1')
   Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 17.5, '2')
   Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 18.5, '3')

@@ -73,21 +73,21 @@ Game.system.updateCurse = function (what, e) {
     let curseLen = e.Curse.getCurse().length
 
     if (curseLen < 3) {
-      e.Curse.addCurse(fullList[curseLen])
+      e.Curse.gainCurse(fullList[curseLen])
     } else if (curseLen === 3) {
       switch (e.ActorName.getTrueName()) {
         case 'dio':
-          e.Curse.addCurse('attack')
+          e.Curse.gainCurse('attack')
           break
         case 'hulk':
-          e.Curse.addCurse('resist')
+          e.Curse.gainCurse('resist')
           break
         case 'lasombra':
-          e.Curse.addCurse('control')
+          e.Curse.gainCurse('control')
           break
       }
     } else if (curseLen === 4) {
-      e.Curse.addCurse('shroud')
+      e.Curse.gainCurse('shroud')
     }
   }
 }
@@ -99,7 +99,7 @@ Game.system.updateLevel = function (point, e) {
     e.Curse.getPoint() + point >= e.Curse.getMaxPoint()
       ? overMax()
       : e.Curse.getPoint() + point >= 0
-        ? e.Curse.addPoint(point)
+        ? e.Curse.gainPoint(point)
         : belowZero()
 
     Game.screens.clearBlock(Game.UI.cl)
@@ -153,5 +153,27 @@ Game.system.loseHP = function (e, damage) {
     Game.screens.drawHPBar(
       Math.floor(beforeHit / e.HitPoint.getMax() * 10),
       Math.floor(damage / e.HitPoint.getMax() * 10))
+  }
+}
+
+Game.system.updateStatus = function (status, id, turn, e) {
+  e && e[status] && e[status].getStatus(id) && update()
+
+  function update () {
+    let hasStatus = []
+
+    e[status].getStatus(id).setCurrent(turn > e[status].getStatus(id).getMax()
+      ? e[status].getStatus(id).getMax()
+      : turn > 0
+        ? turn
+        : 0)
+
+    Game.screens.clearBlock(Game.UI[status.toLowerCase()])
+
+    for (const [key, value] of e[status].getStatus(null)) {
+      value.getCurrent() > 0 && hasStatus.push(
+        [Game.text.buff(key), value.getCurrent()])
+    }
+    Game.screens['draw' + status](hasStatus)
   }
 }
