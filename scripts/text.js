@@ -115,9 +115,22 @@ Game.text.buff = function (buffID) {
   text.set('+acc', 'Accuracy++')
   text.set('+def', 'Defense++')
   text.set('+imm', 'Immunity')
-  text.set('+spl', 'Casting++')
+  text.set('+cst', 'Casting++')
 
   return text.get(buffID)
+}
+
+Game.text.debuff = function (debuffID) {
+  let text = new Map()
+
+  text.set('-hp', 'Heal-')
+  text.set('-acc', 'Accuracy-')
+  text.set('-def', 'Defense-')
+  text.set('-dmg', 'Damage-')
+  text.set('-cst', 'Casting-')
+  text.set('-poi', 'Poisoned')
+
+  return text.get(debuffID)
 }
 
 // ----- develop +++++

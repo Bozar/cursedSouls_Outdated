@@ -42,13 +42,21 @@ Game.entity.pc = function () {
   e.addComponent(new Game.Component.Curse())
   e.addComponent(new Game.Component.HitPoint(64))
   e.addComponent(new Game.Component.Buff())
+  e.addComponent(new Game.Component.Debuff())
 
   // Map {buffID => Map {buffID ==> turn}}
   e.Buff.gainStatus(new Game.Component.Status('+acc', 3))
   e.Buff.gainStatus(new Game.Component.Status('+def', 3))
   e.Buff.gainStatus(new Game.Component.Status('+imm', 3))
   e.Buff.gainStatus(new Game.Component.Status('+mov', 1.5))
-  e.Buff.gainStatus(new Game.Component.Status('+spl', 5))
+  e.Buff.gainStatus(new Game.Component.Status('+cst', 5))
+
+  e.Debuff.gainStatus(new Game.Component.Status('-hp', null))
+  e.Debuff.gainStatus(new Game.Component.Status('-acc', null))
+  e.Debuff.gainStatus(new Game.Component.Status('-def', null))
+  e.Debuff.gainStatus(new Game.Component.Status('-dmg', null))
+  e.Debuff.gainStatus(new Game.Component.Status('-cst', null))
+  e.Debuff.gainStatus(new Game.Component.Status('-poi', null))
 
   Game.entities.set('pc', e)
 }

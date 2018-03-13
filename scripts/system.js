@@ -172,8 +172,8 @@ Game.system.updateStatus = function (status, id, turn, e) {
 
     for (const [key, value] of e[status].getStatus(null)) {
       value.getCurrent() > 0 && hasStatus.push(
-        [Game.text.buff(key), value.getCurrent()])
+        [Game.text[status.toLowerCase()](key), value.getCurrent()])
     }
-    Game.screens['draw' + status](hasStatus)
+    Game.screens.drawStatus(status.toLowerCase(), hasStatus)
   }
 }

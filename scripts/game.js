@@ -135,6 +135,11 @@ Object.assign(Game.UI.buff, Game.UI.curse)
 
 Game.UI.buff._y += Game.UI.curse.getHeight() + 0.5
 
+Game.UI.debuff = new Game.UI()
+Object.assign(Game.UI.debuff, Game.UI.buff)
+
+Game.UI.debuff._y += Game.UI.buff.getHeight() + 0.5
+
 // ``` The first & sceond screen +++
 Game.UI.cutScene = new Game.UI(Game.UI.canvas.getWidth() - 10,
   Game.UI.dungeon.getBoxHeight() + Game.UI.message.getBoxHeight())
@@ -371,13 +376,14 @@ Game.screens.drawHPBar = function (current, damage) {
     'HP [' + afterHit + hit + blank + ']')
 }
 
-Game.screens.drawBuff = function (buffTurn) {
+Game.screens.drawStatus = function (type, status) {
   // [[buff1, turn1], [buff2, turn2], ...]
-  for (let i = 0; i < buffTurn.length; i++) {
-    Game.display.drawText(Game.UI.buff.getX(), Game.UI.buff.getY() + i,
-      Game.screens.colorfulText(buffTurn[i][0], 'green'))
-    Game.screens.drawAlignRight(Game.UI.buff.getX(), Game.UI.buff.getY() + i,
-      Game.UI.buff.getWidth(), buffTurn[i][1].toString())
+  for (let i = 0; i < status.length; i++) {
+    Game.display.drawText(Game.UI[type].getX(), Game.UI[type].getY() + i,
+      Game.screens.colorfulText(status[i][0],
+        type === 'buff' ? 'green' : 'red'))
+    Game.screens.drawAlignRight(Game.UI[type].getX(), Game.UI[type].getY() + i,
+      Game.UI[type].getWidth(), status[i][1].toString())
   }
 }
 
@@ -567,12 +573,9 @@ Game.screens.main.display = function () {
   Game.system.updateLevel(24, pcEntity)
   Game.system.updateLevel(24, pcEntity)
 
-  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 16.5, '1')
-  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 17.5, '2')
-  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 18.5, '3')
-  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 19.5, '4')
-  Game.display.drawText(Game.UI.stat.getX(), Game.UI.stat.getY() + 20.5,
-    '5 xxxxxxxxxxxxx')
+  pcEntity.Debuff.getStatus('-acc').setMax(2)
+  Game.system.updateStatus('Debuff', '-acc', 0.5, pcEntity)
+
   Game.screens.drawSpell()
 
   for (let i = ui.stat.getY(); i < ui.stat.getHeight(); i++) {

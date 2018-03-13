@@ -99,13 +99,14 @@ Game.Component.Status = function (id, turn) {
   this._name = 'Status'
 
   this._statusID = id
-  this._maxTurn = turn
+  this._maxTurn = turn || null
   this._currentTurn = 0
 
   this.getID = function () { return this._statusID }
   this.getMax = function () { return this._maxTurn }
   this.getCurrent = function () { return this._currentTurn }
 
+  this.setMax = function (turn) { this._maxTurn = turn }
   this.setCurrent = function (turn) { this._currentTurn = turn }
 }
 
@@ -115,6 +116,27 @@ Game.Component.Buff = function () {
 
   this._buff = new Map()
 
-  this.gainStatus = function (buff) { this._buff.set(buff.getID(), buff) }
-  this.getStatus = function (id) { return id ? this._buff.get(id) : this._buff }
+  this.gainStatus = function (buff) {
+    this._buff.set(buff.getID(), buff)
+  }
+  this.getStatus = function (id) {
+    return id
+      ? this._buff.get(id)
+      : this._buff
+  }
+}
+
+Game.Component.Debuff = function () {
+  this._name = 'Debuff'
+
+  this._debuff = new Map()
+
+  this.gainStatus = function (debuff) {
+    this._debuff.set(debuff.getID(), debuff)
+  }
+  this.getStatus = function (id) {
+    return id
+      ? this._debuff.get(id)
+      : this._debuff
+  }
 }
