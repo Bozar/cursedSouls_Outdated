@@ -49,9 +49,9 @@ Game.Component.ActorName = function (stageN, trueN) {
 Game.Component.Display = function (char, fgColor, bgColor) {
   this._name = 'Display'
 
-  this._character = char | '烫'    // use '烫' for testing
-  this._fgColor = fgColor | ''    // default: Game.display, '#abb2bf'
-  this._bgColor = bgColor | ''    // default: Game.display, '#262626'
+  this._character = char || '烫'    // use '烫' for testing
+  this._fgColor = fgColor || ''    // default: Game.display, '#abb2bf'
+  this._bgColor = bgColor || ''    // default: Game.display, '#262626'
 
   this.getCharacter = function () { return this._character }
   this.getFgColor = function () { return this._fgColor }

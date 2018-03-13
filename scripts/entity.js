@@ -51,12 +51,12 @@ Game.entity.pc = function () {
   e.Buff.gainStatus(new Game.Component.Status('+mov', 1.5))
   e.Buff.gainStatus(new Game.Component.Status('+cst', 5))
 
-  e.Debuff.gainStatus(new Game.Component.Status('-hp', null))
-  e.Debuff.gainStatus(new Game.Component.Status('-acc', null))
-  e.Debuff.gainStatus(new Game.Component.Status('-def', null))
-  e.Debuff.gainStatus(new Game.Component.Status('-dmg', null))
-  e.Debuff.gainStatus(new Game.Component.Status('-cst', null))
-  e.Debuff.gainStatus(new Game.Component.Status('-poi', null))
+  e.Debuff.gainStatus(new Game.Component.Status('-hp', 0))
+  e.Debuff.gainStatus(new Game.Component.Status('-acc', 0))
+  e.Debuff.gainStatus(new Game.Component.Status('-def', 0))
+  e.Debuff.gainStatus(new Game.Component.Status('-dmg', 0))
+  e.Debuff.gainStatus(new Game.Component.Status('-cst', 0))
+  e.Debuff.gainStatus(new Game.Component.Status('-poi', 0))
 
   Game.entities.set('pc', e)
 }
