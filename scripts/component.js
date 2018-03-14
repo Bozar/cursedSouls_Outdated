@@ -15,8 +15,15 @@ Game.Component.Dungeon = function (width, height) {
 
   this.getDeltaX = function () { return this._deltaX }
   this.getDeltaY = function () { return this._deltaY }
-  this.setDeltaX = function (delta) { this._deltaX += delta }
-  this.setDeltaY = function (delta) { this._deltaY += delta }
+
+  this.setDeltaX = function (delta) {
+    this._deltaX = delta
+    return true
+  }
+  this.setDeltaY = function (delta) {
+    this._deltaY = delta
+    return true
+  }
 }
 
 Game.Component.Seed = function () {
@@ -32,6 +39,8 @@ Game.Component.Seed = function () {
       : seed === null
         ? this._seed = null
         : this._seed = seed.toString()
+
+    return true
   }
 }
 
@@ -43,7 +52,31 @@ Game.Component.ActorName = function (stageN, trueN) {
 
   this.getStageName = function () { return this._stageName }
   this.getTrueName = function () { return this._trueName }
-  this.setTrueName = function (name) { this._trueName = name }
+
+  this.setTrueName = function (name) {
+    this._trueName = name
+    return true
+  }
+}
+
+// Actor's position in the dungeon map
+Game.Component.Position = function () {
+  this._name = 'Position'
+
+  this._x = null
+  this._y = null
+
+  this.getX = function () { return this._x }
+  this.getY = function () { return this._y }
+
+  this.setX = function (pos) {
+    this._x = pos
+    return true
+  }
+  this.setY = function (pos) {
+    this._y = pos
+    return true
+  }
 }
 
 Game.Component.Display = function (char, fgColor, bgColor) {
@@ -57,8 +90,14 @@ Game.Component.Display = function (char, fgColor, bgColor) {
   this.getFgColor = function () { return this._fgColor }
   this.getBgColor = function () { return this._bgColor }
 
-  this.setFgColor = function (color) { this._fgColor = color }
-  this.setBgColor = function (color) { this._bgColor = color }
+  this.setFgColor = function (color) {
+    this._fgColor = color
+    return true
+  }
+  this.setBgColor = function (color) {
+    this._bgColor = color
+    return true
+  }
 }
 
 Game.Component.Curse = function () {
@@ -73,11 +112,23 @@ Game.Component.Curse = function () {
   this.getCurse = function () { return this._hasCurse }
   this.getLevel = function () { return Math.ceil(this._hasCurse.length / 2) }
 
-  this.gainPoint = function (point) { this._cursedPoint += point }
-  this.setPoint = function (point) { this._cursedPoint = point }
+  this.gainPoint = function (point) {
+    this._cursedPoint += point
+    return true
+  }
+  this.setPoint = function (point) {
+    this._cursedPoint = point
+    return true
+  }
 
-  this.gainCurse = function (curse) { this._hasCurse.push(curse) }
-  this.loseCurse = function () { this._hasCurse.pop() }
+  this.gainCurse = function (curse) {
+    this._hasCurse.push(curse)
+    return true
+  }
+  this.loseCurse = function () {
+    this._hasCurse.pop()
+    return true
+  }
 }
 
 Game.Component.HitPoint = function (maxHp) {
@@ -90,8 +141,14 @@ Game.Component.HitPoint = function (maxHp) {
   this.getCurrent = function () { return this._currentHP }
   this.getHeal = function () { return Math.floor(this._maxHP / 4) }
 
-  this.setMax = function (hp) { this._maxHP = hp }
-  this.setCurrent = function (hp) { this._currentHP = hp }
+  this.setMax = function (hp) {
+    this._maxHP = hp
+    return true
+  }
+  this.setCurrent = function (hp) {
+    this._currentHP = hp
+    return true
+  }
 }
 
 // Single buff or debuff
@@ -106,8 +163,14 @@ Game.Component.Status = function (id, turn) {
   this.getMax = function () { return this._maxTurn }
   this.getCurrent = function () { return this._currentTurn }
 
-  this.setMax = function (turn) { this._maxTurn = turn }
-  this.setCurrent = function (turn) { this._currentTurn = turn }
+  this.setMax = function (turn) {
+    this._maxTurn = turn
+    return true
+  }
+  this.setCurrent = function (turn) {
+    this._currentTurn = turn
+    return true
+  }
 }
 
 // The map of active buffs, add into actor entity
@@ -118,6 +181,8 @@ Game.Component.Buff = function () {
 
   this.gainStatus = function (buff) {
     this._buff.set(buff.getID(), buff)
+
+    return true
   }
   this.getStatus = function (id) {
     return id
@@ -133,6 +198,8 @@ Game.Component.Debuff = function () {
 
   this.gainStatus = function (debuff) {
     this._debuff.set(debuff.getID(), debuff)
+
+    return true
   }
   this.getStatus = function (id) {
     return id
