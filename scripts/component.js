@@ -10,11 +10,15 @@ Game.Component.Dungeon = function (width, height) {
   this._terrain = new Map()   // z,x,y: 0(floor) or 1(wall)
   this._deltaX = 0
   this._deltaY = 0
+  this._boundary = 5          // move screen when pc is close to the border
 
+  this.getWidth = function () { return this._width }
+  this.getHeight = function () { return this._height }
   this.getTerrain = function () { return this._terrain }
 
   this.getDeltaX = function () { return this._deltaX }
   this.getDeltaY = function () { return this._deltaY }
+  this.getBoundary = function () { return this._boundary }
 
   this.setDeltaX = function (delta) {
     this._deltaX = delta

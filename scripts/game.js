@@ -392,6 +392,8 @@ Game.screens.drawDungeon = function () {
   let color = Game.screens.getColor
   let dx = Game.entities.get('dungeon').Dungeon.getDeltaX()
   let dy = Game.entities.get('dungeon').Dungeon.getDeltaY()
+  let pcX = Game.entities.get('pc').Position.getX() - dx + ui.getX()
+  let pcY = Game.entities.get('pc').Position.getY() - dy + ui.getY()
 
   for (const [key, value] of
     Game.entities.get('dungeon').Dungeon.getTerrain()) {
@@ -409,6 +411,7 @@ Game.screens.drawDungeon = function () {
         value ? color('grey') : color(null))
     }
   }
+  Game.display.draw(pcX, pcY, Game.entities.get('pc').Display.getCharacter())
 }
 
 // ``` In-game screens +++
@@ -556,6 +559,8 @@ Game.screens.main.display = function () {
   Game.screens.drawVersion()
   Game.screens.drawSeed()
 
+  pcEntity.Position.setX(5)
+  pcEntity.Position.setY(5)
   Game.screens.drawDungeon()
 
   Game.screens.drawAlignRight(Game.UI.stat.getX(), Game.UI.stat.getY() + 1.5,
@@ -593,6 +598,7 @@ Game.screens.main.display = function () {
 
 Game.screens.main.keyInput = function (e) {
   let eDungeon = Game.entities.get('dungeon').Dungeon
+  let ePC = Game.entities.get('pc').Position
   let dx = eDungeon.getDeltaX()
   let dy = eDungeon.getDeltaY()
   let ui = Game.UI.dungeon
@@ -607,28 +613,58 @@ Game.screens.main.keyInput = function (e) {
         : 1
 
     Game.screens.drawSpell()
-  } else if (e.key === 'ArrowLeft' && dx > 0) {
-    eDungeon.setDeltaX(-1)
+  } else if (e.key === 'ArrowLeft') {
+    moveLeft()
 
     Game.screens.clearBlock(ui)
     Game.screens.drawDungeon()
-  } else if (e.key === 'ArrowRight' &&
-    dx < Game._dungeonSize[0] - ui.getWidth()) {
-    eDungeon.setDeltaX(1)
+  } else if (e.key === 'ArrowRight') {
+    moveRight()
 
     Game.screens.clearBlock(ui)
     Game.screens.drawDungeon()
-  } else if (e.key === 'ArrowUp' && dy > 0) {
-    eDungeon.setDeltaY(-1)
+  } else if (e.key === 'ArrowUp') {
+    moveUp()
 
     Game.screens.clearBlock(ui)
     Game.screens.drawDungeon()
-  } else if (e.key === 'ArrowDown' &&
-    dy < Game._dungeonSize[1] - ui.getHeight()) {
-    eDungeon.setDeltaY(1)
+  } else if (e.key === 'ArrowDown') {
+    moveDown()
 
     Game.screens.clearBlock(ui)
     Game.screens.drawDungeon()
+  }
+
+  function moveLeft () {
+    ePC.getX() - dx > eDungeon.getBoundary()
+      ? ePC.setX(ePC.getX() - 1)
+      : dx > 0
+        ? eDungeon.setDeltaX(dx - 1) && ePC.setX(ePC.getX() - 1)
+        : ePC.getX() - dx > 0 && ePC.setX(ePC.getX() - 1)
+  }
+
+  function moveUp () {
+    ePC.getY() - dy > eDungeon.getBoundary()
+      ? ePC.setY(ePC.getY() - 1)
+      : dy > 0
+        ? eDungeon.setDeltaY(dy - 1) && ePC.setY(ePC.getY() - 1)
+        : ePC.getY() - dy > 0 && ePC.setY(ePC.getY() - 1)
+  }
+
+  function moveRight () {
+    ePC.getX() - dx < ui.getWidth() - 1 - eDungeon.getBoundary()
+      ? ePC.setX(ePC.getX() + 1)
+      : dx < eDungeon.getWidth() - ui.getWidth()
+        ? eDungeon.setDeltaX(dx + 1) && ePC.setX(ePC.getX() + 1)
+        : ePC.getX() - dx < ui.getWidth() - 1 && ePC.setX(ePC.getX() + 1)
+  }
+
+  function moveDown () {
+    ePC.getY() - dy < ui.getHeight() - 1 - eDungeon.getBoundary()
+      ? ePC.setY(ePC.getY() + 1)
+      : dy < eDungeon.getHeight() - ui.getHeight()
+        ? eDungeon.setDeltaY(dy + 1) && ePC.setY(ePC.getY() + 1)
+        : ePC.getY() - dy < ui.getHeight() - 1 && ePC.setY(ePC.getY() + 1)
   }
 }
 

@@ -38,6 +38,7 @@ Game.entity.pc = function () {
   let e = new Game.Factory('pc')
 
   e.addComponent(new Game.Component.ActorName('Nameless One', null))
+  e.addComponent(new Game.Component.Position())
   e.addComponent(new Game.Component.Display('@'))
   e.addComponent(new Game.Component.Curse())
   e.addComponent(new Game.Component.HitPoint(64))
