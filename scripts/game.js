@@ -555,19 +555,19 @@ Game.screens.main.display = function () {
   let pcDisplay = pcEntity.Display
   let pcName = pcEntity.ActorName
   let pcCurse = pcEntity.Curse
+  let dungeon = Game.entities.get('dungeon').Dungeon
 
   Game.screens.drawVersion()
   Game.screens.drawSeed()
 
-  pcEntity.Position.setX(5)
-  pcEntity.Position.setY(5)
+  placePC()
   Game.screens.drawDungeon()
 
-  Game.screens.drawAlignRight(Game.UI.stat.getX(), Game.UI.stat.getY() + 1.5,
-    Game.UI.stat.getWidth(), pcName.getStageName(), pcDisplay.getFgColor())
+  Game.screens.drawAlignRight(ui.stat.getX(), ui.stat.getY() + 1.5,
+    ui.stat.getWidth(), pcName.getStageName(), pcDisplay.getFgColor())
 
-  Game.screens.drawAlignRight(Game.UI.spell.getX(), Game.UI.spell.getY(),
-    Game.UI.spell.getWidth(), '[1.5]')
+  Game.screens.drawAlignRight(ui.spell.getX(), ui.spell.getY(),
+    ui.spell.getWidth(), '[1.5]')
 
   Game.system.gainHP(pcEntity, pcEntity)
 
@@ -582,18 +582,48 @@ Game.screens.main.display = function () {
   Game.system.updateStatus('Debuff', '-acc', 0.5, pcEntity)
 
   Game.screens.drawSpell()
-
-  for (let i = ui.stat.getY(); i < ui.stat.getHeight(); i++) {
-    Game.display.draw(ui.stat.getX() - 1, i, '|')
-  }
-  for (let i = ui.spell.getX(); i < ui.spell.getWidth() + 1; i++) {
-    Game.display.draw(i, ui.spell.getY() + ui.spell.getHeight(), '-')
-    Game.display.draw(i, ui.dungeon.getY() + ui.dungeon.getHeight(), '-')
-  }
+  drawBorder()
 
   Game.screens.drawAlignRight(ui.spell.getX(), ui.spell.getY() + 1,
     ui.spell.getWidth(), Game.text.spell(3),
     pcCurse.getLevel() < 2 ? 'grey' : null)
+
+  function placePC () {
+    let x = 0
+    let y = 0
+    let boundary = dungeon.getBoundary()
+    let mapWidth = dungeon.getWidth()
+    let mapHeight = dungeon.getHeight()
+    let uiWidth = ui.dungeon.getWidth()
+    let uiHeight = ui.dungeon.getHeight()
+
+    do {
+      x = Math.floor(ROT.RNG.getUniform() * dungeon.getWidth())
+      y = Math.floor(ROT.RNG.getUniform() * dungeon.getHeight())
+    } while ((dungeon.getTerrain().get(x + ',' + y) !== 0) ||
+    x < boundary || (x > mapWidth - boundary) ||
+    y < boundary || (y > mapHeight - boundary))
+
+    pcEntity.Position.setX(x)
+    pcEntity.Position.setY(y)
+
+    dungeon.setDeltaX(x - Math.ceil(uiWidth / 2) > 0
+      ? Math.min(x - Math.ceil(uiWidth / 2), mapWidth - uiWidth)
+      : 0)
+    dungeon.setDeltaY(y - Math.ceil(uiHeight / 2) > 0
+      ? Math.min(y - Math.ceil(uiHeight / 2), mapHeight - uiHeight)
+      : 0)
+  }
+
+  function drawBorder () {
+    for (let i = ui.stat.getY(); i < ui.stat.getHeight(); i++) {
+      Game.display.draw(ui.stat.getX() - 1, i, '|')
+    }
+    for (let i = ui.spell.getX(); i < ui.spell.getWidth() + 1; i++) {
+      Game.display.draw(i, ui.spell.getY() + ui.spell.getHeight(), '-')
+      Game.display.draw(i, ui.dungeon.getY() + ui.dungeon.getHeight(), '-')
+    }
+  }
 }
 
 Game.screens.main.keyInput = function (e) {
@@ -614,22 +644,30 @@ Game.screens.main.keyInput = function (e) {
 
     Game.screens.drawSpell()
   } else if (e.key === 'ArrowLeft') {
-    moveLeft()
+    Game.system.isWalkable(Game.entities.get('dungeon'),
+      ePC.getX() - 1, ePC.getY()) &&
+      moveLeft()
 
     Game.screens.clearBlock(ui)
     Game.screens.drawDungeon()
   } else if (e.key === 'ArrowRight') {
-    moveRight()
+    Game.system.isWalkable(Game.entities.get('dungeon'),
+      ePC.getX() + 1, ePC.getY()) &&
+      moveRight()
 
     Game.screens.clearBlock(ui)
     Game.screens.drawDungeon()
   } else if (e.key === 'ArrowUp') {
-    moveUp()
+    Game.system.isWalkable(Game.entities.get('dungeon'),
+      ePC.getX(), ePC.getY() - 1) &&
+      moveUp()
 
     Game.screens.clearBlock(ui)
     Game.screens.drawDungeon()
   } else if (e.key === 'ArrowDown') {
-    moveDown()
+    Game.system.isWalkable(Game.entities.get('dungeon'),
+      ePC.getX(), ePC.getY() + 1) &&
+      moveDown()
 
     Game.screens.clearBlock(ui)
     Game.screens.drawDungeon()

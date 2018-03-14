@@ -177,3 +177,11 @@ Game.system.updateStatus = function (status, id, turn, e) {
     Game.screens.drawStatus(status.toLowerCase(), hasStatus)
   }
 }
+
+Game.system.isWalkable = function (e, x, y) {
+  return e && e.Dungeon && verify()
+
+  function verify () {
+    return e.Dungeon.getTerrain().get(x + ',' + y) === 0
+  }
+}
