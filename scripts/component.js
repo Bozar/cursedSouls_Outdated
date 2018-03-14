@@ -48,17 +48,23 @@ Game.Component.Seed = function () {
   }
 }
 
-Game.Component.ActorName = function (stageN, trueN) {
+Game.Component.ActorName = function (stageN, trueN, color) {
   this._name = 'ActorName'
 
-  this._stageName = stageN        // player can see
-  this._trueName = trueN          // internal ID
+  this._stageName = stageN    // player can see
+  this._trueName = trueN      // internal ID
+  this._color = color || ''   // fgColor
 
   this.getStageName = function () { return this._stageName }
   this.getTrueName = function () { return this._trueName }
+  this.getColor = function () { return this._color }
 
   this.setTrueName = function (name) {
     this._trueName = name
+    return true
+  }
+  this.setColor = function (color) {
+    this._color = color
     return true
   }
 }

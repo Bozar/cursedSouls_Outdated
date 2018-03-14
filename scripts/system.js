@@ -185,3 +185,21 @@ Game.system.isWalkable = function (e, x, y) {
     return e.Dungeon.getTerrain().get(x + ',' + y) === 0
   }
 }
+
+// Draw actors on Game.UI.dungeon
+Game.system.drawActor = function (actor, map) {
+  actor && actor.Display && actor.Position &&
+  map && map.Dungeon &&
+  draw()
+
+  function draw () {
+    let uiX = Game.UI.dungeon.getX()
+    let uiY = Game.UI.dungeon.getY()
+
+    Game.display.draw(
+      actor.Position.getX() - map.Dungeon.getDeltaX() + uiX,
+      actor.Position.getY() - map.Dungeon.getDeltaY() + uiY,
+      actor.Display.getCharacter(),
+      actor.Display.getFgColor(), actor.Display.getBgColor())
+  }
+}

@@ -1,6 +1,6 @@
 'use strict'
 
-// ----- Version number, development switch & seed +++++
+// ----- Version number, development switch, seed & color +++++
 var Game = {}
 Game._version = '0.0.1-dev'
 Game._develop = true
@@ -12,6 +12,18 @@ Game._dungeonSize = [55, 20]   // [width, height]
 // set seed manually for testing
 // Game._devSeed = '#finn'
 // Game._devSeed = '#12345'
+
+Game._color = new Map()
+Game._color.set(null, '')
+Game._color.set('white', '#ABB2BF')
+Game._color.set('black', '#262626')
+Game._color.set('grey', '#666666')
+Game._color.set('orange', '#FF9900')
+Game._color.set('green', '#A0D86C')
+Game._color.set('yellow', '#FFE272')
+Game._color.set('red', '#FF4C4C')
+
+Game.getColor = function (color) { return Game._color.get(color) }
 
 // ----- The position & size of screen elements +++++
 Game.UI = function (width, height, top, right, bottom, left) {
@@ -47,8 +59,8 @@ Game.UI.canvas = new Game.UI(70, 25)
 Game.display = new ROT.Display({
   width: Game.UI.canvas.getWidth(),
   height: Game.UI.canvas.getHeight(),
-  fg: '#abb2bf',
-  bg: '#262626',
+  fg: Game.getColor('white'),
+  bg: Game.getColor('black'),
   fontSize: 20,
   fontFamily: (function () {
     let family = 'dejavu sans mono'
@@ -233,18 +245,6 @@ Game.screens._currentMode = null
 Game.screens._spellLevel = 1
 Game.screens._message = []
 
-Game.screens._color = new Map()
-Game.screens._color.set(null, '')
-Game.screens._color.set('grey', '#666666')
-Game.screens._color.set('orange', '#FF9900')
-Game.screens._color.set('green', '#A0D86C')
-Game.screens._color.set('yellow', '#FFE272')
-Game.screens._color.set('red', '#FF4C4C')
-
-Game.screens.getColor = function (color) {
-  return Game.screens._color.get(color)
-}
-
 // general version
 // Game.screens.clearBlock = function (x, y, width, height, fillText) {
 //   for (let i = x; i < x + width; i++) {
@@ -268,9 +268,9 @@ Game.screens.clearBlock = function (block, fillText) {
 
 Game.screens.colorfulText = function (text, fgColor, bgColor) {
   return bgColor
-    ? '%c{' + Game.screens.getColor(fgColor) + '}%b{' +
-    Game.screens.getColor(bgColor) + '}' + text + '%b{}%c{}'
-    : '%c{' + Game.screens.getColor(fgColor) + '}' + text + '%c{}'
+    ? '%c{' + Game.getColor(fgColor) + '}%b{' +
+    Game.getColor(bgColor) + '}' + text + '%b{}%c{}'
+    : '%c{' + Game.getColor(fgColor) + '}' + text + '%c{}'
 }
 
 Game.screens.drawAlignRight = function (x, y, width, text, color) {
@@ -389,11 +389,9 @@ Game.screens.drawStatus = function (type, status) {
 
 Game.screens.drawDungeon = function () {
   let ui = Game.UI.dungeon
-  let color = Game.screens.getColor
+  let color = Game.getColor
   let dx = Game.entities.get('dungeon').Dungeon.getDeltaX()
   let dy = Game.entities.get('dungeon').Dungeon.getDeltaY()
-  let pcX = Game.entities.get('pc').Position.getX() - dx + ui.getX()
-  let pcY = Game.entities.get('pc').Position.getY() - dy + ui.getY()
 
   for (const [key, value] of
     Game.entities.get('dungeon').Dungeon.getTerrain()) {
@@ -411,7 +409,7 @@ Game.screens.drawDungeon = function () {
         value ? color('grey') : color(null))
     }
   }
-  Game.display.draw(pcX, pcY, Game.entities.get('pc').Display.getCharacter())
+  Game.system.drawActor(Game.entities.get('pc'), Game.entities.get('dungeon'))
 }
 
 // ``` In-game screens +++
@@ -435,22 +433,21 @@ Game.screens.classSeed.keyInput = function (e) {
   let y = Game.UI.cutScene.getY() + 7
   let seedList = []       // will be stored in Game.entities.get('seed')
   let seedString = []     // draw on the canvas
-  let pcDisplay = Game.entities.get('pc').Display
   let pcName = Game.entities.get('pc').ActorName
 
   if (e.key.match(/^[a|b|c]$/)) {
     switch (e.key) {
       case 'a':
         pcName.setTrueName('dio')
-        pcDisplay.setFgColor('orange')
+        pcName.setColor('orange')
         break
       case 'b':
         pcName.setTrueName('hulk')
-        pcDisplay.setFgColor('green')
+        pcName.setColor('green')
         break
       case 'c':
         pcName.setTrueName('lasombra')
-        pcDisplay.setFgColor('grey')
+        pcName.setColor('grey')
         break
     }
     Game.keyboard.listenEvent('remove', 'classSeed')
@@ -552,7 +549,6 @@ Game.screens.main = new Game.Screen('main')
 Game.screens.main.display = function () {
   let ui = Game.UI
   let pcEntity = Game.entities.get('pc')
-  let pcDisplay = pcEntity.Display
   let pcName = pcEntity.ActorName
   let pcCurse = pcEntity.Curse
   let dungeon = Game.entities.get('dungeon').Dungeon
@@ -564,7 +560,7 @@ Game.screens.main.display = function () {
   Game.screens.drawDungeon()
 
   Game.screens.drawAlignRight(ui.stat.getX(), ui.stat.getY() + 1.5,
-    ui.stat.getWidth(), pcName.getStageName(), pcDisplay.getFgColor())
+    ui.stat.getWidth(), pcName.getStageName(), pcName.getColor())
 
   Game.screens.drawAlignRight(ui.spell.getX(), ui.spell.getY(),
     ui.spell.getWidth(), '[1.5]')
