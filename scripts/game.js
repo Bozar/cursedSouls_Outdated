@@ -541,7 +541,9 @@ Game.screens.prologue.keyInput = function (e) {
     Game.screens.prologue.exit()
     Game.screens.main.enter()
 
-    Game.keyboard.listenEvent('add', 'main')
+    Game.entity.timer()
+    Game.entities.get('timer').scheduler.add(Game.entities.get('pc'), true)
+    Game.entities.get('timer').engine.start()
   }
 }
 
@@ -628,6 +630,8 @@ Game.screens.main.keyInput = function (e) {
   let dx = eDungeon.getDeltaX()
   let dy = eDungeon.getDeltaY()
   let ui = Game.UI.dungeon
+  let acted = false
+  let scheduler = Game.entities.get('timer').scheduler
 
   if (e.key === ' ') {
     Game.screens.clearBlock(Game.UI.column1)
@@ -639,34 +643,51 @@ Game.screens.main.keyInput = function (e) {
         : 1
 
     Game.screens.drawSpell()
-  } else if (e.key === 'ArrowLeft') {
+  } else if (e.key === 'ArrowLeft' &&
     Game.system.isWalkable(Game.entities.get('dungeon'),
-      ePC.getX() - 1, ePC.getY()) &&
-      moveLeft()
+      ePC.getX() - 1, ePC.getY())) {
+    moveLeft()
+    scheduler.setDuration(1)
+    acted = true
 
     Game.screens.clearBlock(ui)
     Game.screens.drawDungeon()
-  } else if (e.key === 'ArrowRight') {
+  } else if (e.key === 'ArrowRight' &&
     Game.system.isWalkable(Game.entities.get('dungeon'),
-      ePC.getX() + 1, ePC.getY()) &&
-      moveRight()
+      ePC.getX() + 1, ePC.getY())) {
+    moveRight()
+    scheduler.setDuration(1)
+    acted = true
 
     Game.screens.clearBlock(ui)
     Game.screens.drawDungeon()
-  } else if (e.key === 'ArrowUp') {
+  } else if (e.key === 'ArrowUp' &&
     Game.system.isWalkable(Game.entities.get('dungeon'),
-      ePC.getX(), ePC.getY() - 1) &&
-      moveUp()
+      ePC.getX(), ePC.getY() - 1)) {
+    moveUp()
+    scheduler.setDuration(1)
+    acted = true
 
     Game.screens.clearBlock(ui)
     Game.screens.drawDungeon()
-  } else if (e.key === 'ArrowDown') {
+  } else if (e.key === 'ArrowDown' &&
     Game.system.isWalkable(Game.entities.get('dungeon'),
-      ePC.getX(), ePC.getY() + 1) &&
-      moveDown()
+      ePC.getX(), ePC.getY() + 1)) {
+    moveDown()
+    scheduler.setDuration(1)
+    acted = true
 
     Game.screens.clearBlock(ui)
     Game.screens.drawDungeon()
+  }
+
+  if (acted) {
+    Game.keyboard.listenEvent('remove', 'main')
+    Game.entities.get('timer').engine.unlock()
+
+    Game.screens.drawMessage(scheduler.getTime() + ': Moved!')
+  } else {
+    Game.screens.drawMessage(scheduler.getTime() + ': Invalid action!')
   }
 
   function moveLeft () {
@@ -707,45 +728,6 @@ Game.tmp = {}
 Game.tmp.upper = function (text) {
   return text.toUpperCase()
 }
-
-Game.tmp.tester = {_name: 'tester'}
-Game.tmp.tester.act = function () {
-  let time = Math.floor(Math.random() * 9 + 1)
-
-  Game.tmp.scheduler.setDuration(time)
-  console.log('tester act! ' + time + ': ' + Game.tmp.scheduler.getTime())
-  if (Game.tmp.scheduler.getTime() > 20 && !Game.tmp.added) {
-    Game.tmp.scheduler.add(Game.tmp.attacker, true)
-    Game.tmp.added = true
-  }
-}
-Game.tmp.attacker = {_name: 'attacker'}
-Game.tmp.attacker.act = function () {
-  let time = Math.floor(Math.random() * 9 + 1)
-
-  Game.tmp.scheduler.setDuration(time)
-  console.log('attacker act! ' + time + ': ' + Game.tmp.scheduler.getTime())
-  Game.tmp.engine.lock()
-  console.log('engine locked')
-  window.addEventListener('keydown', unlock)
-  function unlock (e) {
-    if (e.key.match(/^\d$/)) {
-      console.log(e.key)
-    } else if (e.key === '=') {
-      window.removeEventListener('keydown', unlock)
-
-      console.log('engine start')
-      Game.tmp.engine.unlock()
-    }
-  }
-}
-
-Game.tmp.scheduler = new ROT.Scheduler.Action()
-Game.tmp.scheduler.add(Game.tmp.tester, true)
-Game.tmp.added = false
-
-Game.tmp.engine = new ROT.Engine(Game.tmp.scheduler)
-Game.tmp.engine.start()
 
 // ----- Initialization +++++
 window.onload = function () {

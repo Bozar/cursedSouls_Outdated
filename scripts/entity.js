@@ -4,6 +4,7 @@
 Game.entities = new Map()
 Game.entities.set('dungeon', null)
 Game.entities.set('seed', null)
+Game.entities.set('timer', null)
 Game.entities.set('pc', null)
 
 // ----- Create a single entity +++++
@@ -34,6 +35,15 @@ Game.entity.seed = function () {
   Game.entities.set('seed', e)
 }
 
+Game.entity.timer = function () {
+  let e = new Game.Factory('timer')
+
+  e.scheduler = new ROT.Scheduler.Action()
+  e.engine = new ROT.Engine(e.scheduler)
+
+  Game.entities.set('timer', e)
+}
+
 Game.entity.pc = function () {
   let e = new Game.Factory('pc')
 
@@ -58,6 +68,8 @@ Game.entity.pc = function () {
   e.Debuff.gainStatus(new Game.Component.Status('-dmg', 0))
   e.Debuff.gainStatus(new Game.Component.Status('-cst', 0))
   e.Debuff.gainStatus(new Game.Component.Status('-poi', 0))
+
+  e.act = Game.system.pcAct
 
   Game.entities.set('pc', e)
 }

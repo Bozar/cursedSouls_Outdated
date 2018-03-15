@@ -203,3 +203,9 @@ Game.system.drawActor = function (actor, map) {
       actor.Display.getFgColor(), actor.Display.getBgColor())
   }
 }
+
+Game.system.pcAct = function () {
+  Game.entities.get('timer').engine.lock()
+
+  Game.keyboard.listenEvent('add', 'main')
+}
