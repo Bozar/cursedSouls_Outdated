@@ -708,6 +708,45 @@ Game.tmp.upper = function (text) {
   return text.toUpperCase()
 }
 
+Game.tmp.tester = {_name: 'tester'}
+Game.tmp.tester.act = function () {
+  let time = Math.floor(Math.random() * 9 + 1)
+
+  Game.tmp.scheduler.setDuration(time)
+  console.log('tester act! ' + time + ': ' + Game.tmp.scheduler.getTime())
+  if (Game.tmp.scheduler.getTime() > 20 && !Game.tmp.added) {
+    Game.tmp.scheduler.add(Game.tmp.attacker, true)
+    Game.tmp.added = true
+  }
+}
+Game.tmp.attacker = {_name: 'attacker'}
+Game.tmp.attacker.act = function () {
+  let time = Math.floor(Math.random() * 9 + 1)
+
+  Game.tmp.scheduler.setDuration(time)
+  console.log('attacker act! ' + time + ': ' + Game.tmp.scheduler.getTime())
+  Game.tmp.engine.lock()
+  console.log('engine locked')
+  window.addEventListener('keydown', unlock)
+  function unlock (e) {
+    if (e.key.match(/^\d$/)) {
+      console.log(e.key)
+    } else if (e.key === '=') {
+      window.removeEventListener('keydown', unlock)
+
+      console.log('engine start')
+      Game.tmp.engine.unlock()
+    }
+  }
+}
+
+Game.tmp.scheduler = new ROT.Scheduler.Action()
+Game.tmp.scheduler.add(Game.tmp.tester, true)
+Game.tmp.added = false
+
+Game.tmp.engine = new ROT.Engine(Game.tmp.scheduler)
+Game.tmp.engine.start()
+
 // ----- Initialization +++++
 window.onload = function () {
   if (!ROT.isSupported()) {
