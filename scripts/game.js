@@ -54,7 +54,7 @@ Game.UI.prototype.getBoxHeight = function () {
   return this._height + this._padTop + this._padBottom
 }
 
-Game.UI.canvas = new Game.UI(70, 25)
+Game.UI.canvas = new Game.UI(70, 26)
 
 Game.display = new ROT.Display({
   width: Game.UI.canvas.getWidth(),
@@ -137,10 +137,15 @@ Object.assign(Game.UI.cl, Game.UI.hp)
 
 Game.UI.cl._y = Game.UI.hp.getY() + 1
 
+Game.UI.turn = new Game.UI()
+Object.assign(Game.UI.turn, Game.UI.cl)
+
+Game.UI.turn._y += 1.5
+
 Game.UI.curse = new Game.UI(Game.UI.stat.getWidth(), 5)
 
 Game.UI.curse._x = Game.UI.stat.getX()
-Game.UI.curse._y = Game.UI.cl.getY() + 1.5
+Game.UI.curse._y = Game.UI.cl.getY() + 3
 
 Game.UI.buff = new Game.UI()
 Object.assign(Game.UI.buff, Game.UI.curse)
@@ -376,6 +381,19 @@ Game.screens.drawHPBar = function (current, damage) {
     'HP [' + afterHit + hit + blank + ']')
 }
 
+Game.screens.drawTurn = function (turn) {
+  let last = turn.toString(10)
+  let total = Game.entities.get('timer').scheduler.getTime().toString(10)
+
+  last = last.match(/^\d\.\d$/) || last + '.0'
+  total = total.match(/\./)
+    ? total.match(/^\d{1,4}\.\d$/) || total.match(/\d{4}\.\d$/)
+    : total.match(/^\d{1,4}$/) + '.0' || total.match(/\d{4}$/) + '.0'
+
+  Game.display.drawText(Game.UI.turn.getX(), Game.UI.turn.getY(),
+    'TN [' + last + '|' + total + ']')
+}
+
 Game.screens.drawStatus = function (type, status) {
   // [[buff1, turn1], [buff2, turn2], ...]
   for (let i = 0; i < status.length; i++) {
@@ -561,6 +579,9 @@ Game.screens.main.display = function () {
   placePC()
   Game.screens.drawDungeon()
 
+  // engine starts AFTER display
+  Game.display.drawText(ui.turn.getX(), ui.turn.getY(), 'TN [?.?|?]')
+
   Game.screens.drawAlignRight(ui.stat.getX(), ui.stat.getY() + 1.5,
     ui.stat.getWidth(), pcName.getStageName(), pcName.getColor())
 
@@ -569,15 +590,15 @@ Game.screens.main.display = function () {
 
   Game.system.gainHP(pcEntity, pcEntity)
 
-  Game.system.updateStatus('Buff', '+mov', -4, pcEntity)
-  Game.system.updateStatus('Buff', '+mov', 1, pcEntity)
-  Game.system.updateStatus('Buff', '+imm', 4, pcEntity)
+  Game.system.updateStatus('Buff', 'mov', -4, pcEntity)
+  Game.system.updateStatus('Buff', 'mov', 1, pcEntity)
+  Game.system.updateStatus('Buff', 'imm', 4, pcEntity)
 
   Game.system.updateLevel(24, pcEntity)
   Game.system.updateLevel(24, pcEntity)
 
-  pcEntity.Debuff.getStatus('-acc').setMax(2)
-  Game.system.updateStatus('Debuff', '-acc', 0.5, pcEntity)
+  pcEntity.Debuff.getStatus('acc').setMax(2)
+  Game.system.updateStatus('Debuff', 'acc', 0.5, pcEntity)
 
   Game.screens.drawSpell()
   drawBorder()
@@ -632,6 +653,7 @@ Game.screens.main.keyInput = function (e) {
   let ui = Game.UI.dungeon
   let acted = false
   let scheduler = Game.entities.get('timer').scheduler
+  let duration = Game.entities.get('timer').Duration
 
   if (e.key === ' ') {
     Game.screens.clearBlock(Game.UI.column1)
@@ -647,38 +669,46 @@ Game.screens.main.keyInput = function (e) {
     Game.system.isWalkable(Game.entities.get('dungeon'),
       ePC.getX() - 1, ePC.getY())) {
     moveLeft()
-    scheduler.setDuration(1)
+    scheduler.setDuration(duration.getDuration('mov'))
     acted = true
 
     Game.screens.clearBlock(ui)
     Game.screens.drawDungeon()
+    Game.screens.clearBlock(Game.UI.turn)
+    Game.screens.drawTurn(duration.getDuration('mov'))
   } else if (e.key === 'ArrowRight' &&
     Game.system.isWalkable(Game.entities.get('dungeon'),
       ePC.getX() + 1, ePC.getY())) {
     moveRight()
-    scheduler.setDuration(1)
+    scheduler.setDuration(duration.getDuration('mov'))
     acted = true
 
     Game.screens.clearBlock(ui)
     Game.screens.drawDungeon()
+    Game.screens.clearBlock(Game.UI.turn)
+    Game.screens.drawTurn(duration.getDuration('mov'))
   } else if (e.key === 'ArrowUp' &&
     Game.system.isWalkable(Game.entities.get('dungeon'),
       ePC.getX(), ePC.getY() - 1)) {
     moveUp()
-    scheduler.setDuration(1)
+    scheduler.setDuration(duration.getDuration('mov'))
     acted = true
 
     Game.screens.clearBlock(ui)
     Game.screens.drawDungeon()
+    Game.screens.clearBlock(Game.UI.turn)
+    Game.screens.drawTurn(duration.getDuration('mov'))
   } else if (e.key === 'ArrowDown' &&
     Game.system.isWalkable(Game.entities.get('dungeon'),
       ePC.getX(), ePC.getY() + 1)) {
     moveDown()
-    scheduler.setDuration(1)
+    scheduler.setDuration(duration.getDuration('mov'))
     acted = true
 
     Game.screens.clearBlock(ui)
     Game.screens.drawDungeon()
+    Game.screens.clearBlock(Game.UI.turn)
+    Game.screens.drawTurn(duration.getDuration('mov'))
   }
 
   if (acted) {

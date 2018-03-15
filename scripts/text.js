@@ -111,11 +111,11 @@ Game.text.curse = function (curse, returnMap) {
 Game.text.buff = function (buffID) {
   let text = new Map()
 
-  text.set('+mov', 'Movement++')
-  text.set('+acc', 'Accuracy++')
-  text.set('+def', 'Defense++')
-  text.set('+imm', 'Immunity')
-  text.set('+cst', 'Casting++')
+  text.set('mov', 'Movement++')
+  text.set('acc', 'Accuracy++')
+  text.set('def', 'Defense++')
+  text.set('imm', 'Immunity')
+  text.set('cst', 'Casting++')
 
   return text.get(buffID)
 }
@@ -123,12 +123,12 @@ Game.text.buff = function (buffID) {
 Game.text.debuff = function (debuffID) {
   let text = new Map()
 
-  text.set('-hp', 'Heal-')
-  text.set('-acc', 'Accuracy-')
-  text.set('-def', 'Defense-')
-  text.set('-dmg', 'Damage-')
-  text.set('-cst', 'Casting-')
-  text.set('-poi', 'Poisoned')
+  text.set('hp', 'Heal-')
+  text.set('acc', 'Accuracy-')
+  text.set('def', 'Defense-')
+  text.set('dmg', 'Damage-')
+  text.set('cst', 'Casting-')
+  text.set('poi', 'Poisoned')
 
   return text.get(debuffID)
 }

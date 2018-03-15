@@ -189,8 +189,8 @@ Game.system.isWalkable = function (e, x, y) {
 // Draw actors on Game.UI.dungeon
 Game.system.drawActor = function (actor, map) {
   actor && actor.Display && actor.Position &&
-  map && map.Dungeon &&
-  draw()
+    map && map.Dungeon &&
+    draw()
 
   function draw () {
     let uiX = Game.UI.dungeon.getX()

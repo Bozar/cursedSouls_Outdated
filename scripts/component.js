@@ -217,3 +217,13 @@ Game.Component.Debuff = function () {
       : this._debuff
   }
 }
+
+Game.Component.Duration = function () {
+  this._name = 'Duration'
+
+  this._duration = new Map()
+
+  this._duration.set('mov', 1)
+
+  this.getDuration = function (action) { return this._duration.get(action) }
+}

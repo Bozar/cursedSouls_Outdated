@@ -38,6 +38,8 @@ Game.entity.seed = function () {
 Game.entity.timer = function () {
   let e = new Game.Factory('timer')
 
+  e.addComponent(new Game.Component.Duration())
+
   e.scheduler = new ROT.Scheduler.Action()
   e.engine = new ROT.Engine(e.scheduler)
 
@@ -56,18 +58,18 @@ Game.entity.pc = function () {
   e.addComponent(new Game.Component.Debuff())
 
   // Map {buffID => Map {buffID ==> turn}}
-  e.Buff.gainStatus(new Game.Component.Status('+acc', 3))
-  e.Buff.gainStatus(new Game.Component.Status('+def', 3))
-  e.Buff.gainStatus(new Game.Component.Status('+imm', 3))
-  e.Buff.gainStatus(new Game.Component.Status('+mov', 1.5))
-  e.Buff.gainStatus(new Game.Component.Status('+cst', 5))
+  e.Buff.gainStatus(new Game.Component.Status('acc', 3))
+  e.Buff.gainStatus(new Game.Component.Status('def', 3))
+  e.Buff.gainStatus(new Game.Component.Status('imm', 3))
+  e.Buff.gainStatus(new Game.Component.Status('mov', 1.5))
+  e.Buff.gainStatus(new Game.Component.Status('cst', 5))
 
-  e.Debuff.gainStatus(new Game.Component.Status('-hp', 0))
-  e.Debuff.gainStatus(new Game.Component.Status('-acc', 0))
-  e.Debuff.gainStatus(new Game.Component.Status('-def', 0))
-  e.Debuff.gainStatus(new Game.Component.Status('-dmg', 0))
-  e.Debuff.gainStatus(new Game.Component.Status('-cst', 0))
-  e.Debuff.gainStatus(new Game.Component.Status('-poi', 0))
+  e.Debuff.gainStatus(new Game.Component.Status('hp', 0))
+  e.Debuff.gainStatus(new Game.Component.Status('acc', 0))
+  e.Debuff.gainStatus(new Game.Component.Status('def', 0))
+  e.Debuff.gainStatus(new Game.Component.Status('dmg', 0))
+  e.Debuff.gainStatus(new Game.Component.Status('cst', 0))
+  e.Debuff.gainStatus(new Game.Component.Status('poi', 0))
 
   e.act = Game.system.pcAct
 
