@@ -388,7 +388,9 @@ Game.screens.drawTurn = function (turn) {
   last = last.match(/^\d\.\d$/) || last + '.0'
   total = total.match(/\./)
     ? total.match(/^\d{1,4}\.\d$/) || total.match(/\d{4}\.\d$/)
-    : total.match(/^\d{1,4}$/) + '.0' || total.match(/\d{4}$/) + '.0'
+    : total.match(/^\d{1,4}$/)
+      ? total.match(/^\d{1,4}$/) + '.0'
+      : total.match(/\d{4}$/) + '.0'
 
   Game.display.drawText(Game.UI.turn.getX(), Game.UI.turn.getY(),
     'TN [' + last + '|' + total + ']')
@@ -648,76 +650,67 @@ Game.screens.main.display = function () {
 Game.screens.main.keyInput = function (e) {
   let eDungeon = Game.entities.get('dungeon').Dungeon
   let ePC = Game.entities.get('pc').Position
+  let eScheduler = Game.entities.get('timer').scheduler
+  let eDuration = Game.entities.get('timer').Duration
+
   let dx = eDungeon.getDeltaX()
   let dy = eDungeon.getDeltaY()
-  let ui = Game.UI.dungeon
+  let ui = Game.UI
+
   let acted = false
-  let scheduler = Game.entities.get('timer').scheduler
-  let duration = Game.entities.get('timer').Duration
+  let lastTurn = 0
 
   if (e.key === ' ') {
-    Game.screens.clearBlock(Game.UI.column1)
-    Game.screens.clearBlock(Game.UI.column2)
-
-    Game.screens._spellLevel =
-      Game.screens._spellLevel < Game.entities.get('pc').Curse.getLevel()
-        ? Game.screens._spellLevel + 1
-        : 1
-
-    Game.screens.drawSpell()
+    updateSpell()
   } else if (e.key === 'ArrowLeft' &&
     Game.system.isWalkable(Game.entities.get('dungeon'),
       ePC.getX() - 1, ePC.getY())) {
-    moveLeft()
-    scheduler.setDuration(duration.getDuration('mov'))
-    acted = true
+    lastTurn = eDuration.getDuration('mov')
+    eScheduler.setDuration(lastTurn)
 
-    Game.screens.clearBlock(ui)
-    Game.screens.drawDungeon()
-    Game.screens.clearBlock(Game.UI.turn)
-    Game.screens.drawTurn(duration.getDuration('mov'))
+    moveLeft()
+    updateStatus()
+
+    acted = true
   } else if (e.key === 'ArrowRight' &&
     Game.system.isWalkable(Game.entities.get('dungeon'),
       ePC.getX() + 1, ePC.getY())) {
-    moveRight()
-    scheduler.setDuration(duration.getDuration('mov'))
-    acted = true
+    lastTurn = eDuration.getDuration('mov')
+    eScheduler.setDuration(lastTurn)
 
-    Game.screens.clearBlock(ui)
-    Game.screens.drawDungeon()
-    Game.screens.clearBlock(Game.UI.turn)
-    Game.screens.drawTurn(duration.getDuration('mov'))
+    moveRight()
+    updateStatus()
+
+    acted = true
   } else if (e.key === 'ArrowUp' &&
     Game.system.isWalkable(Game.entities.get('dungeon'),
       ePC.getX(), ePC.getY() - 1)) {
-    moveUp()
-    scheduler.setDuration(duration.getDuration('mov'))
-    acted = true
+    lastTurn = eDuration.getDuration('mov')
+    eScheduler.setDuration(lastTurn)
 
-    Game.screens.clearBlock(ui)
-    Game.screens.drawDungeon()
-    Game.screens.clearBlock(Game.UI.turn)
-    Game.screens.drawTurn(duration.getDuration('mov'))
+    moveUp()
+    updateStatus()
+
+    acted = true
   } else if (e.key === 'ArrowDown' &&
     Game.system.isWalkable(Game.entities.get('dungeon'),
       ePC.getX(), ePC.getY() + 1)) {
-    moveDown()
-    scheduler.setDuration(duration.getDuration('mov'))
-    acted = true
+    lastTurn = eDuration.getDuration('mov')
+    eScheduler.setDuration(lastTurn)
 
-    Game.screens.clearBlock(ui)
-    Game.screens.drawDungeon()
-    Game.screens.clearBlock(Game.UI.turn)
-    Game.screens.drawTurn(duration.getDuration('mov'))
+    moveDown()
+    updateStatus()
+
+    acted = true
   }
 
   if (acted) {
     Game.keyboard.listenEvent('remove', 'main')
-    Game.entities.get('timer').engine.unlock()
+    Game.screens.drawMessage(eScheduler.getTime() + ': Moved!')
 
-    Game.screens.drawMessage(scheduler.getTime() + ': Moved!')
+    Game.entities.get('timer').engine.unlock()
   } else {
-    Game.screens.drawMessage(scheduler.getTime() + ': Invalid action!')
+    Game.screens.drawMessage(eScheduler.getTime() + ': Invalid action!')
   }
 
   function moveLeft () {
@@ -737,19 +730,41 @@ Game.screens.main.keyInput = function (e) {
   }
 
   function moveRight () {
-    ePC.getX() - dx < ui.getWidth() - 1 - eDungeon.getBoundary()
+    ePC.getX() - dx < ui.dungeon.getWidth() - 1 - eDungeon.getBoundary()
       ? ePC.setX(ePC.getX() + 1)
-      : dx < eDungeon.getWidth() - ui.getWidth()
+      : dx < eDungeon.getWidth() - ui.dungeon.getWidth()
         ? eDungeon.setDeltaX(dx + 1) && ePC.setX(ePC.getX() + 1)
-        : ePC.getX() - dx < ui.getWidth() - 1 && ePC.setX(ePC.getX() + 1)
+        : ePC.getX() - dx < ui.dungeon.getWidth() - 1 &&
+        ePC.setX(ePC.getX() + 1)
   }
 
   function moveDown () {
-    ePC.getY() - dy < ui.getHeight() - 1 - eDungeon.getBoundary()
+    ePC.getY() - dy < ui.dungeon.getHeight() - 1 - eDungeon.getBoundary()
       ? ePC.setY(ePC.getY() + 1)
-      : dy < eDungeon.getHeight() - ui.getHeight()
+      : dy < eDungeon.getHeight() - ui.dungeon.getHeight()
         ? eDungeon.setDeltaY(dy + 1) && ePC.setY(ePC.getY() + 1)
-        : ePC.getY() - dy < ui.getHeight() - 1 && ePC.setY(ePC.getY() + 1)
+        : ePC.getY() - dy < ui.dungeon.getHeight() - 1 &&
+        ePC.setY(ePC.getY() + 1)
+  }
+
+  function updateStatus () {
+    Game.screens.clearBlock(ui.dungeon)
+    Game.screens.drawDungeon()
+
+    Game.screens.clearBlock(ui.turn)
+    Game.screens.drawTurn(lastTurn)
+  }
+
+  function updateSpell () {
+    Game.screens.clearBlock(ui.column1)
+    Game.screens.clearBlock(ui.column2)
+
+    Game.screens._spellLevel =
+      Game.screens._spellLevel < Game.entities.get('pc').Curse.getLevel()
+        ? Game.screens._spellLevel + 1
+        : 1
+
+    Game.screens.drawSpell()
   }
 }
 
