@@ -584,6 +584,19 @@ Game.screens.main.display = function () {
   // engine starts AFTER display
   Game.display.drawText(ui.turn.getX(), ui.turn.getY(), 'TN [?.?|?]')
 
+  Game.tmp.light = function (x, y) {
+    return Game.entities.get('dungeon').Dungeon
+      .getTerrain().get(x + ',' + y) === 0
+  }
+  Game.tmp.fov = new ROT.FOV.PreciseShadowcasting(Game.tmp.light)
+
+  Game.tmp.fov.compute(pcEntity.Position.getX(), pcEntity.Position.getY(),
+    6, function (x, y, r) {
+      Game.display.draw(x - dungeon.getDeltaX() + ui.dungeon.getX(),
+        y - dungeon.getDeltaY() + ui.dungeon.getY(),
+        r ? '.' : '@', Game.getColor('orange'))
+    })
+
   Game.screens.drawAlignRight(ui.stat.getX(), ui.stat.getY() + 1.5,
     ui.stat.getWidth(), pcName.getStageName(), pcName.getColor())
 
