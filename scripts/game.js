@@ -420,16 +420,56 @@ Game.screens.drawDungeon = function () {
   let bottom = uiDungeon.getY() + uiDungeon.getHeight() - 1
   let deltaY = eDungeon.Dungeon.getDeltaY()
 
-  eDungeon.fov.compute(ePCpos.getX(), ePCpos.getY(), 6, function (x, y, r) {
-    Game.display.draw(
-      Math.min(Math.max(left, x - deltaX + left), right),
-      Math.min(Math.max(top, y - deltaY + top), bottom),
-      r === 0
-        ? '@'
-        : eDungeon.Dungeon.getTerrain().get(x + ',' + y) === 0
-          ? '.'
-          : '#')
-  })
+  let memory = eDungeon.Dungeon.getMemory()
+
+  memory.length > 0 && drawSeen()
+
+  eDungeon.fov.compute(ePCpos.getX(), ePCpos.getY(), ePCpos.getSight(),
+    function (x, y) {
+      !memory[x + ',' + y] && memory.push(x + ',' + y)
+
+      drawTerrain(x, y)
+    })
+
+  drawActor(Game.entities.get('pc'))
+
+  function drawSeen () {
+    for (let i = 0; i < memory.length; i++) {
+      let x = memory[i].split(',')[0]
+      let y = memory[i].split(',')[1]
+
+      drawTerrain(x, y, 'grey')
+    }
+  }
+
+  function drawTerrain (x, y, color) {
+    insideScreen(x, y) &&
+      Game.display.draw(screenX(x), screenY(y),
+        eDungeon.Dungeon.getTerrain().get(x + ',' + y) === 0 ? '.' : '#',
+        Game.getColor(color || null))
+  }
+
+  function drawActor (actor) {
+    let x = actor.Position.getX()
+    let y = actor.Position.getY()
+
+    insideScreen(x, y) &&
+      Game.display.draw(screenX(x), screenY(y),
+        actor.Display.getCharacter(),
+        actor.Display.getFgColor(), actor.Display.getBgColor())
+  }
+
+  function insideScreen (x, y) {
+    return x - deltaX + left === screenX(x) &&
+      y - deltaY + top === screenY(y)
+  }
+
+  function screenX (x) {
+    return Math.min(Math.max(left, x - deltaX + left), right)
+  }
+  function screenY (y) {
+    return Math.min(Math.max(top, y - deltaY + top), bottom)
+  }
 }
 
 // draw the dungeon without FOV

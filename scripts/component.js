@@ -12,6 +12,8 @@ Game.Component.Dungeon = function (width, height) {
   this._deltaY = 0
   this._boundary = 5          // move screen when pc is close to the border
 
+  this._memory = []           // explored dungeon
+
   this.getWidth = function () { return this._width }
   this.getHeight = function () { return this._height }
   this.getTerrain = function () { return this._terrain }
@@ -19,6 +21,8 @@ Game.Component.Dungeon = function (width, height) {
   this.getDeltaX = function () { return this._deltaX }
   this.getDeltaY = function () { return this._deltaY }
   this.getBoundary = function () { return this._boundary }
+
+  this.getMemory = function () { return this._memory }
 
   this.setDeltaX = function (delta) {
     this._deltaX = delta
@@ -70,14 +74,16 @@ Game.Component.ActorName = function (stageN, trueN, color) {
 }
 
 // Actor's position in the dungeon map
-Game.Component.Position = function () {
+Game.Component.Position = function (sight) {
   this._name = 'Position'
 
   this._x = null
   this._y = null
+  this._sight = sight   // how far one can see
 
   this.getX = function () { return this._x }
   this.getY = function () { return this._y }
+  this.getSight = function () { return this._sight }
 
   this.setX = function (pos) {
     this._x = pos
