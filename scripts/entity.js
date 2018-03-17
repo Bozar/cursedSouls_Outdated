@@ -15,6 +15,12 @@ Game.entity.dungeon = function (width, height) {
   e.addComponent(new Game.Component.Dungeon(width, height))
 
   cellular()
+
+  e.light = function (x, y) {
+    return e.Dungeon.getTerrain().get(x + ',' + y) === 0
+  }
+  e.fov = new ROT.FOV.PreciseShadowcasting(e.light)
+
   Game.entities.set('dungeon', e)
 
   function cellular () {
