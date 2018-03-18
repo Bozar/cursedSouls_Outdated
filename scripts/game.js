@@ -426,7 +426,7 @@ Game.screens.drawDungeon = function () {
 
   eDungeon.fov.compute(ePCpos.getX(), ePCpos.getY(), ePCpos.getSight(),
     function (x, y) {
-      !memory[x + ',' + y] && memory.push(x + ',' + y)
+      memory.indexOf(x + ',' + y) < 0 && memory.push(x + ',' + y)
 
       drawTerrain(x, y)
     })
