@@ -223,6 +223,7 @@ Game.Screen.prototype.enter = function () {
   Game.screens._currentName = this.getName()
   Game.screens._currentMode = this.getMode()
 
+  this.initialize()
   this.display()
 }
 
@@ -231,6 +232,10 @@ Game.Screen.prototype.exit = function () {
   Game.screens._currentMode = null
 
   Game.display.clear()
+}
+
+Game.Screen.prototype.initialize = function () {
+  Game.getDevelop() && console.log(Game.text.devNote('initial'))
 }
 
 Game.Screen.prototype.display = function () {
@@ -500,15 +505,18 @@ Game.screens.drawDungeon = function () {
 
 // ``` In-game screens +++
 Game.screens.classSeed = new Game.Screen('classSeed')
+
+Game.screens.classSeed.initialize = function () {
+  !Game.entities.get('seed') && Game.entity.seed()
+  Game.entity.pc()
+}
+
 Game.screens.classSeed.display = function () {
   let x = Game.UI.cutScene.getX()
   let y = Game.UI.cutScene.getY()
   let width = Game.UI.cutScene.getWidth()
 
   Game.screens.drawVersion()
-
-  !Game.entities.get('seed') && Game.entity.seed()
-  Game.entity.pc()
 
   Game.display.drawText(x, y, Game.text.selectClass('initial'), width)
   Game.screens.drawModeLine(Game.text.modeLine('select'))
@@ -634,27 +642,13 @@ Game.screens.prologue.keyInput = function (e) {
 }
 
 Game.screens.main = new Game.Screen('main')
-Game.screens.main.display = function () {
+
+Game.screens.main.initialize = function () {
   let ui = Game.UI
   let pcEntity = Game.entities.get('pc')
-  let pcName = pcEntity.ActorName
-  let pcCurse = pcEntity.Curse
   let dungeon = Game.entities.get('dungeon').Dungeon
 
-  Game.screens.drawVersion()
-  Game.screens.drawSeed()
-
   placePC()
-  Game.screens.drawDungeon()
-
-  // engine starts AFTER display
-  Game.display.drawText(ui.turn.getX(), ui.turn.getY(), 'TN [?.?|?]')
-
-  Game.screens.drawAlignRight(ui.stat.getX(), ui.stat.getY() + 1.5,
-    ui.stat.getWidth(), pcName.getStageName(), pcName.getColor())
-
-  Game.screens.drawAlignRight(ui.spell.getX(), ui.spell.getY(),
-    ui.spell.getWidth(), '[1.5]')
 
   Game.system.gainHP(pcEntity, pcEntity)
 
@@ -667,13 +661,6 @@ Game.screens.main.display = function () {
 
   pcEntity.Debuff.getStatus('acc').setMax(2)
   Game.system.updateStatus('Debuff', 'acc', 0.5, pcEntity)
-
-  Game.screens.drawSpell()
-  drawBorder()
-
-  Game.screens.drawAlignRight(ui.spell.getX(), ui.spell.getY() + 1,
-    ui.spell.getWidth(), Game.text.spell(3),
-    pcCurse.getLevel() < 2 ? 'grey' : null)
 
   function placePC () {
     let x = 0
@@ -701,6 +688,34 @@ Game.screens.main.display = function () {
       ? Math.min(y - Math.ceil(uiHeight / 2), mapHeight - uiHeight)
       : 0)
   }
+}
+
+Game.screens.main.display = function () {
+  let ui = Game.UI
+  let pcEntity = Game.entities.get('pc')
+  let pcName = pcEntity.ActorName
+  let pcCurse = pcEntity.Curse
+
+  Game.screens.drawVersion()
+  Game.screens.drawSeed()
+
+  Game.screens.drawDungeon()
+
+  // engine starts AFTER display
+  Game.display.drawText(ui.turn.getX(), ui.turn.getY(), 'TN [?.?|?]')
+
+  Game.screens.drawAlignRight(ui.stat.getX(), ui.stat.getY() + 1.5,
+    ui.stat.getWidth(), pcName.getStageName(), pcName.getColor())
+
+  Game.screens.drawAlignRight(ui.spell.getX(), ui.spell.getY(),
+    ui.spell.getWidth(), '[1.5]')
+
+  Game.screens.drawSpell()
+  drawBorder()
+
+  Game.screens.drawAlignRight(ui.spell.getX(), ui.spell.getY() + 1,
+    ui.spell.getWidth(), Game.text.spell(3),
+    pcCurse.getLevel() < 2 ? 'grey' : null)
 
   function drawBorder () {
     for (let i = ui.stat.getY(); i < ui.stat.getHeight(); i++) {
