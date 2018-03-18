@@ -744,13 +744,14 @@ Game.screens.main.keyInput = function (e) {
   let dx = eDungeon.getDeltaX()
   let dy = eDungeon.getDeltaY()
   let ui = Game.UI
+  let keyAction = Game.keyboard.getAction
 
   let acted = false
   let lastTurn = 0
 
   if (e.key === ' ') {
     updateSpell()
-  } else if (Game.keyboard.getAction(e, 'move') === 'left' &&
+  } else if (keyAction(e, 'move') === 'left' &&
     Game.system.isWalkable(Game.entities.get('dungeon'),
       ePC.getX() - 1, ePC.getY())) {
     lastTurn = eDuration.getDuration('mov')
@@ -760,7 +761,7 @@ Game.screens.main.keyInput = function (e) {
     updateStatus()
 
     acted = true
-  } else if (Game.keyboard.getAction(e, 'move') === 'right' &&
+  } else if (keyAction(e, 'move') === 'right' &&
     Game.system.isWalkable(Game.entities.get('dungeon'),
       ePC.getX() + 1, ePC.getY())) {
     lastTurn = eDuration.getDuration('mov')
@@ -770,7 +771,7 @@ Game.screens.main.keyInput = function (e) {
     updateStatus()
 
     acted = true
-  } else if (Game.keyboard.getAction(e, 'move') === 'up' &&
+  } else if (keyAction(e, 'move') === 'up' &&
     Game.system.isWalkable(Game.entities.get('dungeon'),
       ePC.getX(), ePC.getY() - 1)) {
     lastTurn = eDuration.getDuration('mov')
@@ -780,7 +781,7 @@ Game.screens.main.keyInput = function (e) {
     updateStatus()
 
     acted = true
-  } else if (Game.keyboard.getAction(e, 'move') === 'down' &&
+  } else if (keyAction(e, 'move') === 'down' &&
     Game.system.isWalkable(Game.entities.get('dungeon'),
       ePC.getX(), ePC.getY() + 1)) {
     lastTurn = eDuration.getDuration('mov')
@@ -802,37 +803,29 @@ Game.screens.main.keyInput = function (e) {
   }
 
   function moveLeft () {
-    ePC.getX() - dx > eDungeon.getBoundary()
-      ? ePC.setX(ePC.getX() - 1)
-      : dx >= 0   // dx === 0, the map border & screen border coincide
-        ? eDungeon.setDeltaX(dx - 1) && ePC.setX(ePC.getX() - 1)
-        : ePC.getX() - dx > 0 && ePC.setX(ePC.getX() - 1)
+    ePC.getX() - dx <= eDungeon.getBoundary() && dx >= 0 &&
+      eDungeon.setDeltaX(dx - 1)    // dx === -1, draw map border on the screen
+    ePC.setX(ePC.getX() - 1)
   }
 
   function moveUp () {
-    ePC.getY() - dy > eDungeon.getBoundary()
-      ? ePC.setY(ePC.getY() - 1)
-      : dy >= 0
-        ? eDungeon.setDeltaY(dy - 1) && ePC.setY(ePC.getY() - 1)
-        : ePC.getY() - dy > 0 && ePC.setY(ePC.getY() - 1)
+    ePC.getY() - dy <= eDungeon.getBoundary() && dy >= 0 &&
+      eDungeon.setDeltaY(dy - 1)
+    ePC.setY(ePC.getY() - 1)
   }
 
   function moveRight () {
-    ePC.getX() - dx < ui.dungeon.getWidth() - 1 - eDungeon.getBoundary()
-      ? ePC.setX(ePC.getX() + 1)
-      : dx <= eDungeon.getWidth() - ui.dungeon.getWidth()
-        ? eDungeon.setDeltaX(dx + 1) && ePC.setX(ePC.getX() + 1)
-        : ePC.getX() - dx < ui.dungeon.getWidth() - 1 &&
-        ePC.setX(ePC.getX() + 1)
+    ePC.getX() - dx >= ui.dungeon.getWidth() - 1 - eDungeon.getBoundary() &&
+      dx <= eDungeon.getWidth() - ui.dungeon.getWidth() &&
+      eDungeon.setDeltaX(dx + 1)
+    ePC.setX(ePC.getX() + 1)
   }
 
   function moveDown () {
-    ePC.getY() - dy < ui.dungeon.getHeight() - 1 - eDungeon.getBoundary()
-      ? ePC.setY(ePC.getY() + 1)
-      : dy <= eDungeon.getHeight() - ui.dungeon.getHeight()
-        ? eDungeon.setDeltaY(dy + 1) && ePC.setY(ePC.getY() + 1)
-        : ePC.getY() - dy < ui.dungeon.getHeight() - 1 &&
-        ePC.setY(ePC.getY() + 1)
+    ePC.getY() - dy >= ui.dungeon.getHeight() - 1 - eDungeon.getBoundary() &&
+      dy <= eDungeon.getHeight() - ui.dungeon.getHeight() &&
+      eDungeon.setDeltaY(dy + 1)
+    ePC.setY(ePC.getY() + 1)
   }
 
   function updateStatus () {
