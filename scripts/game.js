@@ -361,13 +361,16 @@ Game.screens.drawSpell = function () {
 
 Game.screens.drawCurse = function () {
   let curse = Game.entities.get('pc').Curse.getCurse()
+
   for (let i = 0; i < curse.length; i++) {
     Game.display.drawText(Game.UI.curse.getX(), Game.UI.curse.getY() + i,
       Game.screens.colorfulText(Game.text.curse(curse[i]), 'grey'))
   }
 }
 
-Game.screens.drawLevelBar = function (progress) {
+Game.screens.drawLevelBar = function () {
+  let e = Game.entities.get('pc')
+  let progress = Math.floor(e.Curse.getPoint() / e.Curse.getMaxPoint() * 10)
   let colored = Game.screens.colorfulText('#'.repeat(progress), 'grey', 'grey')
   let blank = ' '.repeat(10 - progress)
 
@@ -375,23 +378,28 @@ Game.screens.drawLevelBar = function (progress) {
     'CL [' + colored + blank + ']')
 }
 
-Game.screens.drawHPBar = function (current, damage) {
-  let color = current - damage > 6
+Game.screens.drawHPBar = function () {
+  let hp = Game.entities.get('pc').HitPoint.getHP()
+  let max = Game.entities.get('pc').HitPoint.getMax()
+
+  let current = Math.floor(hp[1] / max * 10)
+  let damage = Math.ceil(Math.max(hp[0] - hp[1], 0) / max * 10)
+
+  let color = current > 6
     ? 'green'
-    : current - damage > 3
+    : current > 3
       ? 'yellow'
       : 'red'
-  let afterHit = Game.screens.colorfulText('#'.repeat(current - damage),
-    color, color)
-  let hit = Game.screens.colorfulText('#'.repeat(damage), 'grey', 'grey')
-  let blank = ' '.repeat(10 - current)
+  let hpBar = Game.screens.colorfulText('#'.repeat(current), color, color)
+  let dmgBar = Game.screens.colorfulText('#'.repeat(damage), 'grey', 'grey')
+  let blank = ' '.repeat(10 - current - damage)
 
   Game.display.drawText(Game.UI.hp.getX(), Game.UI.hp.getY(),
-    'HP [' + afterHit + hit + blank + ']')
+    'HP [' + hpBar + dmgBar + blank + ']')
 }
 
-Game.screens.drawTurn = function (turn) {
-  let last = turn.toString(10)
+Game.screens.drawTurn = function () {
+  let last = Game.entities.get('pc').ActorClock.getLastAction().toString(10)
   let total = Game.entities.get('timer').scheduler.getTime().toString(10)
 
   last = last.match(/^\d\.\d$/) || last + '.0'
@@ -405,14 +413,31 @@ Game.screens.drawTurn = function (turn) {
     'TN [' + last + '|' + total + ']')
 }
 
-Game.screens.drawStatus = function (type, status) {
-  // [[buff1, turn1], [buff2, turn2], ...]
-  for (let i = 0; i < status.length; i++) {
-    Game.display.drawText(Game.UI[type].getX(), Game.UI[type].getY() + i,
-      Game.screens.colorfulText(status[i][0],
-        type === 'buff' ? 'green' : 'red'))
-    Game.screens.drawAlignRight(Game.UI[type].getX(), Game.UI[type].getY() + i,
-      Game.UI[type].getWidth(), status[i][1].toString())
+Game.screens.drawBuff = function () {
+  let i = 0
+  let buff = Game.UI.buff
+
+  for (const [key, value] of Game.entities.get('pc').Buff.getStatus()) {
+    Game.display.drawText(buff.getX(), buff.getY() + i,
+      Game.screens.colorfulText(
+        Game.text.buff(key), 'green'))
+    Game.screens.drawAlignRight(buff.getX(), buff.getY() + i,
+      buff.getWidth(), value.toString())
+    i++
+  }
+}
+
+Game.screens.drawDebuff = function () {
+  let i = 0
+  let debuff = Game.UI.debuff
+
+  for (const [key, value] of Game.entities.get('pc').Debuff.getStatus()) {
+    Game.display.drawText(debuff.getX(), debuff.getY() + i,
+      Game.screens.colorfulText(
+        Game.text.debuff(key), 'red'))
+    Game.screens.drawAlignRight(debuff.getX(), debuff.getY() + i,
+      debuff.getWidth(), value.toString())
+    i++
   }
 }
 
@@ -657,17 +682,17 @@ Game.screens.main.initialize = function () {
 
   placePC()
 
-  Game.system.gainHP(pcEntity, pcEntity)
+  Game.system.gainHP(pcEntity, 64)
 
-  Game.system.updateStatus('Buff', 'mov', -4, pcEntity)
-  Game.system.updateStatus('Buff', 'mov', 1, pcEntity)
-  Game.system.updateStatus('Buff', 'imm', 4, pcEntity)
+  Game.system.gainBuff('mov', pcEntity)
+  Game.system.gainBuff('imm', pcEntity)
+  Game.system.gainBuff('acc', pcEntity)
+
+  Game.system.gainDebuff('hp', pcEntity)
+  Game.system.gainDebuff('dmg', pcEntity)
 
   Game.system.updateLevel(24, pcEntity)
   Game.system.updateLevel(24, pcEntity)
-
-  pcEntity.Debuff.getStatus('acc').setMax(2)
-  Game.system.updateStatus('Debuff', 'acc', 0.5, pcEntity)
 
   function placePC () {
     let x = 0
@@ -708,6 +733,9 @@ Game.screens.main.display = function () {
 
   Game.screens.drawDungeon()
 
+  Game.screens.drawBuff()
+  Game.screens.drawDebuff()
+
   // engine starts AFTER display
   Game.display.drawText(ui.turn.getX(), ui.turn.getY(), 'TN [?.?|?]')
 
@@ -737,7 +765,8 @@ Game.screens.main.display = function () {
 
 Game.screens.main.keyInput = function (e) {
   let eDungeon = Game.entities.get('dungeon').Dungeon
-  let ePC = Game.entities.get('pc').Position
+  let ePCpos = Game.entities.get('pc').Position
+  let ePCclock = Game.entities.get('pc').ActorClock
   let eScheduler = Game.entities.get('timer').scheduler
   let eDuration = Game.entities.get('timer').Duration
 
@@ -753,8 +782,9 @@ Game.screens.main.keyInput = function (e) {
     updateSpell()
   } else if (keyAction(e, 'move') === 'left' &&
     Game.system.isWalkable(Game.entities.get('dungeon'),
-      ePC.getX() - 1, ePC.getY())) {
+      ePCpos.getX() - 1, ePCpos.getY())) {
     lastTurn = eDuration.getDuration('mov')
+    ePCclock.setLastAction(lastTurn)
     eScheduler.setDuration(lastTurn)
 
     moveLeft()
@@ -763,8 +793,9 @@ Game.screens.main.keyInput = function (e) {
     acted = true
   } else if (keyAction(e, 'move') === 'right' &&
     Game.system.isWalkable(Game.entities.get('dungeon'),
-      ePC.getX() + 1, ePC.getY())) {
+      ePCpos.getX() + 1, ePCpos.getY())) {
     lastTurn = eDuration.getDuration('mov')
+    ePCclock.setLastAction(lastTurn)
     eScheduler.setDuration(lastTurn)
 
     moveRight()
@@ -773,8 +804,9 @@ Game.screens.main.keyInput = function (e) {
     acted = true
   } else if (keyAction(e, 'move') === 'up' &&
     Game.system.isWalkable(Game.entities.get('dungeon'),
-      ePC.getX(), ePC.getY() - 1)) {
+      ePCpos.getX(), ePCpos.getY() - 1)) {
     lastTurn = eDuration.getDuration('mov')
+    ePCclock.setLastAction(lastTurn)
     eScheduler.setDuration(lastTurn)
 
     moveUp()
@@ -783,8 +815,9 @@ Game.screens.main.keyInput = function (e) {
     acted = true
   } else if (keyAction(e, 'move') === 'down' &&
     Game.system.isWalkable(Game.entities.get('dungeon'),
-      ePC.getX(), ePC.getY() + 1)) {
+      ePCpos.getX(), ePCpos.getY() + 1)) {
     lastTurn = eDuration.getDuration('mov')
+    ePCclock.setLastAction(lastTurn)
     eScheduler.setDuration(lastTurn)
 
     moveDown()
@@ -803,29 +836,29 @@ Game.screens.main.keyInput = function (e) {
   }
 
   function moveLeft () {
-    ePC.getX() - dx <= eDungeon.getBoundary() && dx >= 0 &&
+    ePCpos.getX() - dx <= eDungeon.getBoundary() && dx >= 0 &&
       eDungeon.setDeltaX(dx - 1)    // dx === -1, draw map border on the screen
-    ePC.setX(ePC.getX() - 1)
+    ePCpos.setX(ePCpos.getX() - 1)
   }
 
   function moveUp () {
-    ePC.getY() - dy <= eDungeon.getBoundary() && dy >= 0 &&
+    ePCpos.getY() - dy <= eDungeon.getBoundary() && dy >= 0 &&
       eDungeon.setDeltaY(dy - 1)
-    ePC.setY(ePC.getY() - 1)
+    ePCpos.setY(ePCpos.getY() - 1)
   }
 
   function moveRight () {
-    ePC.getX() - dx >= ui.dungeon.getWidth() - 1 - eDungeon.getBoundary() &&
+    ePCpos.getX() - dx >= ui.dungeon.getWidth() - 1 - eDungeon.getBoundary() &&
       dx <= eDungeon.getWidth() - ui.dungeon.getWidth() &&
       eDungeon.setDeltaX(dx + 1)
-    ePC.setX(ePC.getX() + 1)
+    ePCpos.setX(ePCpos.getX() + 1)
   }
 
   function moveDown () {
-    ePC.getY() - dy >= ui.dungeon.getHeight() - 1 - eDungeon.getBoundary() &&
+    ePCpos.getY() - dy >= ui.dungeon.getHeight() - 1 - eDungeon.getBoundary() &&
       dy <= eDungeon.getHeight() - ui.dungeon.getHeight() &&
       eDungeon.setDeltaY(dy + 1)
-    ePC.setY(ePC.getY() + 1)
+    ePCpos.setY(ePCpos.getY() + 1)
   }
 
   function updateStatus () {
@@ -833,7 +866,7 @@ Game.screens.main.keyInput = function (e) {
     Game.screens.drawDungeon()
 
     Game.screens.clearBlock(ui.turn)
-    Game.screens.drawTurn(lastTurn)
+    Game.screens.drawTurn()
   }
 
   function updateSpell () {

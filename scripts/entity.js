@@ -60,22 +60,9 @@ Game.entity.pc = function () {
   e.addComponent(new Game.Component.Display('@'))
   e.addComponent(new Game.Component.Curse())
   e.addComponent(new Game.Component.HitPoint(64))
+  e.addComponent(new Game.Component.ActorClock())
   e.addComponent(new Game.Component.Buff())
   e.addComponent(new Game.Component.Debuff())
-
-  // Map {buffID => Map {buffID ==> turn}}
-  e.Buff.gainStatus(new Game.Component.Status('acc', 3))
-  e.Buff.gainStatus(new Game.Component.Status('def', 3))
-  e.Buff.gainStatus(new Game.Component.Status('imm', 3))
-  e.Buff.gainStatus(new Game.Component.Status('mov', 1.5))
-  e.Buff.gainStatus(new Game.Component.Status('cst', 5))
-
-  e.Debuff.gainStatus(new Game.Component.Status('hp', 0))
-  e.Debuff.gainStatus(new Game.Component.Status('acc', 0))
-  e.Debuff.gainStatus(new Game.Component.Status('def', 0))
-  e.Debuff.gainStatus(new Game.Component.Status('dmg', 0))
-  e.Debuff.gainStatus(new Game.Component.Status('cst', 0))
-  e.Debuff.gainStatus(new Game.Component.Status('poi', 0))
 
   e.act = Game.system.pcAct
 

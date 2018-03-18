@@ -103,8 +103,7 @@ Game.system.updateLevel = function (point, e) {
         : belowZero()
 
     Game.screens.clearBlock(Game.UI.cl)
-    Game.screens.drawLevelBar(
-      Math.floor(e.Curse.getPoint() / e.Curse.getMaxPoint() * 10))
+    Game.screens.drawLevelBar()
   }
 
   function overMax () {
@@ -118,20 +117,18 @@ Game.system.updateLevel = function (point, e) {
   }
 }
 
-Game.system.gainHP = function (self, debuff) {
-  self && self.HitPoint && debuff && debuff.HitPoint && heal()
+Game.system.gainHP = function (e, maxHP) {
+  e && e.HitPoint && maxHP && heal()
 
   function heal () {
-    let healed = self.HitPoint.getCurrent() + debuff.HitPoint.getHeal()
-    let max = debuff.HitPoint.getMax()
+    let healed = e.HitPoint.getHP()[1] + Math.floor(maxHP / 4)
 
-    healed < max
-      ? self.HitPoint.setCurrent(healed)
-      : self.HitPoint.setCurrent(max)
+    healed = Math.min(healed, maxHP)
+    e.HitPoint.getHP().push(healed)
+    e.HitPoint.getHP().shift()
 
     Game.screens.clearBlock(Game.UI.hp)
-    Game.screens.drawHPBar(
-      Math.floor(self.HitPoint.getCurrent() / self.HitPoint.getMax() * 10), 0)
+    Game.screens.drawHPBar()
   }
 }
 
@@ -139,50 +136,51 @@ Game.system.loseHP = function (e, damage) {
   e && e.HitPoint && damage && takeDamage()
 
   function takeDamage () {
-    let beforeHit = e.HitPoint.getCurrent()
-    let afterHit = e.HitPoint.getCurrent() - damage
+    let afterHit = e.HitPoint.getHP()[1] - damage
 
-    afterHit > 0
-      ? e.HitPoint.setCurrent(afterHit)
-      : (function () {
-        e.HitPoint.setCurrent(0)
-        damage = beforeHit
-      }())
+    e.HitPoint.getHP().push(Math.max(0, afterHit))
+    e.HitPoint.getHP().shift()
 
     Game.screens.clearBlock(Game.UI.hp)
-    Game.screens.drawHPBar(
-      Math.floor(beforeHit / e.HitPoint.getMax() * 10),
-      Math.floor(damage / e.HitPoint.getMax() * 10))
+    Game.screens.drawHPBar()
   }
 }
 
-Game.system.updateStatus = function (status, id, turn, e) {
-  e && e[status] && e[status].getStatus(id) && update()
+Game.system.gainBuff = function (id, e) {
+  id && e && e.Buff && gain()
 
-  function update () {
-    let hasStatus = []
+  function gain () {
+    e.Buff.gainStatus(Game.Component.buffLibrary(id))
+  }
+}
 
-    e[status].getStatus(id).setCurrent(turn > e[status].getStatus(id).getMax()
-      ? e[status].getStatus(id).getMax()
-      : turn > 0
-        ? turn
-        : 0)
+Game.system.gainDebuff = function (id, e) {
+  id && e && e.Debuff && gain()
 
-    Game.screens.clearBlock(Game.UI[status.toLowerCase()])
-
-    for (const [key, value] of e[status].getStatus(null)) {
-      value.getCurrent() > 0 && hasStatus.push(
-        [Game.text[status.toLowerCase()](key), value.getCurrent()])
-    }
-    Game.screens.drawStatus(status.toLowerCase(), hasStatus)
+  function gain () {
+    e.Debuff.gainStatus(Game.Component.debuffLibrary(id))
   }
 }
 
 Game.system.isWalkable = function (e, x, y) {
-  return e && e.Dungeon && verify()
+  return e && e.Dungeon
+    ? verify()
+    : false
 
   function verify () {
     return e.Dungeon.getTerrain().get(x + ',' + y) === 0
+  }
+}
+
+Game.system.isPC = function (e) {
+  return e && e.ActorName
+    ? verify()
+    : false
+
+  function verify () {
+    let trueName = ['dio', 'hulk', 'lasombra']
+
+    return trueName.indexOf(e.ActorName.getTrueName()) > -1
   }
 }
 

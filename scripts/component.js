@@ -161,53 +161,50 @@ Game.Component.HitPoint = function (maxHp) {
   this._name = 'HitPoint'
 
   this._maxHP = maxHp
-  this._currentHP = maxHp
+  this._hitpoint = [maxHp, maxHp]   // [hp before hit/helaed, current hp]
 
   this.getMax = function () { return this._maxHP }
-  this.getCurrent = function () { return this._currentHP }
-  this.getHeal = function () { return Math.floor(this._maxHP / 4) }
+  this.getHP = function () { return this._hitpoint }
 
   this.setMax = function (hp) {
     this._maxHP = hp
     return true
   }
-  this.setCurrent = function (hp) {
-    this._currentHP = hp
-    return true
-  }
 }
 
-// Single buff or debuff
-Game.Component.Status = function (id, turn) {
-  this._name = 'Status'
+// library is NOT a constructor, see Game.systems.gainBuff
+Game.Component.buffLibrary = function (id) {
+  let buff = new Map()
 
-  this._statusID = id
-  this._maxTurn = turn || null
-  this._currentTurn = 0
+  buff.set('acc', 3)
+  buff.set('def', 3)
+  buff.set('imm', 3)
+  buff.set('mov', 1.5)
+  buff.set('cst', 5)
 
-  this.getID = function () { return this._statusID }
-  this.getMax = function () { return this._maxTurn }
-  this.getCurrent = function () { return this._currentTurn }
-
-  this.setMax = function (turn) {
-    this._maxTurn = turn
-    return true
-  }
-  this.setCurrent = function (turn) {
-    this._currentTurn = turn
-    return true
-  }
+  return [id, buff.get(id)]
 }
 
-// The map of active buffs, add into actor entity
+Game.Component.debuffLibrary = function (id) {
+  let debuff = new Map()
+
+  debuff.set('hp', 9)
+  debuff.set('acc', 9)
+  debuff.set('def', 9)
+  debuff.set('dmg', 9)
+  debuff.set('cst', 9)
+  debuff.set('poi', 9)
+
+  return [id, debuff.get(id)]
+}
+
 Game.Component.Buff = function () {
   this._name = 'Buff'
 
   this._buff = new Map()
 
-  this.gainStatus = function (buff) {
-    this._buff.set(buff.getID(), buff)
-
+  this.gainStatus = function (status) {
+    this._buff.set(...status)   // [buffID, maxTurn]
     return true
   }
   this.getStatus = function (id) {
@@ -222,9 +219,8 @@ Game.Component.Debuff = function () {
 
   this._debuff = new Map()
 
-  this.gainStatus = function (debuff) {
-    this._debuff.set(debuff.getID(), debuff)
-
+  this.gainStatus = function (status) {
+    this._debuff.set(...status)
     return true
   }
   this.getStatus = function (id) {
@@ -242,4 +238,17 @@ Game.Component.Duration = function () {
   this._duration.set('mov', 1)
 
   this.getDuration = function (action) { return this._duration.get(action) }
+}
+
+Game.Component.ActorClock = function () {
+  this._name = 'ActorClock'
+
+  this._lastAction = 0    // how many turns dose the last action take
+
+  this.getLastAction = function () { return this._lastAction }
+
+  this.setLastAction = function (turn) {
+    this._lastAction = turn
+    return true
+  }
 }
