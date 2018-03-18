@@ -175,23 +175,29 @@ Game.keyboard.bindMap = new Map()
 // keybind1 -> [action1: [key1_1, key1_2, ...],
 //              action2: [key2_1, key2_2, ...], ...]
 
-Game.keyboard.bindMap.set('move', new Map([
-  ['left', ['h', 'ArrowLeft']], ['down', ['j', 'ArrowDown']],
-  ['up', ['k', 'ArrowUp']], ['right', ['l', 'ArrowRight']],
-  ['upLeft', ['y']], ['upRight', ['u']],
-  ['downLeft', ['b']], ['downRight', ['n']]
-]))
+Game.keyboard.bindMap.set('move', new Map())
+Game.keyboard.bindMap.get('move').set('left', ['h', 'ArrowLeft'])
+Game.keyboard.bindMap.get('move').set('down', ['j', 'ArrowDown'])
+Game.keyboard.bindMap.get('move').set('up', ['k', 'ArrowUp'])
+Game.keyboard.bindMap.get('move').set('right', ['l', 'ArrowRight'])
+Game.keyboard.bindMap.get('move').set('upLeft', ['y'])
+Game.keyboard.bindMap.get('move').set('upRight', ['u'])
+Game.keyboard.bindMap.get('move').set('downLeft', ['b'])
+Game.keyboard.bindMap.get('move').set('downRight', ['n'])
 
-Game.keyboard.getAction = function (keyInput, mode, bindMap) {
+Game.keyboard.getAction = function (keyInput, mode) {
   if (!mode) {
     Game.getDevelop() && console.log(Game.text.devError('mode'))
     return null
   }
-  let bindings = bindMap || Game.keyboard.bindMap
 
-  for (const [key, value] of bindings.get(mode)) {
-    return value.indexOf(keyInput.key) > -1 ? key : null
+  for (const [key, value] of Game.keyboard.bindMap.get(mode)) {
+    if (value.indexOf(keyInput.key) > -1) {
+      return key
+    }
   }
+
+  return null
 }
 
 Game.keyboard.listenEvent = function (event, handler) {
@@ -744,7 +750,7 @@ Game.screens.main.keyInput = function (e) {
 
   if (e.key === ' ') {
     updateSpell()
-  } else if (e.key === 'ArrowLeft' &&
+  } else if (Game.keyboard.getAction(e, 'move') === 'left' &&
     Game.system.isWalkable(Game.entities.get('dungeon'),
       ePC.getX() - 1, ePC.getY())) {
     lastTurn = eDuration.getDuration('mov')
@@ -754,7 +760,7 @@ Game.screens.main.keyInput = function (e) {
     updateStatus()
 
     acted = true
-  } else if (e.key === 'ArrowRight' &&
+  } else if (Game.keyboard.getAction(e, 'move') === 'right' &&
     Game.system.isWalkable(Game.entities.get('dungeon'),
       ePC.getX() + 1, ePC.getY())) {
     lastTurn = eDuration.getDuration('mov')
@@ -764,7 +770,7 @@ Game.screens.main.keyInput = function (e) {
     updateStatus()
 
     acted = true
-  } else if (e.key === 'ArrowUp' &&
+  } else if (Game.keyboard.getAction(e, 'move') === 'up' &&
     Game.system.isWalkable(Game.entities.get('dungeon'),
       ePC.getX(), ePC.getY() - 1)) {
     lastTurn = eDuration.getDuration('mov')
@@ -774,7 +780,7 @@ Game.screens.main.keyInput = function (e) {
     updateStatus()
 
     acted = true
-  } else if (e.key === 'ArrowDown' &&
+  } else if (Game.keyboard.getAction(e, 'move') === 'down' &&
     Game.system.isWalkable(Game.entities.get('dungeon'),
       ePC.getX(), ePC.getY() + 1)) {
     lastTurn = eDuration.getDuration('mov')
