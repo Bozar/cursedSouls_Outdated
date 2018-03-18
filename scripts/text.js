@@ -151,7 +151,7 @@ Game.text.devNote = function (note) {
   let text = new Map()
 
   text.set('rng', 'RNG start: ')
-  text.set('initial', 'Initial settings.')
+  text.set('initial', 'Initial settings: ')
 
   return '[Note] ' + text.get(note)
 }

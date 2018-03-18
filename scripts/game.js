@@ -223,7 +223,7 @@ Game.Screen.prototype.enter = function () {
   Game.screens._currentName = this.getName()
   Game.screens._currentMode = this.getMode()
 
-  this.initialize()
+  this.initialize(this.getName())
   this.display()
 }
 
@@ -234,8 +234,8 @@ Game.Screen.prototype.exit = function () {
   Game.display.clear()
 }
 
-Game.Screen.prototype.initialize = function () {
-  Game.getDevelop() && console.log(Game.text.devNote('initial'))
+Game.Screen.prototype.initialize = function (name) {
+  Game.getDevelop() && console.log(Game.text.devNote('initial') + name + '.')
 }
 
 Game.Screen.prototype.display = function () {
@@ -252,7 +252,6 @@ Game.Screen.prototype.keyInput = function (e) {
 Game.screens = {}
 Game.screens._currentName = null
 Game.screens._currentMode = null
-Game.screens._spellLevel = 1
 Game.screens._message = []
 
 // general version
@@ -341,18 +340,17 @@ Game.screens.drawMessage = function (message) {
 }
 
 Game.screens.drawSpell = function () {
+  let ui = Game.UI
   let pcName = Game.entities.get('pc').ActorName.getTrueName()
+  let pcLevel = Game.entities.get('pc').Curse.getScreenLevel()
 
-  Game.display.drawText(
-    Game.UI.column1.getX(), Game.UI.column1.getY(),
-    Game.text.spell(1, Game.screens._spellLevel,
-      Game.screens._spellLevel === 3 ? pcName : null),
-    Game.UI.column1.getWidth())
+  Game.display.drawText(ui.column1.getX(), ui.column1.getY(),
+    Game.text.spell(1, pcLevel, pcLevel === 3 ? pcName : null),
+    ui.column1.getWidth())
 
-  Game.display.drawText(
-    Game.UI.column2.getX(), Game.UI.column2.getY(),
-    Game.text.spell(2, Game.screens._spellLevel, pcName),
-    Game.UI.column2.getWidth())
+  Game.display.drawText(ui.column2.getX(), ui.column2.getY(),
+    Game.text.spell(2, pcLevel, pcName),
+    ui.column2.getWidth())
 }
 
 Game.screens.drawCurse = function () {
@@ -616,6 +614,10 @@ Game.screens.classSeed.keyInput = function (e) {
 }
 
 Game.screens.prologue = new Game.Screen('prologue')
+Game.screens.prologue.initialize = function () {
+  Game.entity.dungeon(...Game._dungeonSize)    // Spread operator
+}
+
 Game.screens.prologue.display = function () {
   Game.screens.drawVersion()
   Game.screens.drawSeed()
@@ -624,7 +626,6 @@ Game.screens.prologue.display = function () {
     Game.text.prologue(Game.entities.get('pc').ActorName.getTrueName()),
     Game.UI.cutScene.getWidth())
 
-  Game.entity.dungeon(...Game._dungeonSize)    // Spread operator
   Game.screens.drawModeLine(Game.text.modeLine('space'))
 }
 
@@ -634,10 +635,6 @@ Game.screens.prologue.keyInput = function (e) {
 
     Game.screens.prologue.exit()
     Game.screens.main.enter()
-
-    Game.entity.timer()
-    Game.entities.get('timer').scheduler.add(Game.entities.get('pc'), true)
-    Game.entities.get('timer').engine.start()
   }
 }
 
@@ -647,6 +644,10 @@ Game.screens.main.initialize = function () {
   let ui = Game.UI
   let pcEntity = Game.entities.get('pc')
   let dungeon = Game.entities.get('dungeon').Dungeon
+
+  Game.entity.timer()
+  Game.entities.get('timer').scheduler.add(Game.entities.get('pc'), true)
+  Game.entities.get('timer').engine.start()
 
   placePC()
 
@@ -715,7 +716,7 @@ Game.screens.main.display = function () {
 
   Game.screens.drawAlignRight(ui.spell.getX(), ui.spell.getY() + 1,
     ui.spell.getWidth(), Game.text.spell(3),
-    pcCurse.getLevel() < 2 ? 'grey' : null)
+    pcCurse.getPClevel() < 2 ? 'grey' : null)
 
   function drawBorder () {
     for (let i = ui.stat.getY(); i < ui.stat.getHeight(); i++) {
@@ -840,10 +841,7 @@ Game.screens.main.keyInput = function (e) {
     Game.screens.clearBlock(ui.column1)
     Game.screens.clearBlock(ui.column2)
 
-    Game.screens._spellLevel =
-      Game.screens._spellLevel < Game.entities.get('pc').Curse.getLevel()
-        ? Game.screens._spellLevel + 1
-        : 1
+    Game.entities.get('pc').Curse.setScreenLevel()
 
     Game.screens.drawSpell()
   }

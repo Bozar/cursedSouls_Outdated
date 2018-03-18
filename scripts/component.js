@@ -122,11 +122,13 @@ Game.Component.Curse = function () {
   this._cursedPoint = 0
   this._maxPoint = 25
   this._hasCurse = []
+  this._screenLevel = 1   // which level of spells to be shown on screen
 
   this.getPoint = function () { return this._cursedPoint }
   this.getMaxPoint = function () { return this._maxPoint }
   this.getCurse = function () { return this._hasCurse }
-  this.getLevel = function () { return Math.ceil(this._hasCurse.length / 2) }
+  this.getScreenLevel = function () { return this._screenLevel }
+  this.getPClevel = function () { return Math.ceil(this._hasCurse.length / 2) }
 
   this.gainPoint = function (point) {
     this._cursedPoint += point
@@ -143,6 +145,14 @@ Game.Component.Curse = function () {
   }
   this.loseCurse = function () {
     this._hasCurse.pop()
+    return true
+  }
+
+  this.setScreenLevel = function () {
+    this._screenLevel < this.getPClevel()
+      ? this._screenLevel += 1
+      : this._screenLevel = 1
+
     return true
   }
 }
