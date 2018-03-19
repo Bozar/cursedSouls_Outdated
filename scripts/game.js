@@ -641,7 +641,7 @@ Game.screens.classSeed.keyInput = function (e) {
       case 'y':
         Game.keyboard.listenEvent('remove', confirm)
 
-        Game.system.feedRNG(Game.entities.get('seed'))
+        Game.system.feedRNG()
 
         Game.screens.classSeed.exit()
         Game.screens.prologue.enter()
@@ -712,9 +712,9 @@ Game.screens.main.initialize = function () {
 
   placePC()
 
-  Game.system.gainHP(pcEntity, 64)
-  Game.system.loseHP(pcEntity, 12)
-  Game.system.loseHP(pcEntity, 12)
+  Game.system.gainHP(64, pcEntity)
+  Game.system.loseHP(12, pcEntity)
+  Game.system.loseHP(12, pcEntity)
 
   Game.system.gainBuff('mov', pcEntity)
   Game.system.gainBuff('imm', pcEntity)
@@ -728,13 +728,13 @@ Game.screens.main.initialize = function () {
   Game.system.gainDebuff('poi', pcEntity)
   Game.system.gainDebuff('def', pcEntity)
 
-  Game.system.updateLevel(24, pcEntity)
-  Game.system.updateLevel(24, pcEntity)
-  Game.system.updateLevel(24, pcEntity)
-  Game.system.updateLevel(24, pcEntity)
-  Game.system.updateLevel(24, pcEntity)
-  Game.system.updateLevel(24, pcEntity)
-  Game.system.updateLevel(-14, pcEntity)
+  Game.system.updateCursePoint(24)
+  Game.system.updateCursePoint(24)
+  Game.system.updateCursePoint(24)
+  Game.system.updateCursePoint(24)
+  Game.system.updateCursePoint(24)
+  Game.system.updateCursePoint(24)
+  Game.system.updateCursePoint(-14)
 
   Game.screens._message.push('welcome')
 
@@ -806,8 +806,7 @@ Game.screens.main.keyInput = function (e) {
 
     keyPressed = true
   } else if (keyAction(e, 'move') === 'left' &&
-    Game.system.isWalkable(Game.entities.get('dungeon'),
-      ePCpos.getX() - 1, ePCpos.getY())) {
+    Game.system.isWalkable(ePCpos.getX() - 1, ePCpos.getY())) {
     lastTurn = eDuration.getDuration('mov')
     ePCclock.setLastAction(lastTurn)
     eScheduler.setDuration(lastTurn)
@@ -816,8 +815,7 @@ Game.screens.main.keyInput = function (e) {
 
     acted = true
   } else if (keyAction(e, 'move') === 'right' &&
-    Game.system.isWalkable(Game.entities.get('dungeon'),
-      ePCpos.getX() + 1, ePCpos.getY())) {
+    Game.system.isWalkable(ePCpos.getX() + 1, ePCpos.getY())) {
     lastTurn = eDuration.getDuration('mov')
     ePCclock.setLastAction(lastTurn)
     eScheduler.setDuration(lastTurn)
@@ -826,8 +824,7 @@ Game.screens.main.keyInput = function (e) {
 
     acted = true
   } else if (keyAction(e, 'move') === 'up' &&
-    Game.system.isWalkable(Game.entities.get('dungeon'),
-      ePCpos.getX(), ePCpos.getY() - 1)) {
+    Game.system.isWalkable(ePCpos.getX(), ePCpos.getY() - 1)) {
     lastTurn = eDuration.getDuration('mov')
     ePCclock.setLastAction(lastTurn)
     eScheduler.setDuration(lastTurn)
@@ -836,8 +833,7 @@ Game.screens.main.keyInput = function (e) {
 
     acted = true
   } else if (keyAction(e, 'move') === 'down' &&
-    Game.system.isWalkable(Game.entities.get('dungeon'),
-      ePCpos.getX(), ePCpos.getY() + 1)) {
+    Game.system.isWalkable(ePCpos.getX(), ePCpos.getY() + 1)) {
     lastTurn = eDuration.getDuration('mov')
     ePCclock.setLastAction(lastTurn)
     eScheduler.setDuration(lastTurn)

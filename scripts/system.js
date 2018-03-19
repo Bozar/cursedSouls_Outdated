@@ -2,21 +2,28 @@
 
 Game.system = {}
 
-Game.system.feedRNG = function (e) {
-  e && e.Seed && feed(verify())
+Game.system.feedRNG = function () {
+  let e = Game.entities.get('seed')
+
+  feed(verify())
 
   function feed (seed) {
     seed
-      ? (function () {
-        let rndList = []
-
-        ROT.RNG.setSeed(seed)
-        for (let i = 0; i < 5; i++) { rndList.push(ROT.RNG.getUniform()) }
-
-        Game.getDevelop() && console.log(Game.text.devNote('rng') +
-          JSON.stringify(rndList, null, 2))
-      }())
+      ? printRNG(seed)
       : Game.getDevelop() && console.log(Game.text.devError('seed'))
+  }
+
+  function printRNG (seed) {
+    let rndList = []
+
+    ROT.RNG.setSeed(seed)
+
+    for (let i = 0; i < 5; i++) {
+      rndList.push(ROT.RNG.getUniform())
+    }
+
+    Game.getDevelop() &&
+      console.log(Game.text.devNote('rng') + JSON.stringify(rndList, null, 2))
   }
 
   function verify () {
@@ -52,18 +59,16 @@ Game.system.feedRNG = function (e) {
   }
 }
 
-Game.system.updateCurse = function (what, e) {
-  e && e.Curse && update()
+Game.system.updateCurse = function (what) {
+  let e = Game.entities.get('pc')
 
-  function update () {
-    switch (what) {
-      case 'gain':
-        gainCurse()
-        break
-      case 'lose':
-        e.Curse.getCurse().pop()
-        break
-    }
+  switch (what) {
+    case 'gain':
+      gainCurse()
+      break
+    case 'lose':
+      e.Curse.getCurse().pop()
+      break
   }
 
   function gainCurse () {
@@ -90,29 +95,27 @@ Game.system.updateCurse = function (what, e) {
   }
 }
 
-Game.system.updateLevel = function (point, e) {
-  e && e.Curse && update()
+Game.system.updateCursePoint = function (point) {
+  let e = Game.entities.get('pc')
 
-  function update () {
-    e.Curse.getPoint() + point >= e.Curse.getMaxPoint()
-      ? overMax()
-      : e.Curse.getPoint() + point >= 0
-        ? e.Curse.gainPoint(point)
-        : belowZero()
-  }
+  e.Curse.getPoint() + point >= e.Curse.getMaxPoint()
+    ? overMax()
+    : e.Curse.getPoint() + point >= 0
+      ? e.Curse.gainPoint(point)
+      : belowZero()
 
   function overMax () {
     e.Curse.setPoint(e.Curse.getPoint() + point - e.Curse.getMaxPoint())
-    Game.system.updateCurse('gain', e)
+    Game.system.updateCurse('gain')
   }
 
   function belowZero () {
     e.Curse.setPoint(e.Curse.getPoint() + point + e.Curse.getMaxPoint())
-    Game.system.updateCurse('lose', e)
+    Game.system.updateCurse('lose')
   }
 }
 
-Game.system.gainHP = function (e, maxHP) {
+Game.system.gainHP = function (maxHP, e) {
   e && e.HitPoint && maxHP && heal()
 
   function heal () {
@@ -124,7 +127,7 @@ Game.system.gainHP = function (e, maxHP) {
   }
 }
 
-Game.system.loseHP = function (e, damage) {
+Game.system.loseHP = function (damage, e) {
   e && e.HitPoint && damage && takeDamage()
 
   function takeDamage () {
@@ -151,25 +154,18 @@ Game.system.gainDebuff = function (id, e) {
   }
 }
 
-Game.system.isWalkable = function (e, x, y) {
-  return e && e.Dungeon
-    ? verify()
-    : false
-
-  function verify () {
-    return e.Dungeon.getTerrain().get(x + ',' + y) === 0
-  }
+Game.system.isWalkable = function (x, y) {
+  return Game.entities.get('dungeon').Dungeon
+    .getTerrain().get(x + ',' + y) === 0
 }
 
 Game.system.isPC = function (e) {
-  return e && e.ActorName
+  return e && Game.entities.get('pc')
     ? verify()
     : false
 
   function verify () {
-    let trueName = ['dio', 'hulk', 'lasombra']
-
-    return trueName.indexOf(e.ActorName.getTrueName()) > -1
+    return e.getID() === Game.entities.get('pc').getID()
   }
 }
 
