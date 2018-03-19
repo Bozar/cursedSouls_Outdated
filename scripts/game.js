@@ -135,17 +135,17 @@ Game.UI.hp._y = Game.UI.stat.getY() + 3
 Game.UI.cl = new Game.UI()
 Object.assign(Game.UI.cl, Game.UI.hp)
 
-Game.UI.cl._y = Game.UI.hp.getY() + 1
+Game.UI.cl._y = Game.UI.hp.getY() + 1.2
 
 Game.UI.turn = new Game.UI()
 Object.assign(Game.UI.turn, Game.UI.cl)
 
-Game.UI.turn._y += 1.5
+Game.UI.turn._y += 1.2
 
 Game.UI.curse = new Game.UI(Game.UI.stat.getWidth(), 5)
 
 Game.UI.curse._x = Game.UI.stat.getX()
-Game.UI.curse._y = Game.UI.cl.getY() + 3
+Game.UI.curse._y = Game.UI.turn.getY() + 1.5
 
 Game.UI.buff = new Game.UI()
 Object.assign(Game.UI.buff, Game.UI.curse)
@@ -315,17 +315,36 @@ Game.screens.drawSeed = function () {
       'grey')
 }
 
+Game.screens.drawStageName = function () {
+  let ui = Game.UI
+  let pcName = Game.entities.get('pc').ActorName
+
+  Game.screens.drawAlignRight(ui.stat.getX(), ui.stat.getY() + 1.5,
+    ui.stat.getWidth(), pcName.getStageName(), pcName.getColor())
+}
+
+Game.screens.drawBorder = function () {
+  let ui = Game.UI
+
+  for (let i = ui.stat.getY(); i < ui.stat.getHeight(); i++) {
+    Game.display.draw(ui.stat.getX() - 1, i, '|')
+  }
+  for (let i = ui.spell.getX(); i < ui.spell.getWidth() + 1; i++) {
+    Game.display.draw(i, ui.spell.getY() + ui.spell.getHeight(), '-')
+    Game.display.draw(i, ui.dungeon.getY() + ui.dungeon.getHeight(), '-')
+  }
+}
+
 Game.screens.drawModeLine = function (text) {
   Game.display.drawText(Game.UI.modeLine.getX(), Game.UI.modeLine.getY(), text)
 }
 
 Game.screens.drawMessage = function (message) {
-  message = message ? String(message) : Game.text.devError('message')
   let uiWidth = Game.UI.message.getWidth()
   let uiHeight = Game.UI.message.getHeight()
   let msgList = Game.screens._message
 
-  msgList.push(message)
+  msgList.push(message ? String(message) : '')
   while (blockHeight() > uiHeight) {
     msgList = msgList.slice(1)
   }
@@ -348,15 +367,26 @@ Game.screens.drawMessage = function (message) {
 Game.screens.drawSpell = function () {
   let ui = Game.UI
   let pcName = Game.entities.get('pc').ActorName.getTrueName()
-  let pcLevel = Game.entities.get('pc').Curse.getScreenLevel()
+  let screenLevel = Game.entities.get('pc').Curse.getScreenLevel()
+  let pcLevel = Game.entities.get('pc').Curse.getPClevel()
 
+  // column 1
   Game.display.drawText(ui.column1.getX(), ui.column1.getY(),
-    Game.text.spell(1, pcLevel, pcLevel === 3 ? pcName : null),
+    Game.text.spell(1, screenLevel, screenLevel === 3 ? pcName : null),
     ui.column1.getWidth())
 
+  // column 2
   Game.display.drawText(ui.column2.getX(), ui.column2.getY(),
-    Game.text.spell(2, pcLevel, pcName),
+    Game.text.spell(2, screenLevel, pcName),
     ui.column2.getWidth())
+
+  // column 3
+  Game.screens.drawAlignRight(ui.spell.getX(), ui.spell.getY(),
+    ui.spell.getWidth(), '[1.5]')
+
+  Game.screens.drawAlignRight(ui.spell.getX(), ui.spell.getY() + 1,
+    ui.spell.getWidth(), Game.text.spell(3),
+    pcLevel < 2 ? 'grey' : null)
 }
 
 Game.screens.drawCurse = function () {
@@ -683,16 +713,30 @@ Game.screens.main.initialize = function () {
   placePC()
 
   Game.system.gainHP(pcEntity, 64)
+  Game.system.loseHP(pcEntity, 12)
+  Game.system.loseHP(pcEntity, 12)
 
   Game.system.gainBuff('mov', pcEntity)
   Game.system.gainBuff('imm', pcEntity)
   Game.system.gainBuff('acc', pcEntity)
+  Game.system.gainBuff('cst', pcEntity)
+  Game.system.gainBuff('def', pcEntity)
 
   Game.system.gainDebuff('hp', pcEntity)
   Game.system.gainDebuff('dmg', pcEntity)
+  Game.system.gainDebuff('cst', pcEntity)
+  Game.system.gainDebuff('poi', pcEntity)
+  Game.system.gainDebuff('def', pcEntity)
 
   Game.system.updateLevel(24, pcEntity)
   Game.system.updateLevel(24, pcEntity)
+  Game.system.updateLevel(24, pcEntity)
+  Game.system.updateLevel(24, pcEntity)
+  Game.system.updateLevel(24, pcEntity)
+  Game.system.updateLevel(24, pcEntity)
+  Game.system.updateLevel(-14, pcEntity)
+
+  Game.screens._message.push('welcome')
 
   function placePC () {
     let x = 0
@@ -723,44 +767,22 @@ Game.screens.main.initialize = function () {
 }
 
 Game.screens.main.display = function () {
-  let ui = Game.UI
-  let pcEntity = Game.entities.get('pc')
-  let pcName = pcEntity.ActorName
-  let pcCurse = pcEntity.Curse
-
   Game.screens.drawVersion()
   Game.screens.drawSeed()
-
-  Game.screens.drawDungeon()
-
-  Game.screens.drawBuff()
-  Game.screens.drawDebuff()
-
-  // engine starts AFTER display
-  Game.display.drawText(ui.turn.getX(), ui.turn.getY(), 'TN [?.?|?]')
-
-  Game.screens.drawAlignRight(ui.stat.getX(), ui.stat.getY() + 1.5,
-    ui.stat.getWidth(), pcName.getStageName(), pcName.getColor())
-
-  Game.screens.drawAlignRight(ui.spell.getX(), ui.spell.getY(),
-    ui.spell.getWidth(), '[1.5]')
+  Game.screens.drawBorder()
 
   Game.screens.drawSpell()
-  drawBorder()
+  Game.screens.drawDungeon()
+  Game.screens.drawMessage()
 
-  Game.screens.drawAlignRight(ui.spell.getX(), ui.spell.getY() + 1,
-    ui.spell.getWidth(), Game.text.spell(3),
-    pcCurse.getPClevel() < 2 ? 'grey' : null)
+  Game.screens.drawStageName()
+  Game.screens.drawHPBar()
+  Game.screens.drawLevelBar()
+  Game.screens.drawTurn()
 
-  function drawBorder () {
-    for (let i = ui.stat.getY(); i < ui.stat.getHeight(); i++) {
-      Game.display.draw(ui.stat.getX() - 1, i, '|')
-    }
-    for (let i = ui.spell.getX(); i < ui.spell.getWidth() + 1; i++) {
-      Game.display.draw(i, ui.spell.getY() + ui.spell.getHeight(), '-')
-      Game.display.draw(i, ui.dungeon.getY() + ui.dungeon.getHeight(), '-')
-    }
-  }
+  Game.screens.drawCurse()
+  Game.screens.drawBuff()
+  Game.screens.drawDebuff()
 }
 
 Game.screens.main.keyInput = function (e) {
@@ -776,10 +798,13 @@ Game.screens.main.keyInput = function (e) {
   let keyAction = Game.keyboard.getAction
 
   let acted = false
+  let keyPressed = false
   let lastTurn = 0
 
   if (e.key === ' ') {
-    updateSpell()
+    Game.entities.get('pc').Curse.setScreenLevel()
+
+    keyPressed = true
   } else if (keyAction(e, 'move') === 'left' &&
     Game.system.isWalkable(Game.entities.get('dungeon'),
       ePCpos.getX() - 1, ePCpos.getY())) {
@@ -788,7 +813,6 @@ Game.screens.main.keyInput = function (e) {
     eScheduler.setDuration(lastTurn)
 
     moveLeft()
-    updateStatus()
 
     acted = true
   } else if (keyAction(e, 'move') === 'right' &&
@@ -799,7 +823,6 @@ Game.screens.main.keyInput = function (e) {
     eScheduler.setDuration(lastTurn)
 
     moveRight()
-    updateStatus()
 
     acted = true
   } else if (keyAction(e, 'move') === 'up' &&
@@ -810,7 +833,6 @@ Game.screens.main.keyInput = function (e) {
     eScheduler.setDuration(lastTurn)
 
     moveUp()
-    updateStatus()
 
     acted = true
   } else if (keyAction(e, 'move') === 'down' &&
@@ -821,18 +843,20 @@ Game.screens.main.keyInput = function (e) {
     eScheduler.setDuration(lastTurn)
 
     moveDown()
-    updateStatus()
 
     acted = true
   }
 
   if (acted) {
+    acted = false
     Game.keyboard.listenEvent('remove', 'main')
-    Game.screens.drawMessage(eScheduler.getTime() + ': Moved!')
+    // Game.screens.drawMessage(eScheduler.getTime() + ': Moved!')
 
     Game.entities.get('timer').engine.unlock()
-  } else {
-    Game.screens.drawMessage(eScheduler.getTime() + ': Invalid action!')
+    updateStatus()
+  } else if (keyPressed) {
+    keyPressed = false
+    updateStatus()
   }
 
   function moveLeft () {
@@ -862,20 +886,8 @@ Game.screens.main.keyInput = function (e) {
   }
 
   function updateStatus () {
-    Game.screens.clearBlock(ui.dungeon)
-    Game.screens.drawDungeon()
-
-    Game.screens.clearBlock(ui.turn)
-    Game.screens.drawTurn()
-  }
-
-  function updateSpell () {
-    Game.screens.clearBlock(ui.column1)
-    Game.screens.clearBlock(ui.column2)
-
-    Game.entities.get('pc').Curse.setScreenLevel()
-
-    Game.screens.drawSpell()
+    Game.display.clear()
+    Game.screens.main.display()
   }
 }
 

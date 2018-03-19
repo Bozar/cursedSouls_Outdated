@@ -64,8 +64,6 @@ Game.system.updateCurse = function (what, e) {
         e.Curse.getCurse().pop()
         break
     }
-    Game.screens.clearBlock(Game.UI.curse)
-    Game.screens.drawCurse()
   }
 
   function gainCurse () {
@@ -101,9 +99,6 @@ Game.system.updateLevel = function (point, e) {
       : e.Curse.getPoint() + point >= 0
         ? e.Curse.gainPoint(point)
         : belowZero()
-
-    Game.screens.clearBlock(Game.UI.cl)
-    Game.screens.drawLevelBar()
   }
 
   function overMax () {
@@ -126,9 +121,6 @@ Game.system.gainHP = function (e, maxHP) {
     healed = Math.min(healed, maxHP)
     e.HitPoint.getHP().push(healed)
     e.HitPoint.getHP().shift()
-
-    Game.screens.clearBlock(Game.UI.hp)
-    Game.screens.drawHPBar()
   }
 }
 
@@ -140,9 +132,6 @@ Game.system.loseHP = function (e, damage) {
 
     e.HitPoint.getHP().push(Math.max(0, afterHit))
     e.HitPoint.getHP().shift()
-
-    Game.screens.clearBlock(Game.UI.hp)
-    Game.screens.drawHPBar()
   }
 }
 
