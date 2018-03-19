@@ -180,10 +180,16 @@ Game.keyboard.bindMap.get('move').set('left', ['h', 'ArrowLeft'])
 Game.keyboard.bindMap.get('move').set('down', ['j', 'ArrowDown'])
 Game.keyboard.bindMap.get('move').set('up', ['k', 'ArrowUp'])
 Game.keyboard.bindMap.get('move').set('right', ['l', 'ArrowRight'])
-Game.keyboard.bindMap.get('move').set('upLeft', ['y'])
-Game.keyboard.bindMap.get('move').set('upRight', ['u'])
-Game.keyboard.bindMap.get('move').set('downLeft', ['b'])
-Game.keyboard.bindMap.get('move').set('downRight', ['n'])
+// Game.keyboard.bindMap.get('move').set('upLeft', ['y'])
+// Game.keyboard.bindMap.get('move').set('upRight', ['u'])
+// Game.keyboard.bindMap.get('move').set('downLeft', ['b'])
+// Game.keyboard.bindMap.get('move').set('downRight', ['n'])
+
+Game.keyboard.bindMap.set('fastMove', new Map())
+Game.keyboard.bindMap.get('fastMove').set('left', ['H', 'ArrowLeft'])
+Game.keyboard.bindMap.get('fastMove').set('down', ['J', 'ArrowDown'])
+Game.keyboard.bindMap.get('fastMove').set('up', ['K', 'ArrowUp'])
+Game.keyboard.bindMap.get('fastMove').set('right', ['L', 'ArrowRight'])
 
 Game.keyboard.getAction = function (keyInput, mode) {
   if (!mode) {
@@ -408,7 +414,7 @@ Game.screens.drawLevelBar = function () {
     'CL [' + colored + blank + ']')
 }
 
-Game.screens.drawHPBar = function () {
+Game.screens.drawHPbar = function () {
   let hp = Game.entities.get('pc').HitPoint.getHP()
   let max = Game.entities.get('pc').HitPoint.getMax()
 
@@ -776,7 +782,7 @@ Game.screens.main.display = function () {
   Game.screens.drawMessage()
 
   Game.screens.drawStageName()
-  Game.screens.drawHPBar()
+  Game.screens.drawHPbar()
   Game.screens.drawLevelBar()
   Game.screens.drawTurn()
 
@@ -792,25 +798,26 @@ Game.screens.main.keyInput = function (e) {
   let acted = false
   let keyPressed = false
 
-  if (e.key === ' ') {
+  if (e.shiftKey) {
+    if (keyAction(e, 'fastMove')) {
+      acted = Game.system.fastMove(keyAction(e, 'fastMove'))
+    }
+  } else if (e.key === ' ') {
     keyPressed = ePC.Curse.setScreenLevel()
   } else if (keyAction(e, 'move')) {
     acted = Game.system.move(keyAction(e, 'move'), ePC)
   }
 
   if (acted) {
-    acted = false
     Game.keyboard.listenEvent('remove', 'main')
-    // Game.screens.drawMessage(eScheduler.getTime() + ': Moved!')
 
     Game.entities.get('timer').engine.unlock()
-    updateStatus()
-  } else if (keyPressed) {
-    keyPressed = false
-    updateStatus()
   }
 
-  function updateStatus () {
+  if (acted || keyPressed) {
+    acted = false
+    keyPressed = false
+
     Game.display.clear()
     Game.screens.main.display()
   }

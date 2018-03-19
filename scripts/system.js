@@ -170,9 +170,30 @@ Game.system.isPC = function (e) {
 }
 
 Game.system.pcAct = function () {
+  let e = Game.entities.get('pc')
+  let fast = e.FastMove
+
   Game.entities.get('timer').engine.lock()
 
-  Game.keyboard.listenEvent('add', 'main')
+  if (fast.getFastMove()) {
+    if (fast.getCurrentStep() < fast.getMaxStep() &&
+      Game.system.move(fast.getDirection(), e)) {
+      fast.setCurrentStep(fast.getCurrentStep() + 1)
+
+      Game.entities.get('timer').engine.unlock()
+
+      Game.display.clear()
+      Game.screens.main.display()
+    } else {
+      fast.setFastMove(false)
+      fast.setCurrentStep(0)
+      fast.setDirection(null)
+
+      Game.keyboard.listenEvent('add', 'main')
+    }
+  } else {
+    Game.keyboard.listenEvent('add', 'main')
+  }
 }
 
 Game.system.move = function (direction, e) {
@@ -269,4 +290,16 @@ Game.system.move = function (direction, e) {
     }
     return false
   }
+}
+
+Game.system.fastMove = function (direction) {
+  let e = Game.entities.get('pc')
+
+  if (Game.system.move(direction, e)) {
+    e.FastMove.setFastMove(true)
+    e.FastMove.setDirection(direction)
+
+    return true
+  }
+  return false
 }

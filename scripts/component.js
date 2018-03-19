@@ -252,3 +252,30 @@ Game.Component.ActorClock = function () {
     return true
   }
 }
+
+Game.Component.FastMove = function () {
+  this._name = 'FastMove'
+
+  this._isFastMove = false
+  this._maxStep = 9
+  this._currentStep = 0
+  this._direction = null
+
+  this.getFastMove = function () { return this._isFastMove }
+  this.getMaxStep = function () { return this._maxStep }
+  this.getCurrentStep = function () { return this._currentStep }
+  this.getDirection = function () { return this._direction }
+
+  this.setFastMove = function (status) {
+    this._isFastMove = status
+    return true
+  }
+  this.setCurrentStep = function (step) {
+    this._currentStep = step
+    return true
+  }
+  this.setDirection = function (direction) {
+    this._direction = direction
+    return true
+  }
+}

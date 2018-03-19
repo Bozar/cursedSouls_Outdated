@@ -57,6 +57,7 @@ Game.entity.pc = function () {
 
   e.addComponent(new Game.Component.ActorName('Nameless One', null))
   e.addComponent(new Game.Component.Position(6))
+  e.addComponent(new Game.Component.FastMove())
   e.addComponent(new Game.Component.Display('@'))
   e.addComponent(new Game.Component.Curse())
   e.addComponent(new Game.Component.HitPoint(64))
