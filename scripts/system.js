@@ -174,3 +174,99 @@ Game.system.pcAct = function () {
 
   Game.keyboard.listenEvent('add', 'main')
 }
+
+Game.system.move = function (direction, e) {
+  let pos = e.Position
+  let uiDungeon = Game.UI.dungeon
+  let eDungeon = Game.entities.get('dungeon').Dungeon
+  let dx = eDungeon.getDeltaX()
+  let dy = eDungeon.getDeltaY()
+
+  let lastTurn = Game.entities.get('timer').Duration.getDuration('mov')
+  let scheduler = Game.entities.get('timer').scheduler
+
+  return e && e.Position
+    ? where()
+    : false
+
+  function where () {
+    switch (direction) {
+      case 'left':
+        return moveLeft()
+      case 'right':
+        return moveRight()
+      case 'up':
+        return moveUp()
+      case 'down':
+        return moveDown()
+    }
+  }
+
+  function moveLeft () {
+    if (Game.system.isWalkable(pos.getX() - 1, pos.getY())) {
+      scheduler.setDuration(lastTurn)
+      pos.setX(pos.getX() - 1)
+
+      if (Game.system.isPC(e)) {
+        e.ActorClock.setLastAction(lastTurn)
+
+        pos.getX() - dx <= eDungeon.getBoundary() &&
+          dx >= 0 &&      // dx === -1, draw map border on the screen
+          eDungeon.setDeltaX(dx - 1)
+      }
+      return true
+    }
+    return false
+  }
+
+  function moveRight () {
+    if (Game.system.isWalkable(pos.getX() + 1, pos.getY())) {
+      scheduler.setDuration(lastTurn)
+      pos.setX(pos.getX() + 1)
+
+      if (Game.system.isPC(e)) {
+        e.ActorClock.setLastAction(lastTurn)
+
+        pos.getX() - dx >= uiDungeon.getWidth() - 1 - eDungeon.getBoundary() &&
+          dx <= eDungeon.getWidth() - uiDungeon.getWidth() &&
+          eDungeon.setDeltaX(dx + 1)
+      }
+      return true
+    }
+    return false
+  }
+
+  function moveUp () {
+    if (Game.system.isWalkable(pos.getX(), pos.getY() - 1)) {
+      scheduler.setDuration(lastTurn)
+      pos.setY(pos.getY() - 1)
+
+      if (Game.system.isPC(e)) {
+        e.ActorClock.setLastAction(lastTurn)
+
+        pos.getY() - dy <= eDungeon.getBoundary() &&
+          dy >= 0 &&
+          eDungeon.setDeltaY(dy - 1)
+      }
+      return true
+    }
+    return false
+  }
+
+  function moveDown () {
+    if (Game.system.isWalkable(pos.getX(), pos.getY() + 1)) {
+      scheduler.setDuration(lastTurn)
+      pos.setY(pos.getY() + 1)
+
+      if (Game.system.isPC(e)) {
+        e.ActorClock.setLastAction(lastTurn)
+
+        pos.getY() - dy >= uiDungeon.getHeight() - 1 - eDungeon.getBoundary() &&
+          dy <= eDungeon.getHeight() - uiDungeon.getHeight() &&
+          eDungeon.setDeltaY(dy + 1)
+      }
+      return true
+    }
+    return false
+  }
+}

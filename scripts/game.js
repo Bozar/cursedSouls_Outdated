@@ -786,61 +786,16 @@ Game.screens.main.display = function () {
 }
 
 Game.screens.main.keyInput = function (e) {
-  let eDungeon = Game.entities.get('dungeon').Dungeon
-  let ePCpos = Game.entities.get('pc').Position
-  let ePCclock = Game.entities.get('pc').ActorClock
-  let eScheduler = Game.entities.get('timer').scheduler
-  let eDuration = Game.entities.get('timer').Duration
-
-  let dx = eDungeon.getDeltaX()
-  let dy = eDungeon.getDeltaY()
-  let ui = Game.UI
+  let ePC = Game.entities.get('pc')
   let keyAction = Game.keyboard.getAction
 
   let acted = false
   let keyPressed = false
-  let lastTurn = 0
 
   if (e.key === ' ') {
-    Game.entities.get('pc').Curse.setScreenLevel()
-
-    keyPressed = true
-  } else if (keyAction(e, 'move') === 'left' &&
-    Game.system.isWalkable(ePCpos.getX() - 1, ePCpos.getY())) {
-    lastTurn = eDuration.getDuration('mov')
-    ePCclock.setLastAction(lastTurn)
-    eScheduler.setDuration(lastTurn)
-
-    moveLeft()
-
-    acted = true
-  } else if (keyAction(e, 'move') === 'right' &&
-    Game.system.isWalkable(ePCpos.getX() + 1, ePCpos.getY())) {
-    lastTurn = eDuration.getDuration('mov')
-    ePCclock.setLastAction(lastTurn)
-    eScheduler.setDuration(lastTurn)
-
-    moveRight()
-
-    acted = true
-  } else if (keyAction(e, 'move') === 'up' &&
-    Game.system.isWalkable(ePCpos.getX(), ePCpos.getY() - 1)) {
-    lastTurn = eDuration.getDuration('mov')
-    ePCclock.setLastAction(lastTurn)
-    eScheduler.setDuration(lastTurn)
-
-    moveUp()
-
-    acted = true
-  } else if (keyAction(e, 'move') === 'down' &&
-    Game.system.isWalkable(ePCpos.getX(), ePCpos.getY() + 1)) {
-    lastTurn = eDuration.getDuration('mov')
-    ePCclock.setLastAction(lastTurn)
-    eScheduler.setDuration(lastTurn)
-
-    moveDown()
-
-    acted = true
+    keyPressed = ePC.Curse.setScreenLevel()
+  } else if (keyAction(e, 'move')) {
+    acted = Game.system.move(keyAction(e, 'move'), ePC)
   }
 
   if (acted) {
@@ -853,32 +808,6 @@ Game.screens.main.keyInput = function (e) {
   } else if (keyPressed) {
     keyPressed = false
     updateStatus()
-  }
-
-  function moveLeft () {
-    ePCpos.getX() - dx <= eDungeon.getBoundary() && dx >= 0 &&
-      eDungeon.setDeltaX(dx - 1)    // dx === -1, draw map border on the screen
-    ePCpos.setX(ePCpos.getX() - 1)
-  }
-
-  function moveUp () {
-    ePCpos.getY() - dy <= eDungeon.getBoundary() && dy >= 0 &&
-      eDungeon.setDeltaY(dy - 1)
-    ePCpos.setY(ePCpos.getY() - 1)
-  }
-
-  function moveRight () {
-    ePCpos.getX() - dx >= ui.dungeon.getWidth() - 1 - eDungeon.getBoundary() &&
-      dx <= eDungeon.getWidth() - ui.dungeon.getWidth() &&
-      eDungeon.setDeltaX(dx + 1)
-    ePCpos.setX(ePCpos.getX() + 1)
-  }
-
-  function moveDown () {
-    ePCpos.getY() - dy >= ui.dungeon.getHeight() - 1 - eDungeon.getBoundary() &&
-      dy <= eDungeon.getHeight() - ui.dungeon.getHeight() &&
-      eDungeon.setDeltaY(dy + 1)
-    ePCpos.setY(ePCpos.getY() + 1)
   }
 
   function updateStatus () {
