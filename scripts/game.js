@@ -350,7 +350,7 @@ Game.screens.drawMessage = function (message) {
   let uiHeight = Game.UI.message.getHeight()
   let msgList = Game.screens._message
 
-  msgList.push(message ? String(message) : '')
+  message && msgList.push(String(message))
   while (blockHeight() > uiHeight) {
     msgList = msgList.slice(1)
   }
@@ -806,6 +806,22 @@ Game.screens.main.keyInput = function (e) {
     keyPressed = ePC.Curse.setScreenLevel()
   } else if (keyAction(e, 'move')) {
     acted = Game.system.move(keyAction(e, 'move'), ePC)
+  }
+
+  // testing
+  if (Game.getDevelop()) {
+    let ePC = Game.entities.get('pc')
+
+    switch (e.key) {
+      case '3':   // take damage
+        let damage = Math.floor((Math.random() * 10 + 20) / 100 *
+          ePC.HitPoint.getMax())
+        Game.system.loseHP(damage, ePC)
+        Game.screens.drawMessage('You are hit: ' + damage + '!')
+        break
+    }
+    Game.display.clear()
+    Game.screens.main.display()
   }
 
   if (acted) {
