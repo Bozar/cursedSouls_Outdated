@@ -225,9 +225,17 @@ Game.Component.Duration = function () {
   this._debuff.set('cst', 9)
   this._debuff.set('poi', 9)
 
+  this._spell = new Map()
+  this._spell.set(0, 1.2)
+  this._spell.set(1, 1.4)
+  this._spell.set(2, 1.8)
+  this._spell.set(3, 2.2)
+  this._spell.set(4, 2.6)
+
   this.getMove = function () { return this._move.get('mov') }
   this.getBuff = function (id) { return this._buff.get(id) }
   this.getDebuff = function (id) { return this._debuff.get(id) }
+  this.getSpell = function (level) { return this._spell.get(level) }
 }
 
 Game.Component.ActorClock = function () {

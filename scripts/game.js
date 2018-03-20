@@ -372,6 +372,7 @@ Game.screens.drawMessage = function (message) {
 
 Game.screens.drawSpell = function () {
   let ui = Game.UI
+  let duration = Game.entities.get('timer').Duration
   let pcName = Game.entities.get('pc').ActorName.getTrueName()
   let screenLevel = Game.entities.get('pc').Curse.getScreenLevel()
   let pcLevel = Game.entities.get('pc').Curse.getPClevel()
@@ -388,7 +389,7 @@ Game.screens.drawSpell = function () {
 
   // column 3
   Game.screens.drawAlignRight(ui.spell.getX(), ui.spell.getY(),
-    ui.spell.getWidth(), '[1.5]')
+    ui.spell.getWidth(), '[' + duration.getSpell(screenLevel) + ']')
 
   Game.screens.drawAlignRight(ui.spell.getX(), ui.spell.getY() + 1,
     ui.spell.getWidth(), Game.text.spell(3),
