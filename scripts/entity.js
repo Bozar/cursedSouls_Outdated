@@ -62,8 +62,7 @@ Game.entity.pc = function () {
   e.addComponent(new Game.Component.Curse())
   e.addComponent(new Game.Component.HitPoint(64))
   e.addComponent(new Game.Component.ActorClock())
-  e.addComponent(new Game.Component.Buff())
-  e.addComponent(new Game.Component.Debuff())
+  e.addComponent(new Game.Component.Status())
 
   e.act = Game.system.pcAct
 

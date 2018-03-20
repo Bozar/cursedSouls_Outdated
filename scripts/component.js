@@ -172,35 +172,22 @@ Game.Component.HitPoint = function (maxHp) {
   }
 }
 
-Game.Component.Buff = function () {
-  this._name = 'Buff'
+Game.Component.Status = function () {
+  this._name = 'Status'
 
   this._buff = new Map()
-
-  this.gainStatus = function (status) {
-    this._buff.set(...status)   // [buffID, maxTurn]
-    return true
-  }
-  this.getStatus = function (id) {
-    return id
-      ? this._buff.get(id)
-      : this._buff
-  }
-}
-
-Game.Component.Debuff = function () {
-  this._name = 'Debuff'
-
   this._debuff = new Map()
 
-  this.gainStatus = function (status) {
-    this._debuff.set(...status)
+  this.gainStatus = function (type, id) {
+    this['_' + type].set(id, Game.entities.get('timer')
+      .Duration['get' + Game.screens.capitalizeFirst(type)](id))
     return true
   }
-  this.getStatus = function (id) {
+
+  this.getStatus = function (type, id) {
     return id
-      ? this._debuff.get(id)
-      : this._debuff
+      ? this['_' + type].get(id)
+      : this['_' + type]
   }
 }
 

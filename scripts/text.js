@@ -111,7 +111,7 @@ Game.text.curse = function (curse, returnMap) {
 Game.text.buff = function (buffID) {
   let text = new Map()
 
-  text.set('mov', 'Movement++')
+  text.set('mov', 'Movement+')
   text.set('acc', 'Accuracy++')
   text.set('def', 'Defense++')
   text.set('imm', 'Immunity')

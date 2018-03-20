@@ -138,22 +138,6 @@ Game.system.loseHP = function (damage, e) {
   }
 }
 
-Game.system.gainBuff = function (id, e) {
-  id && e && e.Buff && gain()
-
-  function gain () {
-    e.Buff.gainStatus([id, Game.entities.get('timer').Duration.getBuff(id)])
-  }
-}
-
-Game.system.gainDebuff = function (id, e) {
-  id && e && e.Debuff && gain()
-
-  function gain () {
-    e.Debuff.gainStatus([id, Game.entities.get('timer').Duration.getDebuff(id)])
-  }
-}
-
 Game.system.isWalkable = function (x, y) {
   return Game.entities.get('dungeon').Dungeon
     .getTerrain().get(x + ',' + y) === 0
@@ -322,6 +306,7 @@ Game.system.pcCast = function (spellID) {
   function enhance1 () {
     if (e.HitPoint.getHP()[1] < e.HitPoint.getMax()) {
       Game.system.gainHP(e.HitPoint.getMax(), e)
+      e.Status.gainStatus('buff', 'mov')
 
       e.HitPoint.getHP()[1] < e.HitPoint.getMax()
         ? message(Game.text.pcStatus('heal'))

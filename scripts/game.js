@@ -309,6 +309,11 @@ Game.screens.colorfulText = function (text, fgColor, bgColor) {
     : '%c{' + Game.getColor(fgColor) + '}' + text + '%c{}'
 }
 
+Game.screens.capitalizeFirst = function (text) {
+  text = text.toString()
+  return text[0].toUpperCase() + text.slice(1)
+}
+
 Game.screens.drawAlignRight = function (x, y, width, text, color) {
   Game.display.drawText(x + width - text.length, y,
     color ? Game.screens.colorfulText(text, color) : text)
@@ -473,30 +478,19 @@ Game.screens.drawTurn = function () {
   }
 }
 
-Game.screens.drawBuff = function () {
+Game.screens.drawStatus = function (status) {
   let i = 0
-  let buff = Game.UI.buff
+  let ui = Game.UI[status]
+  let pcStatus = Game.entities.get('pc').Status
 
-  for (const [key, value] of Game.entities.get('pc').Buff.getStatus()) {
-    Game.display.drawText(buff.getX(), buff.getY() + i,
-      Game.screens.colorfulText(
-        Game.text.buff(key), 'green'))
-    Game.screens.drawAlignRight(buff.getX(), buff.getY() + i,
-      buff.getWidth(), value.toString())
-    i++
-  }
-}
+  for (const [key, value] of pcStatus.getStatus(status)) {
+    Game.display.drawText(ui.getX(), ui.getY() + i,
+      Game.screens.colorfulText(Game.text[status](key),
+        status === 'buff' ? 'green' : 'red'))
 
-Game.screens.drawDebuff = function () {
-  let i = 0
-  let debuff = Game.UI.debuff
+    Game.screens.drawAlignRight(ui.getX(), ui.getY() + i,
+      ui.getWidth(), value.toString())
 
-  for (const [key, value] of Game.entities.get('pc').Debuff.getStatus()) {
-    Game.display.drawText(debuff.getX(), debuff.getY() + i,
-      Game.screens.colorfulText(
-        Game.text.debuff(key), 'red'))
-    Game.screens.drawAlignRight(debuff.getX(), debuff.getY() + i,
-      debuff.getWidth(), value.toString())
     i++
   }
 }
@@ -746,17 +740,7 @@ Game.screens.main.initialize = function () {
   Game.system.loseHP(12, pcEntity)
   Game.system.loseHP(12, pcEntity)
 
-  Game.system.gainBuff('mov', pcEntity)
-  Game.system.gainBuff('imm', pcEntity)
-  Game.system.gainBuff('acc', pcEntity)
-  Game.system.gainBuff('cst', pcEntity)
-  Game.system.gainBuff('def', pcEntity)
-
-  Game.system.gainDebuff('hp', pcEntity)
-  Game.system.gainDebuff('dmg', pcEntity)
-  Game.system.gainDebuff('cst', pcEntity)
-  Game.system.gainDebuff('poi', pcEntity)
-  Game.system.gainDebuff('def', pcEntity)
+  pcEntity.Status.gainStatus('debuff', 'hp')
 
   Game.system.updateCursePoint(24)
   Game.system.updateCursePoint(24)
@@ -811,8 +795,8 @@ Game.screens.main.display = function () {
   Game.screens.drawTurn()
 
   Game.screens.drawCurse()
-  Game.screens.drawBuff()
-  Game.screens.drawDebuff()
+  Game.screens.drawStatus('buff')
+  Game.screens.drawStatus('debuff')
 }
 
 Game.screens.main.keyInput = function (e) {
