@@ -142,7 +142,7 @@ Game.system.gainBuff = function (id, e) {
   id && e && e.Buff && gain()
 
   function gain () {
-    e.Buff.gainStatus(Game.Component.buffLibrary(id))
+    e.Buff.gainStatus([id, Game.entities.get('timer').Duration.getBuff(id)])
   }
 }
 
@@ -150,7 +150,7 @@ Game.system.gainDebuff = function (id, e) {
   id && e && e.Debuff && gain()
 
   function gain () {
-    e.Debuff.gainStatus(Game.Component.debuffLibrary(id))
+    e.Debuff.gainStatus([id, Game.entities.get('timer').Duration.getDebuff(id)])
   }
 }
 
@@ -203,7 +203,7 @@ Game.system.move = function (direction, e) {
   let dx = eDungeon.getDeltaX()
   let dy = eDungeon.getDeltaY()
 
-  let lastTurn = Game.entities.get('timer').Duration.getDuration('mov')
+  let lastTurn = Game.entities.get('timer').Duration.getMove()
   let scheduler = Game.entities.get('timer').scheduler
 
   return e && e.Position

@@ -172,32 +172,6 @@ Game.Component.HitPoint = function (maxHp) {
   }
 }
 
-// library is NOT a constructor, see Game.systems.gainBuff
-Game.Component.buffLibrary = function (id) {
-  let buff = new Map()
-
-  buff.set('acc', 3)
-  buff.set('def', 3)
-  buff.set('imm', 3)
-  buff.set('mov', 1.5)
-  buff.set('cst', 5)
-
-  return [id, buff.get(id)]
-}
-
-Game.Component.debuffLibrary = function (id) {
-  let debuff = new Map()
-
-  debuff.set('hp', 9)
-  debuff.set('acc', 9)
-  debuff.set('def', 9)
-  debuff.set('dmg', 9)
-  debuff.set('cst', 9)
-  debuff.set('poi', 9)
-
-  return [id, debuff.get(id)]
-}
-
 Game.Component.Buff = function () {
   this._name = 'Buff'
 
@@ -233,11 +207,27 @@ Game.Component.Debuff = function () {
 Game.Component.Duration = function () {
   this._name = 'Duration'
 
-  this._duration = new Map()
+  this._move = new Map()
+  this._move.set('mov', 1)
 
-  this._duration.set('mov', 1)
+  this._buff = new Map()
+  this._buff.set('acc', 3)
+  this._buff.set('def', 3)
+  this._buff.set('imm', 3)
+  this._buff.set('mov', 1.5)
+  this._buff.set('cst', 5)
 
-  this.getDuration = function (action) { return this._duration.get(action) }
+  this._debuff = new Map()
+  this._debuff.set('hp', 9)
+  this._debuff.set('acc', 9)
+  this._debuff.set('def', 9)
+  this._debuff.set('dmg', 9)
+  this._debuff.set('cst', 9)
+  this._debuff.set('poi', 9)
+
+  this.getMove = function () { return this._move.get('mov') }
+  this.getBuff = function (id) { return this._buff.get(id) }
+  this.getDebuff = function (id) { return this._debuff.get(id) }
 }
 
 Game.Component.ActorClock = function () {

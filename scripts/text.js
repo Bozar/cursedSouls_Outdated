@@ -48,17 +48,17 @@ as gentle as a breeze, blows in your mind.\n\n`)
 Game.text.spell = function (column, level, trueName) {
   let text = new Map()
 
-  text.set('1,1,', '[Q] Fire Arrow\n[W] Healing Spring')
-  text.set('1,2,', '[A] Flame Lance\n[S] Soothing Lotion')
+  text.set('1,1,', '[Q] Fire Arrow\n[W] Bedtime Story')
+  text.set('1,2,', '[A] Flame Lance\n[S] Blind Death')
   text.set('1,3,', '[1] Magma Eruption\n')
 
-  text.set('2,1,dio', '[E] Bedtime Story\n[R] Fire Fist')
-  text.set('2,1,hulk', '[E] Bedtime Story\n[R] Golem Shell')
-  text.set('2,1,lasombra', '[E] Bedtime Story\n[R] Frost Touch')
+  text.set('2,1,dio', '[E] Healing Spring\n[R] Fire Fist')
+  text.set('2,1,hulk', '[E] Healing Spring\n[R] Golem Shell')
+  text.set('2,1,lasombra', '[E] Healing Spring\n[R] Frost Touch')
 
-  text.set('2,2,dio', '[D] Blind Death\n[F] Flame Explosion')
-  text.set('2,2,hulk', '[D] Blind Death\n[F] Refresh Ointment')
-  text.set('2,2,lasombra', '[D] Blind Death\n[F] Vile Tentacle')
+  text.set('2,2,dio', '[D] Soothing Lotion\n[F] Flame Explosion')
+  text.set('2,2,hulk', '[D] Soothing Lotion\n[F] Refresh Ointment')
+  text.set('2,2,lasombra', '[D] Soothing Lotion\n[F] Vile Tentacle')
 
   text.set('1,3,dio', text.get('1,3,') + '[2] The World')
   text.set('1,3,hulk', text.get('1,3,') + '[2] Invincible Armor')
