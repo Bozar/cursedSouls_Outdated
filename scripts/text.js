@@ -133,6 +133,16 @@ Game.text.debuff = function (debuffID) {
   return text.get(debuffID)
 }
 
+Game.text.pcStatus = function (statusID) {
+  let text = new Map()
+
+  text.set('heal', 'You are healed.')
+  text.set('heal2Max', 'You are fully healed.')
+  text.set('maxHP', 'You are already at full health.')
+
+  return text.get(statusID)
+}
+
 // ----- develop +++++
 Game.text.devError = function (error) {
   let text = new Map()

@@ -206,22 +206,15 @@ Game.system.move = function (direction, e) {
   let lastTurn = Game.entities.get('timer').Duration.getMove()
   let scheduler = Game.entities.get('timer').scheduler
 
-  return e && e.Position
-    ? where()
-    : false
+  let where = new Map()
+  where.set('left', moveLeft)
+  where.set('right', moveRight)
+  where.set('up', moveUp)
+  where.set('down', moveDown)
 
-  function where () {
-    switch (direction) {
-      case 'left':
-        return moveLeft()
-      case 'right':
-        return moveRight()
-      case 'up':
-        return moveUp()
-      case 'down':
-        return moveDown()
-    }
-  }
+  return e && e.Position && where.get(direction)
+    ? where.get(direction)()
+    : false
 
   function moveLeft () {
     if (Game.system.isWalkable(pos.getX() - 1, pos.getY())) {
@@ -302,4 +295,43 @@ Game.system.fastMove = function (direction) {
     return true
   }
   return false
+}
+
+Game.system.pcCast = function (spellID) {
+  let e = Game.entities.get('pc')
+  let message = Game.screens.drawMessage
+  let scheduler = Game.entities.get('timer').scheduler
+  let duration = Game.entities.get('timer').Duration
+  let lastTurn = 0
+
+  let spellMap = new Map()
+  spellMap.set('enh1', enhance1)
+
+  return castSpell()
+
+  function castSpell () {
+    if (spellMap.get(spellID) && spellMap.get(spellID)()) {
+      e.ActorClock.setLastAction(lastTurn)
+      scheduler.setDuration(lastTurn)
+
+      return true
+    }
+    return false
+  }
+
+  function enhance1 () {
+    if (e.HitPoint.getHP()[1] < e.HitPoint.getMax()) {
+      Game.system.gainHP(e.HitPoint.getMax(), e)
+
+      e.HitPoint.getHP()[1] < e.HitPoint.getMax()
+        ? message(Game.text.pcStatus('heal'))
+        : message(Game.text.pcStatus('heal2Max'))
+
+      lastTurn = duration.getSpell(1)
+      return true
+    } else {
+      message(Game.text.pcStatus('maxHP'))
+      return false
+    }
+  }
 }

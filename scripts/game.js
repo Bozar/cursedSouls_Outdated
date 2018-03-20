@@ -191,6 +191,22 @@ Game.keyboard.bindMap.get('fastMove').set('down', ['J', 'ArrowDown'])
 Game.keyboard.bindMap.get('fastMove').set('up', ['K', 'ArrowUp'])
 Game.keyboard.bindMap.get('fastMove').set('right', ['L', 'ArrowRight'])
 
+// casting spells: attack, control, enhance, special
+Game.keyboard.bindMap.set('cast', new Map())
+Game.keyboard.bindMap.get('cast').set('atk1', ['q'])
+Game.keyboard.bindMap.get('cast').set('atk2', ['a'])
+Game.keyboard.bindMap.get('cast').set('atk3', ['1'])
+
+Game.keyboard.bindMap.get('cast').set('ctl1', ['w'])
+Game.keyboard.bindMap.get('cast').set('ctl2', ['s'])
+
+Game.keyboard.bindMap.get('cast').set('enh1', ['e'])
+Game.keyboard.bindMap.get('cast').set('enh2', ['d'])
+
+Game.keyboard.bindMap.get('cast').set('spc1', ['r'])
+Game.keyboard.bindMap.get('cast').set('spc2', ['f'])
+Game.keyboard.bindMap.get('cast').set('spc3', ['2'])
+
 Game.keyboard.getAction = function (keyInput, mode) {
   if (!mode) {
     Game.getDevelop() && console.log(Game.text.devError('mode'))
@@ -202,7 +218,6 @@ Game.keyboard.getAction = function (keyInput, mode) {
       return key
     }
   }
-
   return null
 }
 
@@ -436,18 +451,26 @@ Game.screens.drawHPbar = function () {
 }
 
 Game.screens.drawTurn = function () {
-  let last = Game.entities.get('pc').ActorClock.getLastAction().toString(10)
-  let total = Game.entities.get('timer').scheduler.getTime().toString(10)
+  let left = Game.entities.get('pc').ActorClock.getLastAction()
+  let total = Game.entities.get('timer').scheduler.getTime()
 
-  last = last.match(/^\d\.\d$/) || last + '.0'
-  total = total.match(/\./)
-    ? total.match(/^\d{1,4}\.\d$/) || total.match(/\d{4}\.\d$/)
-    : total.match(/^\d{1,4}$/)
-      ? total.match(/^\d{1,4}$/) + '.0'
-      : total.match(/\d{4}$/) + '.0'
+  let intPart = Math.floor(total)
+  let floatPart = Number.parseFloat(total - intPart > 0
+    ? (total - intPart).toFixed(1)
+    : 0.0)
+
+  let right = intPart >= 9999
+    ? (intPart - 9999 + floatPart)
+    : (intPart + floatPart)
 
   Game.display.drawText(Game.UI.turn.getX(), Game.UI.turn.getY(),
-    'TN [' + last + '|' + total + ']')
+    'TN [' + int2floatStr(left) + '|' + int2floatStr(right) + ']')
+
+  function int2floatStr (number) {
+    return Number.isInteger(number)
+      ? number.toString(10) + '.0'
+      : number.toString(10)
+  }
 }
 
 Game.screens.drawBuff = function () {
@@ -807,6 +830,8 @@ Game.screens.main.keyInput = function (e) {
     keyPressed = ePC.Curse.setScreenLevel()
   } else if (keyAction(e, 'move')) {
     acted = Game.system.move(keyAction(e, 'move'), ePC)
+  } else if (keyAction(e, 'cast')) {
+    acted = Game.system.pcCast(keyAction(e, 'cast'))
   }
 
   // testing
