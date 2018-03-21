@@ -175,19 +175,47 @@ Game.Component.HitPoint = function (maxHp) {
 Game.Component.Status = function () {
   this._name = 'Status'
 
+  let capital = Game.screens.capitalizeFirst
+  let duration = Game.entities.get('timer').Duration
+  let scheduler = Game.entities.get('timer').scheduler
+
   this._buff = new Map()
   this._debuff = new Map()
 
-  this.gainStatus = function (type, id) {
-    this['_' + type].set(id, Game.entities.get('timer')
-      .Duration['get' + Game.screens.capitalizeFirst(type)](id))
+  this.gainStatus = function (type, id, castTurn) {
+    // {buffId  =>  {'duration' => maxTurn, 'start' => startTurn}}
+    // {'mov'   =>  {'duration' => 1.5,     'start' => 2.0}}
+    let getter = 'get' + capital(type)
+
+    this['_' + type].set(id, new Map())
+
+    this['_' + type].get(id).set('duration', duration[getter](id))
+    this['_' + type].get(id).set('start', scheduler.getTime() + castTurn)
+
     return true
   }
 
+  this.isActive = function (type, id) {
+    let status = this['_' + type].get(id)
+    let now = scheduler.getTime()
+
+    return status && now < status.get('start') + status.get('duration')
+  }
+
+  this.getRemain = function (type, id) {
+    let now = scheduler.getTime()
+    let start = this['_' + type].get(id).get('start')
+    let maxTurn = this['_' + type].get(id).get('duration')
+
+    return (maxTurn - (now - start)).toFixed(1)
+  }
+
   this.getStatus = function (type, id) {
-    return id
-      ? this['_' + type].get(id)
-      : this['_' + type]
+    return type
+      ? id
+        ? this['_' + type].get(id)
+        : this['_' + type]
+      : null
   }
 }
 

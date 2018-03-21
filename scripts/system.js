@@ -159,6 +159,8 @@ Game.system.pcAct = function () {
 
   Game.entities.get('timer').engine.lock()
 
+  Game.system.updateStatus(e)
+
   if (fast.getFastMove()) {
     if (fast.getCurrentStep() < fast.getMaxStep() &&
       Game.system.move(fast.getDirection(), e)) {
@@ -306,7 +308,7 @@ Game.system.pcCast = function (spellID) {
   function enhance1 () {
     if (e.HitPoint.getHP()[1] < e.HitPoint.getMax()) {
       Game.system.gainHP(e.HitPoint.getMax(), e)
-      e.Status.gainStatus('buff', 'mov')
+      e.Status.gainStatus('buff', 'mov', duration.getSpell(1))
 
       e.HitPoint.getHP()[1] < e.HitPoint.getMax()
         ? message(Game.text.pcStatus('heal'))
@@ -317,6 +319,23 @@ Game.system.pcCast = function (spellID) {
     } else {
       message(Game.text.pcStatus('maxHP'))
       return false
+    }
+  }
+}
+
+Game.system.updateStatus = function (e) {
+  e && e.Status && update()
+
+  function update () {
+    let status = ['buff', 'debuff']
+
+    for (let i = 0; i < status.length; i++) {
+      if (e.Status.getStatus(status[i]).size > 0) {
+        for (const keyValue of e.Status.getStatus(status[i])) {
+          !e.Status.isActive(status[i], keyValue[0]) &&
+            e.Status.getStatus(status[i]).delete(keyValue[0])
+        }
+      }
     }
   }
 }

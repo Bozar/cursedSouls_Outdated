@@ -483,13 +483,14 @@ Game.screens.drawStatus = function (status) {
   let ui = Game.UI[status]
   let pcStatus = Game.entities.get('pc').Status
 
-  for (const [key, value] of pcStatus.getStatus(status)) {
+  for (const keyValue of pcStatus.getStatus(status)) {
     Game.display.drawText(ui.getX(), ui.getY() + i,
-      Game.screens.colorfulText(Game.text[status](key),
+      Game.screens.colorfulText(Game.text[status](keyValue[0]),
         status === 'buff' ? 'green' : 'red'))
 
     Game.screens.drawAlignRight(ui.getX(), ui.getY() + i,
-      ui.getWidth(), value.toString())
+      ui.getWidth(),
+      pcStatus.getRemain(status, keyValue[0]).toString())
 
     i++
   }
@@ -591,7 +592,8 @@ Game.screens.classSeed = new Game.Screen('classSeed')
 
 Game.screens.classSeed.initialize = function () {
   !Game.entities.get('seed') && Game.entity.seed()
-  Game.entity.pc()
+  Game.entity.timer()
+  Game.entity.pc()    // the Status component requires timer entity
 }
 
 Game.screens.classSeed.display = function () {
@@ -730,8 +732,8 @@ Game.screens.main.initialize = function () {
   let pcEntity = Game.entities.get('pc')
   let dungeon = Game.entities.get('dungeon').Dungeon
 
-  Game.entity.timer()
   Game.entities.get('timer').scheduler.add(Game.entities.get('pc'), true)
+
   Game.entities.get('timer').engine.start()
 
   placePC()
@@ -740,7 +742,7 @@ Game.screens.main.initialize = function () {
   Game.system.loseHP(12, pcEntity)
   Game.system.loseHP(12, pcEntity)
 
-  pcEntity.Status.gainStatus('debuff', 'hp')
+  pcEntity.Status.gainStatus('debuff', 'hp', 0)
 
   Game.system.updateCursePoint(24)
   Game.system.updateCursePoint(24)
