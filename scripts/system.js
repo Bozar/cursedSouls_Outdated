@@ -197,10 +197,18 @@ Game.system.move = function (direction, e) {
   where.set('right', moveRight)
   where.set('up', moveUp)
   where.set('down', moveDown)
+  where.set('wait', wait1Turn)
 
   return e && e.Position && where.get(direction)
     ? where.get(direction)()
     : false
+
+  function wait1Turn () {
+    scheduler.setDuration(1)
+    Game.system.isPC(e) && e.ActorClock.setLastAction(1)
+
+    return true
+  }
 
   function moveLeft () {
     if (Game.system.isWalkable(pos.getX() - 1, pos.getY())) {
