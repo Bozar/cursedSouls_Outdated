@@ -176,21 +176,23 @@ Game.Component.Status = function () {
   this._name = 'Status'
 
   let capital = Game.screens.capitalizeFirst
-  let duration = Game.entities.get('timer').Duration
+  let duration = Game.entities.get('data').Duration
   let scheduler = Game.entities.get('timer').scheduler
 
   this._buff = new Map()
   this._debuff = new Map()
 
   this.gainStatus = function (type, id, castTurn) {
+    let typeMap = this['_' + type]
+    let maxTurn = duration['get' + capital(type)](id)
+
+    typeMap.set(id, new Map())
+
     // {buffId  =>  {'duration' => maxTurn, 'start' => startTurn}}
     // {'mov'   =>  {'duration' => 1.5,     'start' => 2.0}}
-    let getter = 'get' + capital(type)
-
-    this['_' + type].set(id, new Map())
-
-    this['_' + type].get(id).set('duration', duration[getter](id))
-    this['_' + type].get(id).set('start', scheduler.getTime() + castTurn)
+    typeMap.get(id).set('duration', maxTurn)
+    // the buff/debuff will take effect AFTER the actor's turn
+    typeMap.get(id).set('start', scheduler.getTime() + castTurn)
 
     return true
   }
@@ -251,6 +253,20 @@ Game.Component.Duration = function () {
   this.getBuff = function (id) { return this._buff.get(id) }
   this.getDebuff = function (id) { return this._debuff.get(id) }
   this.getSpell = function (level) { return this._spell.get(level) }
+}
+
+Game.Component.ModAttribute = function () {
+  this._name = 'ModAttribute'
+
+  this._modify = new Map()
+
+  this._modify.set('mov', 0.1)    // move speed, 0.1 turn
+
+  this.getModValue = function (id, isModified) {
+    return id && this._modify.get(id) && isModified
+      ? this._modify.get(id)
+      : 0
+  }
 }
 
 Game.Component.ActorClock = function () {

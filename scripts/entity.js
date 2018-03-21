@@ -5,6 +5,7 @@ Game.entities = new Map()
 Game.entities.set('dungeon', null)
 Game.entities.set('seed', null)
 Game.entities.set('timer', null)
+Game.entities.set('data', null)
 Game.entities.set('pc', null)
 
 // ----- Create a single entity +++++
@@ -44,12 +45,19 @@ Game.entity.seed = function () {
 Game.entity.timer = function () {
   let e = new Game.Factory('timer')
 
-  e.addComponent(new Game.Component.Duration())
-
   e.scheduler = new ROT.Scheduler.Action()
   e.engine = new ROT.Engine(e.scheduler)
 
   Game.entities.set('timer', e)
+}
+
+Game.entity.data = function () {
+  let e = new Game.Factory('data')
+
+  e.addComponent(new Game.Component.Duration())
+  e.addComponent(new Game.Component.ModAttribute())
+
+  Game.entities.set('data', e)
 }
 
 Game.entity.pc = function () {

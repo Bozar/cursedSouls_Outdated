@@ -189,7 +189,7 @@ Game.system.move = function (direction, e) {
   let dx = eDungeon.getDeltaX()
   let dy = eDungeon.getDeltaY()
 
-  let lastTurn = Game.entities.get('timer').Duration.getMove()
+  let lastTurn = Game.system.updateAttribute('mov', e, null)
   let scheduler = Game.entities.get('timer').scheduler
 
   let where = new Map()
@@ -287,7 +287,7 @@ Game.system.pcCast = function (spellID) {
   let e = Game.entities.get('pc')
   let message = Game.screens.drawMessage
   let scheduler = Game.entities.get('timer').scheduler
-  let duration = Game.entities.get('timer').Duration
+  let duration = Game.entities.get('data').Duration
   let lastTurn = 0
 
   let spellMap = new Map()
@@ -323,6 +323,7 @@ Game.system.pcCast = function (spellID) {
   }
 }
 
+// status: temporary or long-lasting buff/debuff
 Game.system.updateStatus = function (e) {
   e && e.Status && update()
 
@@ -337,5 +338,22 @@ Game.system.updateStatus = function (e) {
         }
       }
     }
+  }
+}
+
+// attribute: data that is changed by status
+Game.system.updateAttribute = function (status, defender, attacker) {
+  let duration = Game.entities.get('data').Duration
+  let modAttr = Game.entities.get('data').ModAttribute
+  let attrMap = new Map()
+
+  attrMap.set('mov', moveSpeed)
+
+  return status && defender && defender.Status &&
+    attrMap.get(status)()
+
+  function moveSpeed () {
+    return duration.getMove() - modAttr.getModValue('mov',
+      defender.Status.isActive('buff', 'mov'))
   }
 }

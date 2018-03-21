@@ -392,7 +392,7 @@ Game.screens.drawMessage = function (message) {
 
 Game.screens.drawSpell = function () {
   let ui = Game.UI
-  let duration = Game.entities.get('timer').Duration
+  let duration = Game.entities.get('data').Duration
   let pcName = Game.entities.get('pc').ActorName.getTrueName()
   let screenLevel = Game.entities.get('pc').Curse.getScreenLevel()
   let pcLevel = Game.entities.get('pc').Curse.getPClevel()
@@ -593,6 +593,7 @@ Game.screens.classSeed = new Game.Screen('classSeed')
 Game.screens.classSeed.initialize = function () {
   !Game.entities.get('seed') && Game.entity.seed()
   Game.entity.timer()
+  Game.entity.data()
   Game.entity.pc()    // the Status component requires timer entity
 }
 
