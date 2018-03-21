@@ -172,6 +172,31 @@ Game.Component.HitPoint = function (maxHp) {
   }
 }
 
+Game.Component.Combat = function (acc, def, dmg) {
+  this._name = 'Combat'
+
+  this._accuracy = acc || null
+  this._defense = def || null
+  this._damage = dmg || null
+
+  this.getAccuracy = function () { return this._accuracy }
+  this.getDefense = function () { return this._defense }
+  this.getDamage = function () { return this._damage }
+
+  this.setAccuracy = function (acc) {
+    this._accuracy = acc
+    return true
+  }
+  this.setDefense = function (def) {
+    this._defense = def
+    return true
+  }
+  this.setDamage = function (dmg) {
+    this._damage = dmg
+    return true
+  }
+}
+
 Game.Component.Status = function () {
   this._name = 'Status'
 

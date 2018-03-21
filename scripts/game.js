@@ -827,7 +827,15 @@ Game.screens.main.keyInput = function (e) {
     let ePC = Game.entities.get('pc')
 
     switch (e.key) {
-      case '3':   // take damage
+      case '3':   // print data
+        let hp = 'HP: ' + ePC.HitPoint.getHP() + '/' + ePC.HitPoint.getMax()
+        let acc = 'ACC: ' + ePC.Combat.getAccuracy()
+        let def = 'DEF: ' + ePC.Combat.getDefense()
+        let dmg = 'DMG: ' + ePC.Combat.getDamage()
+
+        console.log(JSON.stringify([hp, acc, def, dmg], null, 2))
+        break
+      case '4':   // take damage
         let damage = Math.floor((Math.random() * 10 + 20) / 100 *
           ePC.HitPoint.getMax())
         Game.system.loseHP(damage, ePC)
