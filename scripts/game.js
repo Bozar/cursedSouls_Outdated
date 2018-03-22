@@ -100,7 +100,7 @@ Game.UI.spell = new Game.UI(Game.UI.modeLine.getWidth(), 2,
 Game.UI.spell._x = Game.UI.modeLine.getX()
 Game.UI.spell._y = Game.UI.stat.getY()
 
-Game.UI.message = new Game.UI(Game.UI.modeLine.getWidth(), 5,
+Game.UI.message = new Game.UI(Game.UI.modeLine.getWidth(), 6,
   1, 0, 0, Game.UI.modeLine.getPadLeft())
 
 Game.UI.message._x = Game.UI.modeLine.getX()
@@ -829,8 +829,8 @@ Game.screens.main.keyInput = function (e) {
     switch (e.key) {
       case '3':   // print data
         let hp = 'HP: ' + ePC.HitPoint.getHP() + '/' + ePC.HitPoint.getMax()
-        let acc = 'ACC: ' + ePC.Combat.getAccuracy()
-        let def = 'DEF: ' + ePC.Combat.getDefense()
+        let acc = 'ACC: ' + Game.system.updateAttribute('acc', ePC)
+        let def = 'DEF: ' + Game.system.updateAttribute('def', ePC)
         let dmg = 'DMG: ' + ePC.Combat.getDamage()
 
         console.log(JSON.stringify([hp, acc, def, dmg], null, 2))

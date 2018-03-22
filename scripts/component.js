@@ -267,8 +267,8 @@ Game.Component.Duration = function () {
   this._move.set('mov', 1)
 
   this._buff = new Map()
-  this._buff.set('acc', 3)
-  this._buff.set('def', 3)
+  this._buff.set('acc', 2)
+  this._buff.set('def', 2)
   this._buff.set('imm', 3)
   this._buff.set('mov', 1.5)
   this._buff.set('cst', 5)
@@ -297,13 +297,18 @@ Game.Component.Duration = function () {
 Game.Component.ModAttribute = function () {
   this._name = 'ModAttribute'
 
-  this._modify = new Map()
+  this._buff = new Map()
+  this._debuff = new Map()
 
-  this._modify.set('mov', 0.1)    // move speed, 0.1 turn
+  this._buff.set('mov', 0.1)    // move speed, 0.1 turn
+  this._buff.set('acc', 2)
+  this._buff.set('def', 2)
 
-  this.getModValue = function (id, isModified) {
-    return id && this._modify.get(id) && isModified
-      ? this._modify.get(id)
+  this.getMod = function (type, id, isModified) {
+    let thisType = this['_' + type]
+
+    return type && id && thisType && thisType.get(id) && isModified
+      ? thisType.get(id)
       : 0
   }
 }

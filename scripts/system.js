@@ -277,6 +277,7 @@ Game.system.pcCast = function (spellID) {
 
   let spellMap = new Map()
   spellMap.set('enh1', enhance1)
+  spellMap.set('spc1', special1)
 
   return castSpell()
 
@@ -292,18 +293,51 @@ Game.system.pcCast = function (spellID) {
 
   function enhance1 () {
     if (e.HitPoint.getHP()[1] < e.HitPoint.getMax()) {
-      Game.system.gainHP(e.HitPoint.getMax(), e)
-      e.Status.gainStatus('buff', 'mov', duration.getSpell(1))
+      lastTurn = duration.getSpell(1)
+
+      e.HitPoint.gainHP(e.HitPoint.getMax())
+      e.Status.gainStatus('buff', 'mov', lastTurn)
 
       e.HitPoint.getHP()[1] < e.HitPoint.getMax()
         ? message(Game.text.pcStatus('heal'))
         : message(Game.text.pcStatus('heal2Max'))
 
-      lastTurn = duration.getSpell(1)
       return true
     } else {
       message(Game.text.pcStatus('maxHP'))
       return false
+    }
+  }
+
+  function special1 () {
+    switch (e.ActorName.getTrueName()) {
+      case 'dio':
+        return dio1()
+      case 'hulk':
+        return hulk1()
+      case 'lasombra':
+        return lasombra1()
+      default:
+        return false
+    }
+
+    function dio1 () {
+
+    }
+
+    function hulk1 () {
+      lastTurn = duration.getSpell(1)
+
+      e.Status.gainStatus('buff', 'acc', lastTurn)
+      e.Status.gainStatus('buff', 'def', lastTurn)
+
+      message(Game.text.pcStatus('puppet'))
+
+      return true
+    }
+
+    function lasombra1 () {
+
     }
   }
 }
@@ -327,18 +361,41 @@ Game.system.updateStatus = function (e) {
 }
 
 // attribute: data that is changed by status
-Game.system.updateAttribute = function (status, defender, attacker) {
+Game.system.updateAttribute = function (attrID, defender, attacker) {
   let duration = Game.entities.get('data').Duration
   let modAttr = Game.entities.get('data').ModAttribute
   let attrMap = new Map()
 
   attrMap.set('mov', moveSpeed)
+  attrMap.set('acc', accuracy)
+  attrMap.set('def', defense)
 
-  return status && defender && defender.Status &&
-    attrMap.get(status)()
+  return attrID && attrMap.get(attrID) && defender && defender.Status
+    ? attrMap.get(attrID)()
+    : null
 
   function moveSpeed () {
-    return duration.getMove() - modAttr.getModValue('mov',
+    return duration.getMove() - modAttr.getMod('buff', 'mov',
       defender.Status.isActive('buff', 'mov'))
+  }
+
+  function accuracy () {
+    return defender.Combat
+      ? defender.Combat.getAccuracy() +
+      modAttr.getMod('buff', 'acc',
+        defender.Status.isActive('buff', 'acc')) -
+      modAttr.getMod('debuff', 'acc',
+        defender.Status.isActive('debuff', 'acc'))
+      : 0
+  }
+
+  function defense () {
+    return defender.Combat
+      ? defender.Combat.getDefense() +
+      modAttr.getMod('buff', 'def',
+        defender.Status.isActive('buff', 'def')) -
+      modAttr.getMod('debuff', 'def',
+        defender.Status.isActive('debuff', 'def'))
+      : 0
   }
 }

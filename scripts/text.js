@@ -53,7 +53,7 @@ Game.text.spell = function (column, level, trueName) {
   text.set('1,3,', '[1] Magma Eruption\n')
 
   text.set('2,1,dio', '[E] Healing Spring\n[R] Fire Fist')
-  text.set('2,1,hulk', '[E] Healing Spring\n[R] Golem Shell')
+  text.set('2,1,hulk', '[E] Healing Spring\n[R] Puppet Master')
   text.set('2,1,lasombra', '[E] Healing Spring\n[R] Frost Touch')
 
   text.set('2,2,dio', '[D] Soothing Lotion\n[F] Flame Explosion')
@@ -139,6 +139,9 @@ Game.text.pcStatus = function (statusID) {
   text.set('heal', 'You are healed and move faster.')
   text.set('heal2Max', 'You are fully healed and move faster.')
   text.set('maxHP', 'You are already at full health.')
+
+  // hunter x hunter, Pitou
+  text.set('puppet', 'You are pulled by invisible strings in the fight.')
 
   return text.get(statusID)
 }
