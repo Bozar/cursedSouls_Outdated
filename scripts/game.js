@@ -740,9 +740,9 @@ Game.screens.main.initialize = function () {
 
   placePC()
 
-  Game.system.gainHP(64, pcEntity)
-  Game.system.loseHP(12, pcEntity)
-  Game.system.loseHP(12, pcEntity)
+  pcEntity.HitPoint.gainHP(64)
+  pcEntity.HitPoint.loseHP(12)
+  pcEntity.HitPoint.loseHP(12)
 
   pcEntity.Status.gainStatus('debuff', 'hp', 0)
 
@@ -838,7 +838,7 @@ Game.screens.main.keyInput = function (e) {
       case '4':   // take damage
         let damage = Math.floor((Math.random() * 10 + 20) / 100 *
           ePC.HitPoint.getMax())
-        Game.system.loseHP(damage, ePC)
+        ePC.HitPoint.loseHP(damage)
         Game.screens.drawMessage('You are hit: ' + damage + '!')
         break
     }

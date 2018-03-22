@@ -170,6 +170,20 @@ Game.Component.HitPoint = function (maxHp) {
     this._maxHP = hp
     return true
   }
+
+  this.gainHP = function (max) {
+    let healed = Math.min(max, this._hitpoint[1] + Math.floor(max / 4))
+
+    this._hitpoint.push(healed)
+    this._hitpoint.shift()
+  }
+
+  this.loseHP = function (damage) {
+    let afterHit = this._hitpoint[1] - damage
+
+    this._hitpoint.push(Math.max(0, afterHit))
+    this._hitpoint.shift()
+  }
 }
 
 Game.Component.Combat = function (acc, def, dmg) {

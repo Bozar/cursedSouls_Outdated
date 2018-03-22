@@ -115,29 +115,6 @@ Game.system.updateCursePoint = function (point) {
   }
 }
 
-Game.system.gainHP = function (maxHP, e) {
-  e && e.HitPoint && maxHP && heal()
-
-  function heal () {
-    let healed = e.HitPoint.getHP()[1] + Math.floor(maxHP / 4)
-
-    healed = Math.min(healed, maxHP)
-    e.HitPoint.getHP().push(healed)
-    e.HitPoint.getHP().shift()
-  }
-}
-
-Game.system.loseHP = function (damage, e) {
-  e && e.HitPoint && damage && takeDamage()
-
-  function takeDamage () {
-    let afterHit = e.HitPoint.getHP()[1] - damage
-
-    e.HitPoint.getHP().push(Math.max(0, afterHit))
-    e.HitPoint.getHP().shift()
-  }
-}
-
 Game.system.isWalkable = function (x, y) {
   return Game.entities.get('dungeon').Dungeon
     .getTerrain().get(x + ',' + y) === 0
