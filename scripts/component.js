@@ -221,15 +221,16 @@ Game.Component.Status = function () {
   this._buff = new Map()
   this._debuff = new Map()
 
-  this.gainStatus = function (type, id, castTurn) {
+  this.gainStatus = function (type, id, castTurn, maxTurn) {
     let typeMap = this['_' + type]
-    let maxTurn = duration['get' + capital(type)](id)
+    // some status's maxTurn needs to be set on-site
+    let max = maxTurn || duration['get' + capital(type)](id)
 
     typeMap.set(id, new Map())
 
     // {buffId  =>  {'duration' => maxTurn, 'start' => startTurn}}
     // {'mov'   =>  {'duration' => 1.5,     'start' => 2.0}}
-    typeMap.get(id).set('duration', maxTurn)
+    typeMap.get(id).set('duration', max)
     // the buff/debuff will take effect AFTER the actor's turn
     typeMap.get(id).set('start', scheduler.getTime() + castTurn)
 
@@ -267,15 +268,16 @@ Game.Component.Duration = function () {
   this._move.set('mov', 1)
 
   this._buff = new Map()
-  this._buff.set('acc', 2)
-  this._buff.set('def', 2)
+  this._buff.set('acc1', 2)
+  this._buff.set('acc0', 0)
+  this._buff.set('def1', 2)
   this._buff.set('imm', 3)
-  this._buff.set('mov', 1.5)
+  this._buff.set('mov0', 1.5)
   this._buff.set('cst', 5)
 
   this._debuff = new Map()
-  this._debuff.set('hp', 9)
-  this._debuff.set('acc', 9)
+  this._debuff.set('hp0', 9)
+  this._debuff.set('acc0', 9)
   this._debuff.set('def', 9)
   this._debuff.set('dmg', 9)
   this._debuff.set('cst', 9)
@@ -300,9 +302,10 @@ Game.Component.ModAttribute = function () {
   this._buff = new Map()
   this._debuff = new Map()
 
-  this._buff.set('mov', 0.1)    // move speed, 0.1 turn
-  this._buff.set('acc', 2)
-  this._buff.set('def', 2)
+  this._buff.set('mov0', 0.1)    // move speed, 0.1 turn
+  this._buff.set('acc1', 2)
+  this._buff.set('acc0', 1)
+  this._buff.set('def1', 2)
 
   this.getMod = function (type, id, isModified) {
     let thisType = this['_' + type]

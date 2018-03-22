@@ -371,7 +371,7 @@ Game.screens.drawMessage = function (message) {
   let x = Game.UI.message.getX()
   let y = Game.UI.message.getY()
 
-  let pattern = '(.{' + (uiWidth - 20) + ',' + uiWidth + '}\\s)'
+  let pattern = '(.{' + (uiWidth - 10) + ',' + uiWidth + '}\\s)'
   let screenList = []
 
   Game.entities.get('record').Message.gainMessage(message)
@@ -746,7 +746,7 @@ Game.screens.main.initialize = function () {
   pcEntity.HitPoint.loseHP(12)
   pcEntity.HitPoint.loseHP(12)
 
-  pcEntity.Status.gainStatus('debuff', 'hp', 0)
+  pcEntity.Status.gainStatus('debuff', 'hp0', 0)
 
   Game.system.updateCursePoint(24)
   Game.system.updateCursePoint(24)
@@ -831,8 +831,8 @@ Game.screens.main.keyInput = function (e) {
     switch (e.key) {
       case '3':   // print data
         let hp = 'HP: ' + ePC.HitPoint.getHP() + '/' + ePC.HitPoint.getMax()
-        let acc = 'ACC: ' + Game.system.updateAttribute('acc', ePC)
-        let def = 'DEF: ' + Game.system.updateAttribute('def', ePC)
+        let acc = 'ACC: ' + Game.system.updateAttribute('accuracy', ePC)
+        let def = 'DEF: ' + Game.system.updateAttribute('defense', ePC)
         let dmg = 'DMG: ' + ePC.Combat.getDamage()
 
         console.log(JSON.stringify([hp, acc, def, dmg], null, 2))

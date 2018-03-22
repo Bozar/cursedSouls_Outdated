@@ -52,13 +52,13 @@ Game.text.spell = function (column, level, trueName) {
   text.set('1,2,', '[A] Flame Lance\n[S] Blind Death')
   text.set('1,3,', '[1] Magma Eruption\n')
 
-  text.set('2,1,dio', '[E] Healing Spring\n[R] Fire Fist')
-  text.set('2,1,hulk', '[E] Healing Spring\n[R] Puppet Master')
-  text.set('2,1,lasombra', '[E] Healing Spring\n[R] Frost Touch')
+  text.set('2,1,dio', '[E] Cyclops Tears\n[R] Fire Fist')
+  text.set('2,1,hulk', '[E] Cyclops Tears\n[R] Toy Repairer')
+  text.set('2,1,lasombra', '[E] Cyclops Tears\n[R] Frost Touch')
 
-  text.set('2,2,dio', '[D] Soothing Lotion\n[F] Flame Explosion')
-  text.set('2,2,hulk', '[D] Soothing Lotion\n[F] Refresh Ointment')
-  text.set('2,2,lasombra', '[D] Soothing Lotion\n[F] Vile Tentacle')
+  text.set('2,2,dio', '[D] Two-headed Coin\n[F] Flame Explosion')
+  text.set('2,2,hulk', '[D] Two-headed Coin\n[F] Refresh Ointment')
+  text.set('2,2,lasombra', '[D] Two-headed Coin\n[F] Vile Tentacle')
 
   text.set('1,3,dio', text.get('1,3,') + '[2] The World')
   text.set('1,3,hulk', text.get('1,3,') + '[2] Invincible Armor')
@@ -111,9 +111,10 @@ Game.text.curse = function (curse, returnMap) {
 Game.text.buff = function (buffID) {
   let text = new Map()
 
-  text.set('mov', 'Movement+')
-  text.set('acc', 'Accuracy++')
-  text.set('def', 'Defense++')
+  text.set('mov0', 'Movement+')
+  text.set('acc1', 'Accuracy++')
+  text.set('acc0', 'Accuracy+')   // lesser accuracy buff
+  text.set('def1', 'Defense++')
   text.set('imm', 'Immunity')
   text.set('cst', 'Casting++')
 
@@ -123,12 +124,12 @@ Game.text.buff = function (buffID) {
 Game.text.debuff = function (debuffID) {
   let text = new Map()
 
-  text.set('hp', 'Heal-')
-  text.set('acc', 'Accuracy-')
-  text.set('def', 'Defense-')
-  text.set('dmg', 'Damage-')
-  text.set('cst', 'Casting-')
-  text.set('poi', 'Poisoned')
+  text.set('hp0', 'Heal-')
+  text.set('acc0', 'Accuracy-')
+  text.set('def0', 'Defense-')
+  text.set('dmg0', 'Damage-')
+  text.set('cst0', 'Casting-')
+  text.set('poi0', 'Poisoned')
 
   return text.get(debuffID)
 }
@@ -136,12 +137,17 @@ Game.text.debuff = function (debuffID) {
 Game.text.pcStatus = function (statusID) {
   let text = new Map()
 
+  // [E]: adventure time
   text.set('heal', 'You are healed and move faster.')
   text.set('heal2Max', 'You are fully healed and move faster.')
   text.set('maxHP', 'You are already at full health.')
 
-  // hunter x hunter, Pitou
-  text.set('puppet', 'You are pulled by invisible strings to dodge and attack.')
+  // [R]: hunter x hunter, Pitou
+  text.set('puppet', 'You are pulled by invisible strings in combat.')
+
+  // [D]: batman, Two-Face
+  text.set('lucky', 'You flip the coin to change your fate.')
+  text.set('unlucky', 'You flip the coin but nothing happens.')
 
   return text.get(statusID)
 }
