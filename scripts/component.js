@@ -352,3 +352,20 @@ Game.Component.FastMove = function () {
     return true
   }
 }
+
+Game.Component.Message = function () {
+  this._name = 'Message'
+
+  this._message = []
+
+  this.getMessage = function () { return this._message }
+
+  this.gainMessage = function (msg) {
+    msg && this._message.push(String(msg))
+
+    while (this._message.length > Game.UI.message.getHeight()) {
+      this._message.shift()
+    }
+    return true
+  }
+}

@@ -141,7 +141,7 @@ Game.text.pcStatus = function (statusID) {
   text.set('maxHP', 'You are already at full health.')
 
   // hunter x hunter, Pitou
-  text.set('puppet', 'You are pulled by invisible strings in the fight.')
+  text.set('puppet', 'You are pulled by invisible strings to dodge and attack.')
 
   return text.get(statusID)
 }

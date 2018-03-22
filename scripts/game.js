@@ -280,7 +280,6 @@ Game.Screen.prototype.keyInput = function (e) {
 Game.screens = {}
 Game.screens._currentName = null
 Game.screens._currentMode = null
-Game.screens._message = []
 
 // general version
 // Game.screens.clearBlock = function (x, y, width, height, fillText) {
@@ -369,25 +368,27 @@ Game.screens.drawModeLine = function (text) {
 Game.screens.drawMessage = function (message) {
   let uiWidth = Game.UI.message.getWidth()
   let uiHeight = Game.UI.message.getHeight()
-  let msgList = Game.screens._message
+  let x = Game.UI.message.getX()
+  let y = Game.UI.message.getY()
 
-  message && msgList.push(String(message))
-  while (blockHeight() > uiHeight) {
-    msgList = msgList.slice(1)
+  let pattern = '(.{' + (uiWidth - 20) + ',' + uiWidth + '}\\s)'
+  let screenList = []
+
+  Game.entities.get('record').Message.gainMessage(message)
+  let msgList = Game.entities.get('record').Message.getMessage()
+
+  for (let i = 0; i < msgList.length; i++) {
+    screenList.push(...msgList[i].split(new RegExp(pattern)))
   }
+  // https://stackoverflow.com/questions/22044461/
+  screenList = screenList.filter((i) => { return i.length > 0 })
 
-  Game.screens.clearBlock(Game.UI.message)
-  Game.display.drawText(Game.UI.message.getX(),
-    Game.UI.message.getY() + uiHeight - blockHeight(),
-    msgList.join('\n'),
-    uiWidth)
-
-  function blockHeight () {
-    let height = 0
-    for (let i = 0; i < msgList.length; i++) {
-      height += Math.ceil(msgList[i].length / uiWidth)
-    }
-    return height
+  for (let i = Math.max(0, screenList.length - uiHeight), j = 0;
+    i < screenList.length; i++, j++) {
+    Game.display.drawText(x,
+      y + Math.max(0, uiHeight - screenList.length) + j,
+      screenList[i]
+    )
   }
 }
 
@@ -595,6 +596,7 @@ Game.screens.classSeed.initialize = function () {
   !Game.entities.get('seed') && Game.entity.seed()
   Game.entity.timer()
   Game.entity.data()
+  Game.entity.record()
   Game.entity.pc()    // the Status component requires timer entity
 }
 
@@ -754,7 +756,7 @@ Game.screens.main.initialize = function () {
   Game.system.updateCursePoint(24)
   Game.system.updateCursePoint(-14)
 
-  Game.screens._message.push('welcome')
+  Game.entities.get('record').Message.gainMessage('welcome')
 
   function placePC () {
     let x = 0
