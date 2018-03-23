@@ -4,4 +4,4 @@
 
 Cursed Souls, a coffee-break Roguelike game written in Javascript with [rot.js](https://github.com/ondras/rot.js).
 
-![img](https://github.com/Bozar/cursedSouls/blob/master/img/progress/0315.gif)
+![img](https://github.com/Bozar/cursedSouls/blob/master/img/progress/0322.gif)
