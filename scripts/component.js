@@ -273,7 +273,7 @@ Game.Component.Duration = function () {
   this._buff.set('def1', 2)
   this._buff.set('imm', 3)
   this._buff.set('mov0', 1.5)
-  this._buff.set('cst', 5)
+  this._buff.set('cst1', 2.5)
 
   this._debuff = new Map()
   this._debuff.set('hp0', 9)
@@ -306,6 +306,7 @@ Game.Component.ModAttribute = function () {
   this._buff.set('acc1', 2)
   this._buff.set('acc0', 1)
   this._buff.set('def1', 2)
+  this._buff.set('cst1', 0.2)
 
   this.getMod = function (type, id, isModified) {
     let thisType = this['_' + type]

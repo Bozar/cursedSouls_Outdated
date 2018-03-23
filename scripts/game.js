@@ -384,7 +384,7 @@ Game.screens.drawMessage = function (message) {
   screenList = screenList.filter((i) => { return i.length > 0 })
 
   for (let i = Math.max(0, screenList.length - uiHeight), j = 0;
-    i < screenList.length; i++, j++) {
+    i < screenList.length; (i++), (j++)) {
     Game.display.drawText(x,
       y + Math.max(0, uiHeight - screenList.length) + j,
       screenList[i]
@@ -394,10 +394,11 @@ Game.screens.drawMessage = function (message) {
 
 Game.screens.drawSpell = function () {
   let ui = Game.UI
-  let duration = Game.entities.get('data').Duration
-  let pcName = Game.entities.get('pc').ActorName.getTrueName()
-  let screenLevel = Game.entities.get('pc').Curse.getScreenLevel()
-  let pcLevel = Game.entities.get('pc').Curse.getPClevel()
+  let duration = Game.system.updateAttribute
+  let ePC = Game.entities.get('pc')
+  let pcName = ePC.ActorName.getTrueName()
+  let screenLevel = ePC.Curse.getScreenLevel()
+  let pcLevel = ePC.Curse.getPClevel()
 
   // column 1
   Game.display.drawText(ui.column1.getX(), ui.column1.getY(),
@@ -410,8 +411,9 @@ Game.screens.drawSpell = function () {
     ui.column2.getWidth())
 
   // column 3
-  Game.screens.drawAlignRight(ui.spell.getX(), ui.spell.getY(),
-    ui.spell.getWidth(), '[' + duration.getSpell(screenLevel) + ']')
+  Game.screens.drawAlignRight(
+    ui.spell.getX(), ui.spell.getY(), ui.spell.getWidth(),
+    '[' + duration('castSpeed', ePC).get(screenLevel) + ']')
 
   Game.screens.drawAlignRight(ui.spell.getX(), ui.spell.getY() + 1,
     ui.spell.getWidth(), Game.text.spell(3),

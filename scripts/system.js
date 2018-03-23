@@ -271,21 +271,22 @@ Game.system.fastMove = function (direction) {
 Game.system.pcCast = function (spellID) {
   let e = Game.entities.get('pc')
   let message = Game.screens.drawMessage
-  let scheduler = Game.entities.get('timer').scheduler
-  let duration = Game.entities.get('data').Duration
-  let lastTurn = 0
+
+  let spellLevel = Number.parseInt(spellID.match(/\d$/)[0])
+  let lastTurn = Game.system.updateAttribute('castSpeed', e).get(spellLevel)
 
   let spellMap = new Map()
   spellMap.set('enh1', enhance1)
   spellMap.set('enh2', enhance2)
   spellMap.set('spc1', special1)
+  spellMap.set('spc2', special2)
 
   return castSpell()
 
   function castSpell () {
     if (spellMap.get(spellID) && spellMap.get(spellID)()) {
       e.ActorClock.setLastAction(lastTurn)
-      scheduler.setDuration(lastTurn)
+      Game.entities.get('timer').scheduler.setDuration(lastTurn)
 
       return true
     }
@@ -294,8 +295,6 @@ Game.system.pcCast = function (spellID) {
 
   function enhance1 () {
     if (e.HitPoint.getHP()[1] < e.HitPoint.getMax()) {
-      lastTurn = duration.getSpell(1)
-
       e.HitPoint.gainHP(e.HitPoint.getMax())
       e.Status.gainStatus('buff', 'mov0', lastTurn)
 
@@ -313,7 +312,6 @@ Game.system.pcCast = function (spellID) {
   function enhance2 () {
     if (e.Status.getStatus('debuff').size > 0) {
       let maxTurn = Math.min(4, 1 + e.Status.getStatus('debuff').size)
-      lastTurn = duration.getSpell(2)
 
       e.Status.gainStatus('buff', 'acc0', lastTurn, maxTurn)
       message(Game.text.pcStatus('lucky'))
@@ -343,17 +341,42 @@ Game.system.pcCast = function (spellID) {
     }
 
     function hulk1 () {
-      lastTurn = duration.getSpell(1)
-
       e.Status.gainStatus('buff', 'acc1', lastTurn)
       e.Status.gainStatus('buff', 'def1', lastTurn)
-
       message(Game.text.pcStatus('puppet'))
 
       return true
     }
 
     function lasombra1 () {
+
+    }
+  }
+
+  function special2 () {
+    switch (e.ActorName.getTrueName()) {
+      case 'dio':
+        return dio2()
+      case 'hulk':
+        return hulk2()
+      case 'lasombra':
+        return lasombra2()
+      default:
+        return false
+    }
+
+    function dio2 () {
+
+    }
+
+    function hulk2 () {
+      e.Status.gainStatus('buff', 'cst1', lastTurn)
+      message(Game.text.pcStatus('castFaster'))
+
+      return true
+    }
+
+    function lasombra2 () {
 
     }
   }
@@ -386,6 +409,7 @@ Game.system.updateAttribute = function (attrID, defender, attacker) {
   attrMap.set('moveSpeed', moveSpeed)
   attrMap.set('accuracy', accuracy)
   attrMap.set('defense', defense)
+  attrMap.set('castSpeed', castSpeed)
 
   return attrID && attrMap.get(attrID) && defender && defender.Status
     ? attrMap.get(attrID)()
@@ -416,5 +440,20 @@ Game.system.updateAttribute = function (attrID, defender, attacker) {
       modAttr.getMod('debuff', 'def0',
         defender.Status.isActive('debuff', 'def0'))
       : 0
+  }
+
+  function castSpeed () {
+    let level1 = duration.getSpell(1)
+    let level2 = duration.getSpell(2)
+    let level3 = duration.getSpell(3)
+
+    let buff = modAttr.getMod('buff', 'cst1',
+      defender.Status.isActive('buff', 'cst1'))
+
+    return new Map([
+      [1, level1 - buff],
+      [2, level2 - buff],
+      [3, level3]
+    ])
   }
 }

@@ -57,7 +57,7 @@ Game.text.spell = function (column, level, trueName) {
   text.set('2,1,lasombra', '[E] Cyclops Tears\n[R] Frost Touch')
 
   text.set('2,2,dio', '[D] Two-headed Coin\n[F] Flame Explosion')
-  text.set('2,2,hulk', '[D] Two-headed Coin\n[F] Refresh Ointment')
+  text.set('2,2,hulk', '[D] Two-headed Coin\n[F] Nimble Fingers')
   text.set('2,2,lasombra', '[D] Two-headed Coin\n[F] Vile Tentacle')
 
   text.set('1,3,dio', text.get('1,3,') + '[2] The World')
@@ -113,10 +113,10 @@ Game.text.buff = function (buffID) {
 
   text.set('mov0', 'Movement+')
   text.set('acc1', 'Accuracy++')
-  text.set('acc0', 'Accuracy+')   // lesser accuracy buff
+  text.set('acc0', 'Accuracy+')
   text.set('def1', 'Defense++')
   text.set('imm', 'Immunity')
-  text.set('cst', 'Casting++')
+  text.set('cst1', 'Casting++')
 
   return text.get(buffID)
 }
@@ -142,12 +142,15 @@ Game.text.pcStatus = function (statusID) {
   text.set('heal2Max', 'You are fully healed and move faster.')
   text.set('maxHP', 'You are already at full health.')
 
-  // [R]: hunter x hunter, Pitou
+  // [R, hulk]: hunter x hunter, Pitou
   text.set('puppet', 'You are pulled by invisible strings in combat.')
 
   // [D]: batman, Two-Face
   text.set('lucky', 'You flip the coin to change your fate.')
   text.set('unlucky', 'You flip the coin but nothing happens.')
+
+  // [F, hulk]
+  text.set('castFaster', 'You weave spells like an orchestra conductor.')
 
   return text.get(statusID)
 }
