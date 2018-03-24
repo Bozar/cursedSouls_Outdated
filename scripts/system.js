@@ -268,6 +268,20 @@ Game.system.fastMove = function (direction) {
   return false
 }
 
+/* How to add a spell
+ * 1. keyboard input --> trigger action
+ *    + keyboard: Game.screens.main.keyInput
+ *    + action: Game.system.pcCast
+ * 2. gain status:
+ *    + text: Game.text.buff, Game.text.debuff
+ *    + duration: Game.Component.Duration
+ * 3. change related attributes if the stautus is active
+ *    + changed value: Game.Component.ModAttribute
+ *    + related attributes: Game.system.updateAttribute
+ * 4. add description:
+ *    + text: Game.text.pcStatus
+ *    + print text: Game.system.pcCast
+ */
 Game.system.pcCast = function (spellID) {
   let e = Game.entities.get('pc')
   let message = Game.screens.drawMessage
