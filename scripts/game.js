@@ -208,6 +208,10 @@ Game.keyboard.bindMap.get('cast').set('spc1', ['r'])
 Game.keyboard.bindMap.get('cast').set('spc2', ['f'])
 Game.keyboard.bindMap.get('cast').set('spc3', ['2'])
 
+// actions that do not take in-game time
+Game.keyboard.bindMap.set('pause', new Map())
+Game.keyboard.bindMap.get('pause').set('explore', ['x'])
+
 Game.keyboard.getAction = function (keyInput, mode) {
   if (!mode) {
     Game.getDevelop() && console.log(Game.text.devError('mode'))
@@ -525,6 +529,7 @@ Game.screens.drawDungeon = function () {
     })
 
   drawActor(Game.entities.get('pc'))
+  drawActor(Game.entities.get('marker'))
 
   function drawSeen () {
     for (let i = 0; i < memory.length; i++) {
@@ -546,7 +551,7 @@ Game.screens.drawDungeon = function () {
     let x = actor.Position.getX()
     let y = actor.Position.getY()
 
-    insideScreen(x, y) &&
+    x !== null && y !== null && insideScreen(x, y) &&
       Game.display.draw(screenX(x), screenY(y),
         actor.Display.getCharacter(),
         actor.Display.getFgColor(), actor.Display.getBgColor())
@@ -600,6 +605,7 @@ Game.screens.classSeed.initialize = function () {
   Game.entity.data()
   Game.entity.record()
   Game.entity.pc()    // the Status component requires timer entity
+  Game.entity.marker()
 }
 
 Game.screens.classSeed.display = function () {
@@ -824,6 +830,8 @@ Game.screens.main.keyInput = function (e) {
     acted = Game.system.move(keyAction(e, 'move'), ePC)
   } else if (keyAction(e, 'cast')) {
     acted = Game.system.pcCast(keyAction(e, 'cast'))
+  } else if (keyAction(e, 'pause')) {
+    Game.system.exploreMode()
   }
 
   // testing

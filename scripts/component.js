@@ -79,7 +79,7 @@ Game.Component.Position = function (sight) {
 
   this._x = null
   this._y = null
-  this._sight = sight   // how far one can see
+  this._sight = sight || 0   // how far one can see
 
   this.getX = function () { return this._x }
   this.getY = function () { return this._y }
@@ -106,6 +106,10 @@ Game.Component.Display = function (char, fgColor, bgColor) {
   this.getFgColor = function () { return this._fgColor }
   this.getBgColor = function () { return this._bgColor }
 
+  this.setCharacter = function (char) {
+    this._character = char
+    return true
+  }
   this.setFgColor = function (color) {
     this._fgColor = color
     return true

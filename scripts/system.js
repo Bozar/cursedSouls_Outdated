@@ -115,9 +115,23 @@ Game.system.updateCursePoint = function (point) {
   }
 }
 
-Game.system.isWalkable = function (x, y) {
-  return Game.entities.get('dungeon').Dungeon
-    .getTerrain().get(x + ',' + y) === 0
+Game.system.isWalkable = function (x, y, e) {
+  let pc = Game.entities.get('pc').Position
+  let dungeon = Game.entities.get('dungeon')
+  let walkable = false
+
+  if (e && e.getID() === Game.entities.get('marker').getID()) {
+    let inSight = []
+
+    dungeon.fov.compute(pc.getX(), pc.getY(), pc.getSight(),
+      function (x, y) { inSight.push(x + ',' + y) })
+
+    walkable = inSight.indexOf(x + ',' + y) > -1
+  } else {
+    walkable = dungeon.Dungeon.getTerrain().get(x + ',' + y) === 0
+  }
+
+  return walkable
 }
 
 Game.system.isPC = function (e) {
@@ -188,7 +202,7 @@ Game.system.move = function (direction, e) {
   }
 
   function moveLeft () {
-    if (Game.system.isWalkable(pos.getX() - 1, pos.getY())) {
+    if (Game.system.isWalkable(pos.getX() - 1, pos.getY(), e)) {
       scheduler.setDuration(lastTurn)
       pos.setX(pos.getX() - 1)
 
@@ -205,7 +219,7 @@ Game.system.move = function (direction, e) {
   }
 
   function moveRight () {
-    if (Game.system.isWalkable(pos.getX() + 1, pos.getY())) {
+    if (Game.system.isWalkable(pos.getX() + 1, pos.getY(), e)) {
       scheduler.setDuration(lastTurn)
       pos.setX(pos.getX() + 1)
 
@@ -222,7 +236,7 @@ Game.system.move = function (direction, e) {
   }
 
   function moveUp () {
-    if (Game.system.isWalkable(pos.getX(), pos.getY() - 1)) {
+    if (Game.system.isWalkable(pos.getX(), pos.getY() - 1, e)) {
       scheduler.setDuration(lastTurn)
       pos.setY(pos.getY() - 1)
 
@@ -239,7 +253,7 @@ Game.system.move = function (direction, e) {
   }
 
   function moveDown () {
-    if (Game.system.isWalkable(pos.getX(), pos.getY() + 1)) {
+    if (Game.system.isWalkable(pos.getX(), pos.getY() + 1, e)) {
       scheduler.setDuration(lastTurn)
       pos.setY(pos.getY() + 1)
 
@@ -256,12 +270,12 @@ Game.system.move = function (direction, e) {
   }
 }
 
-Game.system.fastMove = function (direction) {
-  let e = Game.entities.get('pc')
+Game.system.fastMove = function (direction, e) {
+  let who = e || Game.entities.get('pc')
 
-  if (Game.system.move(direction, e)) {
-    e.FastMove.setFastMove(true)
-    e.FastMove.setDirection(direction)
+  if (Game.system.move(direction, who)) {
+    who.FastMove.setFastMove(true)
+    who.FastMove.setDirection(direction)
 
     return true
   }
@@ -469,5 +483,48 @@ Game.system.updateAttribute = function (attrID, defender, attacker) {
       [2, level2 - buff],
       [3, level3]
     ])
+  }
+}
+
+Game.system.exploreMode = function () {
+  let marker = Game.entities.get('marker')
+  let markerPos = marker.Position
+  let pc = Game.entities.get('pc').Position
+  let action = Game.keyboard.getAction
+
+  let exitExplore = false
+  markerPos.setX(pc.getX())
+  markerPos.setY(pc.getY())
+
+  Game.keyboard.listenEvent('remove', 'main')
+  Game.keyboard.listenEvent('add', moveMarker)
+
+  function moveMarker (e) {
+    if (e.shiftKey) {
+      if (action(e, 'fastMove')) {
+        for (let i = 0; i < pc.getSight(); i++) {
+          if (!Game.system.move(action(e, 'fastMove'), marker)) {
+            break
+          }
+        }
+      }
+    } else if (action(e, 'move')) {
+      Game.system.move(action(e, 'move'), marker)
+    } else if (e.key === 'Escape') {
+      markerPos.setX(null)
+      markerPos.setY(null)
+
+      exitExplore = true
+    }
+
+    Game.display.clear()
+    Game.screens.main.display()
+
+    if (exitExplore) {
+      Game.keyboard.listenEvent('remove', moveMarker)
+      Game.keyboard.listenEvent('add', 'main')
+
+      return true
+    }
   }
 }

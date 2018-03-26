@@ -7,6 +7,7 @@ Game.entities.set('seed', null)
 Game.entities.set('timer', null)
 Game.entities.set('data', null)
 Game.entities.set('pc', null)
+Game.entities.set('marker', null)
 Game.entities.set('record', null)
 
 // ----- Create a single entity +++++
@@ -77,6 +78,15 @@ Game.entity.pc = function () {
   e.act = Game.system.pcAct
 
   Game.entities.set('pc', e)
+}
+
+Game.entity.marker = function () {
+  let e = new Game.Factory('marker')
+
+  e.addComponent(new Game.Component.Display('X', 'orange'))
+  e.addComponent(new Game.Component.Position())
+
+  Game.entities.set('marker', e)
 }
 
 Game.entity.record = function () {
