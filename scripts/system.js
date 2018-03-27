@@ -515,6 +515,8 @@ Game.system.exploreMode = function () {
       markerPos.setY(null)
 
       exitExplore = true
+    } else if (Game.getDevelop() && e.key === '5') {
+      Game.system.createDummy()
     }
 
     Game.display.clear()
@@ -527,4 +529,15 @@ Game.system.exploreMode = function () {
       return true
     }
   }
+}
+
+Game.system.createDummy = function () {
+  let x = Game.entities.get('marker').Position.getX()
+  let y = Game.entities.get('marker').Position.getY()
+
+  let id = Game.entity.npc('Dummy', 'dmy', 'D')
+  let e = Game.entities.get('npc').get(id)
+
+  e.Position.setX(x)
+  e.Position.setY(y)
 }

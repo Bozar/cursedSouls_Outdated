@@ -164,7 +164,7 @@ Game.Component.Curse = function () {
 Game.Component.HitPoint = function (maxHp) {
   this._name = 'HitPoint'
 
-  this._maxHP = maxHp
+  this._maxHP = maxHp || null
   this._hitpoint = [maxHp, maxHp]   // [hp before hit/helaed, current hp]
 
   this.getMax = function () { return this._maxHP }

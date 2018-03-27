@@ -7,6 +7,7 @@ Game.entities.set('seed', null)
 Game.entities.set('timer', null)
 Game.entities.set('data', null)
 Game.entities.set('pc', null)
+Game.entities.set('npc', new Map())
 Game.entities.set('marker', null)
 Game.entities.set('record', null)
 
@@ -78,6 +79,22 @@ Game.entity.pc = function () {
   e.act = Game.system.pcAct
 
   Game.entities.set('pc', e)
+}
+
+Game.entity.npc = function (stageName, trueName, char, fgColor) {
+  let e = new Game.Factory(trueName)
+
+  e.addComponent(new Game.Component.ActorName(stageName, trueName))
+  e.addComponent(new Game.Component.Position(6))
+  e.addComponent(new Game.Component.Display(char, fgColor))
+  e.addComponent(new Game.Component.HitPoint())
+  e.addComponent(new Game.Component.Combat())
+  e.addComponent(new Game.Component.Status())
+
+  // e.act = Game.system[trueName + 'Act']
+
+  Game.entities.get('npc').set(e.getID(), e)
+  return e.getID()
 }
 
 Game.entity.marker = function () {

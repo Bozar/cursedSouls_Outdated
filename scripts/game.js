@@ -529,6 +529,9 @@ Game.screens.drawDungeon = function () {
     })
 
   drawActor(Game.entities.get('pc'))
+  for (const keyValue of Game.entities.get('npc')) {
+    drawActor(keyValue[1])
+  }
   drawActor(Game.entities.get('marker'))
 
   function drawSeen () {
@@ -852,6 +855,9 @@ Game.screens.main.keyInput = function (e) {
           ePC.HitPoint.getMax())
         ePC.HitPoint.loseHP(damage)
         Game.screens.drawMessage('You are hit: ' + damage + '!')
+        break
+      case '0':   // print seed
+        console.log(Game.entities.get('seed').Seed.getSeed())
         break
     }
     Game.display.clear()
