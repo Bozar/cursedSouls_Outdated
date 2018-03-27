@@ -128,7 +128,8 @@ Game.system.isWalkable = function (x, y, e) {
 
     walkable = inSight.indexOf(x + ',' + y) > -1
   } else {
-    walkable = dungeon.Dungeon.getTerrain().get(x + ',' + y) === 0
+    walkable = dungeon.Dungeon.getTerrain().get(x + ',' + y) === 0 &&
+      !Game.system.npcHere(x, y)
   }
 
   return walkable
@@ -144,16 +145,63 @@ Game.system.isPC = function (e) {
   }
 }
 
+Game.system.npcHere = function (x, y) {
+  let npcList = []
+  let npcX = null
+  let npcY = null
+
+  for (const keyValue of Game.entities.get('npc')) {
+    npcX = keyValue[1].Position.getX()
+    npcY = keyValue[1].Position.getY()
+
+    if (x === npcX && y === npcY) { npcList.push(keyValue[1]) }
+  }
+
+  return npcList.length > 0 ? npcList : null
+}
+
+Game.system.targetInSight = function (observer, sight, target) {
+  let fov = Game.entities.get('dungeon').fov
+  let obsX = observer.Position.getX()
+  let obsY = observer.Position.getY()
+  let targetX = null
+  let targetY = null
+
+  let targetList = []
+
+  if (Object.getPrototypeOf(target) === Map.prototype) {
+    // target === Game.entities.get('npc')
+    fov.compute(obsX, obsY, sight, function (x, y) {
+      if (Game.system.npcHere(x, y)) {
+        targetList.push(Game.system.npcHere(x, y))
+      }
+    })
+  } else {
+    targetX = target.Position.getX()
+    targetY = target.Position.getY()
+
+    fov.compute(obsX, obsY, sight, function (x, y) {
+      if (x === targetX && y === targetY) {
+        targetList.push(target)
+      }
+    })
+  }
+
+  return targetList.length > 0 ? targetList : null
+}
+
 Game.system.pcAct = function () {
   let e = Game.entities.get('pc')
   let fast = e.FastMove
+  let npc = Game.entities.get('npc')
 
   Game.entities.get('timer').engine.lock()
 
   Game.system.updateStatus(e)
 
   if (fast.getFastMove()) {
-    if (fast.getCurrentStep() < fast.getMaxStep() &&
+    if (!Game.system.targetInSight(e, e.Position.getSight(), npc) &&
+      fast.getCurrentStep() < fast.getMaxStep() &&
       Game.system.move(fast.getDirection(), e)) {
       fast.setCurrentStep(fast.getCurrentStep() + 1)
 
@@ -270,8 +318,15 @@ Game.system.move = function (direction, e) {
   }
 }
 
+// refer: Game.system.pcAct
 Game.system.fastMove = function (direction, e) {
   let who = e || Game.entities.get('pc')
+  let npc = Game.entities.get('npc')
+
+  if (Game.system.isPC(who) &&
+    Game.system.targetInSight(who, who.Position.getSight(), npc)) {
+    return false
+  }
 
   if (Game.system.move(direction, who)) {
     who.FastMove.setFastMove(true)

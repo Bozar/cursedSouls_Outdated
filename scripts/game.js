@@ -505,7 +505,9 @@ Game.screens.drawStatus = function (status) {
 }
 
 Game.screens.drawDungeon = function () {
-  let ePCpos = Game.entities.get('pc').Position
+  let ePC = Game.entities.get('pc')
+  let ePCpos = ePC.Position
+  let eNPC = Game.entities.get('npc')
   let eDungeon = Game.entities.get('dungeon')
   let uiDungeon = Game.UI.dungeon
 
@@ -519,7 +521,7 @@ Game.screens.drawDungeon = function () {
 
   let memory = eDungeon.Dungeon.getMemory()
 
-  memory.length > 0 && drawSeen()
+  memory.length > 0 && drawMemory()
 
   eDungeon.fov.compute(ePCpos.getX(), ePCpos.getY(), ePCpos.getSight(),
     function (x, y) {
@@ -528,13 +530,15 @@ Game.screens.drawDungeon = function () {
       drawTerrain(x, y)
     })
 
-  drawActor(Game.entities.get('pc'))
-  for (const keyValue of Game.entities.get('npc')) {
-    drawActor(keyValue[1])
+  drawActor(ePC)
+  for (const keyValue of eNPC) {
+    if (Game.system.targetInSight(ePC, ePCpos.getSight(), keyValue[1])) {
+      drawActor(keyValue[1])
+    }
   }
   drawActor(Game.entities.get('marker'))
 
-  function drawSeen () {
+  function drawMemory () {
     for (let i = 0; i < memory.length; i++) {
       let x = memory[i].split(',')[0]
       let y = memory[i].split(',')[1]
@@ -855,6 +859,9 @@ Game.screens.main.keyInput = function (e) {
           ePC.HitPoint.getMax())
         ePC.HitPoint.loseHP(damage)
         Game.screens.drawMessage('You are hit: ' + damage + '!')
+        break
+      case '5':
+        console.log(Game.system.targetInSight(ePC, 6, Game.entities.get('npc')))
         break
       case '0':   // print seed
         console.log(Game.entities.get('seed').Seed.getSeed())
