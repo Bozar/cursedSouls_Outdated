@@ -58,6 +58,7 @@ Game.entity.data = function () {
   let e = new Game.Factory('data')
 
   e.addComponent(new Game.Component.Duration())
+  e.addComponent(new Game.Component.Range())
   e.addComponent(new Game.Component.ModAttribute())
 
   Game.entities.set('data', e)

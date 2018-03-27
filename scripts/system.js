@@ -166,15 +166,15 @@ Game.system.targetInSight = function (observer, sight, target) {
   let obsY = observer.Position.getY()
   let targetX = null
   let targetY = null
+  let targetFound = null
 
   let targetList = []
 
   if (Object.getPrototypeOf(target) === Map.prototype) {
     // target === Game.entities.get('npc')
     fov.compute(obsX, obsY, sight, function (x, y) {
-      if (Game.system.npcHere(x, y)) {
-        targetList.push(Game.system.npcHere(x, y))
-      }
+      targetFound = Game.system.npcHere(x, y)
+      targetFound && targetList.push(targetFound)
     })
   } else {
     targetX = target.Position.getX()
@@ -353,12 +353,14 @@ Game.system.fastMove = function (direction, e) {
  */
 Game.system.pcCast = function (spellID) {
   let e = Game.entities.get('pc')
+  let range = Game.entities.get('data').Range
   let message = Game.screens.drawMessage
 
   let spellLevel = Number.parseInt(spellID.match(/\d$/)[0])
   let lastTurn = Game.system.updateAttribute('castSpeed', e).get(spellLevel)
 
   let spellMap = new Map()
+  spellMap.set('atk1', attack1)
   spellMap.set('enh1', enhance1)
   spellMap.set('enh2', enhance2)
   spellMap.set('spc1', special1)
@@ -374,6 +376,11 @@ Game.system.pcCast = function (spellID) {
       return true
     }
     return false
+  }
+
+  function attack1 () {
+    Game.keyboard.listenEvent('remove', 'main')
+    Game.system.exploreMode(range.getRange('atk1'))
   }
 
   function enhance1 () {
@@ -541,7 +548,7 @@ Game.system.updateAttribute = function (attrID, defender, attacker) {
   }
 }
 
-Game.system.exploreMode = function () {
+Game.system.exploreMode = function (range) {
   let marker = Game.entities.get('marker')
   let markerPos = marker.Position
   let pc = Game.entities.get('pc').Position
@@ -550,6 +557,9 @@ Game.system.exploreMode = function () {
   let exitExplore = false
   markerPos.setX(pc.getX())
   markerPos.setY(pc.getY())
+
+  let saveSight = pc.getSight()
+  Number.isInteger(range) && range >= 0 && pc.setSight(range)
 
   Game.keyboard.listenEvent('remove', 'main')
   Game.keyboard.listenEvent('add', moveMarker)
@@ -568,6 +578,7 @@ Game.system.exploreMode = function () {
     } else if (e.key === 'Escape') {
       markerPos.setX(null)
       markerPos.setY(null)
+      pc.setSight(saveSight)
 
       exitExplore = true
     } else if (Game.getDevelop() && e.key === '5') {

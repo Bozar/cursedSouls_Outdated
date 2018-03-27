@@ -93,6 +93,10 @@ Game.Component.Position = function (sight) {
     this._y = pos
     return true
   }
+  this.setSight = function (range) {
+    this._sight = range
+    return true
+  }
 }
 
 Game.Component.Display = function (char, fgColor, bgColor) {
@@ -298,6 +302,16 @@ Game.Component.Duration = function () {
   this.getBuff = function (id) { return this._buff.get(id) }
   this.getDebuff = function (id) { return this._debuff.get(id) }
   this.getSpell = function (level) { return this._spell.get(level) }
+}
+
+Game.Component.Range = function () {
+  this._name = 'Range'
+
+  this._range = new Map()
+
+  this._range.set('atk1', 3)
+
+  this.getRange = function (id) { return this._range.get(id) }
 }
 
 Game.Component.ModAttribute = function () {

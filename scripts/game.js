@@ -860,8 +860,9 @@ Game.screens.main.keyInput = function (e) {
         ePC.HitPoint.loseHP(damage)
         Game.screens.drawMessage('You are hit: ' + damage + '!')
         break
-      case '5':
-        console.log(Game.system.targetInSight(ePC, 6, Game.entities.get('npc')))
+      case '5':   // print enemies in sight
+        console.log(JSON.stringify(
+          Game.system.targetInSight(ePC, 6, Game.entities.get('npc')), null, 2))
         break
       case '0':   // print seed
         console.log(Game.entities.get('seed').Seed.getSeed())
