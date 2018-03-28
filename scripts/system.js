@@ -585,7 +585,8 @@ Game.system.exploreMode = function (callback, range) {
     } else if (action(e, 'move')) {
       Game.system.move(action(e, 'move'), marker)
     } else if (action(e, 'fixed') === 'space') {
-      spacePressed = npcHere(markerPos.getX(), markerPos.getY()) !== null
+      targetFound = npcHere(markerPos.getX(), markerPos.getY())
+      spacePressed = targetFound !== null
     } else if (action(e, 'fixed') === 'esc') {
       escPressed = true
     } else if (Game.getDevelop()) {
@@ -608,7 +609,7 @@ Game.system.exploreMode = function (callback, range) {
 
     if (spacePressed) {
       Game.keyboard.listenEvent('remove', moveMarker)
-      callback.call()
+      callback.apply(callback, targetFound)
     } else if (escPressed) {
       Game.keyboard.listenEvent('remove', moveMarker)
       Game.keyboard.listenEvent('add', 'main')
@@ -631,4 +632,19 @@ Game.system.printActorData = function (e) {
   e.print()
   console.log(e.Status.getStatus('buff'))
   console.log(e.Status.getStatus('debuff'))
+}
+
+Game.system.viewDescription = function (target) {    // actor selected by marker
+  Game.keyboard.listenEvent('add', view)
+
+  console.log(target.ActorName.getStageName())
+  console.log('press space to leave')
+
+  function view (e) {
+    if (Game.keyboard.getAction(e, 'fixed') === 'space') {
+      Game.keyboard.listenEvent('remove', view)
+      Game.keyboard.listenEvent('add', 'main')
+      console.log('space pressed')
+    }
+  }
 }

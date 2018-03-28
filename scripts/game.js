@@ -845,12 +845,7 @@ Game.screens.main.keyInput = function (e) {
   } else if (keyAction(e, 'cast')) {
     acted = Game.system.pcCast(keyAction(e, 'cast'))
   } else if (keyAction(e, 'pause')) {
-    Game.system.exploreMode(inform)
-  }
-
-  function inform () {
-    console.log('npc here')
-    Game.keyboard.listenEvent('add', 'main')
+    Game.system.exploreMode(Game.system.viewDescription)
   }
 
   // testing
