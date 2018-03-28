@@ -561,6 +561,8 @@ Game.system.exploreMode = function (range) {
   let saveSight = pc.getSight()
   Number.isInteger(range) && range >= 0 && pc.setSight(range)
 
+  let targetFound = null
+
   Game.keyboard.listenEvent('remove', 'main')
   Game.keyboard.listenEvent('add', moveMarker)
 
@@ -581,8 +583,13 @@ Game.system.exploreMode = function (range) {
       pc.setSight(saveSight)
 
       exitExplore = true
-    } else if (Game.getDevelop() && e.key === '5') {
-      Game.system.createDummy()
+    } else if (Game.getDevelop()) {
+      if (e.key === 'd') {
+        Game.system.createDummy()
+      } else if (e.key === '5') {
+        targetFound = Game.system.npcHere(markerPos.getX(), markerPos.getY())
+        targetFound && Game.system.printActorData(targetFound[0])
+      }
     }
 
     Game.display.clear()
@@ -606,4 +613,10 @@ Game.system.createDummy = function () {
 
   e.Position.setX(x)
   e.Position.setY(y)
+}
+
+Game.system.printActorData = function (e) {
+  e.print()
+  console.log(e.Status.getStatus('buff'))
+  console.log(e.Status.getStatus('debuff'))
 }

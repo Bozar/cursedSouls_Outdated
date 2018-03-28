@@ -843,26 +843,15 @@ Game.screens.main.keyInput = function (e) {
 
   // testing
   if (Game.getDevelop()) {
-    let ePC = Game.entities.get('pc')
-
     switch (e.key) {
-      case '3':   // print data
-        let hp = 'HP: ' + ePC.HitPoint.getHP() + '/' + ePC.HitPoint.getMax()
-        let acc = 'ACC: ' + Game.system.updateAttribute('accuracy', ePC)
-        let def = 'DEF: ' + Game.system.updateAttribute('defense', ePC)
-        let dmg = 'DMG: ' + ePC.Combat.getDamage()
-
-        console.log(JSON.stringify([hp, acc, def, dmg], null, 2))
+      case '5':   // print pc data
+        Game.system.printActorData(ePC)
         break
       case '4':   // take damage
         let damage = Math.floor((Math.random() * 10 + 20) / 100 *
           ePC.HitPoint.getMax())
         ePC.HitPoint.loseHP(damage)
         Game.screens.drawMessage('You are hit: ' + damage + '!')
-        break
-      case '5':   // print enemies in sight
-        console.log(JSON.stringify(
-          Game.system.targetInSight(ePC, 6, Game.entities.get('npc')), null, 2))
         break
       case '0':   // print seed
         console.log(Game.entities.get('seed').Seed.getSeed())
