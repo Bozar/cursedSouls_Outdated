@@ -175,6 +175,12 @@ Game.keyboard.bindMap = new Map()
 // keybind1 -> [action1: [key1_1, key1_2, ...],
 //              action2: [key2_1, key2_2, ...], ...]
 
+// keys that cannot be remapped by player
+Game.keyboard.bindMap.set('fixed', new Map())
+Game.keyboard.bindMap.get('fixed').set('space', [' '])
+Game.keyboard.bindMap.get('fixed').set('enter', ['Enter'])
+Game.keyboard.bindMap.get('fixed').set('esc', ['Escape'])
+
 Game.keyboard.bindMap.set('move', new Map())
 Game.keyboard.bindMap.get('move').set('left', ['h', 'ArrowLeft'])
 Game.keyboard.bindMap.get('move').set('down', ['j', 'ArrowDown'])
@@ -632,6 +638,7 @@ Game.screens.classSeed.keyInput = function (e) {
   let seedList = []       // will be stored in Game.entities.get('seed')
   let seedString = []     // draw on the canvas
   let pcName = Game.entities.get('pc').ActorName
+  let action = Game.keyboard.getAction
 
   if (e.key.match(/^[a|b|c]$/)) {
     switch (e.key) {
@@ -663,10 +670,10 @@ Game.screens.classSeed.keyInput = function (e) {
     if (e.key.match(/^[a-zA-Z]$/) && seedList.length < 15) {
       seedList.push(e.key)
       drawSeedBar()
-    } else if (e.key === 'Escape' && seedList.length > 0) {
+    } else if (action(e, 'fixed') === 'esc' && seedList.length > 0) {
       seedList = seedList.slice(0, seedList.length - 1)
       drawSeedBar()
-    } else if (e.key === 'Enter') {
+    } else if (action(e, 'fixed') === 'enter') {
       Game._devSeed
         ? Game.entities.get('seed').Seed.setSeed(Game._devSeed)
         : Game.entities.get('seed').Seed.setSeed(seedList.join(''))
@@ -736,7 +743,7 @@ Game.screens.prologue.display = function () {
 }
 
 Game.screens.prologue.keyInput = function (e) {
-  if (e.key === ' ') {
+  if (Game.keyboard.getAction(e, 'fixed') === 'space') {
     Game.keyboard.listenEvent('remove', 'prologue')
 
     Game.screens.prologue.exit()
@@ -831,14 +838,19 @@ Game.screens.main.keyInput = function (e) {
     if (keyAction(e, 'fastMove')) {
       acted = Game.system.fastMove(keyAction(e, 'fastMove'))
     }
-  } else if (e.key === ' ') {
+  } else if (keyAction(e, 'fixed') === 'space') {
     keyPressed = ePC.Curse.setScreenLevel()
   } else if (keyAction(e, 'move')) {
     acted = Game.system.move(keyAction(e, 'move'), ePC)
   } else if (keyAction(e, 'cast')) {
     acted = Game.system.pcCast(keyAction(e, 'cast'))
   } else if (keyAction(e, 'pause')) {
-    Game.system.exploreMode()
+    Game.system.exploreMode(inform)
+  }
+
+  function inform () {
+    console.log('npc here')
+    Game.keyboard.listenEvent('add', 'main')
   }
 
   // testing

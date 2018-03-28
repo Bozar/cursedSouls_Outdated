@@ -380,7 +380,12 @@ Game.system.pcCast = function (spellID) {
 
   function attack1 () {
     Game.keyboard.listenEvent('remove', 'main')
-    Game.system.exploreMode(range.getRange('atk1'))
+    Game.system.exploreMode(inform, range.getRange('atk1'))
+
+    function inform () {
+      console.log('target locked')
+      Game.keyboard.listenEvent('add', 'main')
+    }
   }
 
   function enhance1 () {
@@ -548,13 +553,15 @@ Game.system.updateAttribute = function (attrID, defender, attacker) {
   }
 }
 
-Game.system.exploreMode = function (range) {
+Game.system.exploreMode = function (callback, range) {
   let marker = Game.entities.get('marker')
   let markerPos = marker.Position
   let pc = Game.entities.get('pc').Position
   let action = Game.keyboard.getAction
+  let npcHere = Game.system.npcHere
 
-  let exitExplore = false
+  let spacePressed = false
+  let escPressed = false
   markerPos.setX(pc.getX())
   markerPos.setY(pc.getY())
 
@@ -577,29 +584,34 @@ Game.system.exploreMode = function (range) {
       }
     } else if (action(e, 'move')) {
       Game.system.move(action(e, 'move'), marker)
-    } else if (e.key === 'Escape') {
-      markerPos.setX(null)
-      markerPos.setY(null)
-      pc.setSight(saveSight)
-
-      exitExplore = true
+    } else if (action(e, 'fixed') === 'space') {
+      spacePressed = npcHere(markerPos.getX(), markerPos.getY()) !== null
+    } else if (action(e, 'fixed') === 'esc') {
+      escPressed = true
     } else if (Game.getDevelop()) {
       if (e.key === 'd') {
         Game.system.createDummy()
       } else if (e.key === '5') {
-        targetFound = Game.system.npcHere(markerPos.getX(), markerPos.getY())
+        targetFound = npcHere(markerPos.getX(), markerPos.getY())
         targetFound && Game.system.printActorData(targetFound[0])
       }
+    }
+
+    if (spacePressed || escPressed) {
+      markerPos.setX(null)
+      markerPos.setY(null)
+      pc.setSight(saveSight)
     }
 
     Game.display.clear()
     Game.screens.main.display()
 
-    if (exitExplore) {
+    if (spacePressed) {
+      Game.keyboard.listenEvent('remove', moveMarker)
+      callback.call()
+    } else if (escPressed) {
       Game.keyboard.listenEvent('remove', moveMarker)
       Game.keyboard.listenEvent('add', 'main')
-
-      return true
     }
   }
 }
