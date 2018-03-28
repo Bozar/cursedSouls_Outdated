@@ -176,6 +176,8 @@ Game.Component.HitPoint = function (maxHp) {
 
   this.setMax = function (hp) {
     this._maxHP = hp
+    this._hitpoint.push(hp)
+    this._hitpoint.shift()
     return true
   }
 

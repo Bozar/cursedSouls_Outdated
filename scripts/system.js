@@ -228,7 +228,7 @@ Game.system.move = function (direction, e) {
   let dx = eDungeon.getDeltaX()
   let dy = eDungeon.getDeltaY()
 
-  let lastTurn = Game.system.updateAttribute('moveSpeed', e, null)
+  let duration = Game.system.updateAttribute('moveSpeed', e, null)
   let scheduler = Game.entities.get('timer').scheduler
 
   let where = new Map()
@@ -251,11 +251,11 @@ Game.system.move = function (direction, e) {
 
   function moveLeft () {
     if (Game.system.isWalkable(pos.getX() - 1, pos.getY(), e)) {
-      scheduler.setDuration(lastTurn)
+      scheduler.setDuration(duration)
       pos.setX(pos.getX() - 1)
 
       if (Game.system.isPC(e)) {
-        e.ActorClock.setLastAction(lastTurn)
+        e.ActorClock.setLastAction(duration)
 
         pos.getX() - dx <= eDungeon.getBoundary() &&
           dx >= 0 &&      // dx === -1, draw map border on the screen
@@ -268,11 +268,11 @@ Game.system.move = function (direction, e) {
 
   function moveRight () {
     if (Game.system.isWalkable(pos.getX() + 1, pos.getY(), e)) {
-      scheduler.setDuration(lastTurn)
+      scheduler.setDuration(duration)
       pos.setX(pos.getX() + 1)
 
       if (Game.system.isPC(e)) {
-        e.ActorClock.setLastAction(lastTurn)
+        e.ActorClock.setLastAction(duration)
 
         pos.getX() - dx >= uiDungeon.getWidth() - 1 - eDungeon.getBoundary() &&
           dx <= eDungeon.getWidth() - uiDungeon.getWidth() &&
@@ -285,11 +285,11 @@ Game.system.move = function (direction, e) {
 
   function moveUp () {
     if (Game.system.isWalkable(pos.getX(), pos.getY() - 1, e)) {
-      scheduler.setDuration(lastTurn)
+      scheduler.setDuration(duration)
       pos.setY(pos.getY() - 1)
 
       if (Game.system.isPC(e)) {
-        e.ActorClock.setLastAction(lastTurn)
+        e.ActorClock.setLastAction(duration)
 
         pos.getY() - dy <= eDungeon.getBoundary() &&
           dy >= 0 &&
@@ -302,11 +302,11 @@ Game.system.move = function (direction, e) {
 
   function moveDown () {
     if (Game.system.isWalkable(pos.getX(), pos.getY() + 1, e)) {
-      scheduler.setDuration(lastTurn)
+      scheduler.setDuration(duration)
       pos.setY(pos.getY() + 1)
 
       if (Game.system.isPC(e)) {
-        e.ActorClock.setLastAction(lastTurn)
+        e.ActorClock.setLastAction(duration)
 
         pos.getY() - dy >= uiDungeon.getHeight() - 1 - eDungeon.getBoundary() &&
           dy <= eDungeon.getHeight() - uiDungeon.getHeight() &&
@@ -357,7 +357,7 @@ Game.system.pcCast = function (spellID) {
   let message = Game.screens.drawMessage
 
   let spellLevel = Number.parseInt(spellID.match(/\d$/)[0])
-  let lastTurn = Game.system.updateAttribute('castSpeed', e).get(spellLevel)
+  let duration = Game.system.updateAttribute('castSpeed', e).get(spellLevel)
 
   let spellMap = new Map()
   spellMap.set('atk1', attack1)
@@ -370,8 +370,8 @@ Game.system.pcCast = function (spellID) {
 
   function castSpell () {
     if (spellMap.get(spellID) && spellMap.get(spellID)()) {
-      e.ActorClock.setLastAction(lastTurn)
-      Game.entities.get('timer').scheduler.setDuration(lastTurn)
+      e.ActorClock.setLastAction(duration)
+      Game.entities.get('timer').scheduler.setDuration(duration)
 
       return true
     }
@@ -382,16 +382,20 @@ Game.system.pcCast = function (spellID) {
     Game.keyboard.listenEvent('remove', 'main')
     Game.system.exploreMode(inform, range.getRange('atk1'))
 
-    function inform () {
+    function inform (target) {
       console.log('target locked')
-      Game.keyboard.listenEvent('add', 'main')
+      console.log(target.ActorName.getStageName())
+
+      target.HitPoint.loseHP(e.Combat.getDamage())
+
+      Game.system.unlockEngine(duration, e)
     }
   }
 
   function enhance1 () {
     if (e.HitPoint.getHP()[1] < e.HitPoint.getMax()) {
       e.HitPoint.gainHP(e.HitPoint.getMax())
-      e.Status.gainStatus('buff', 'mov0', lastTurn)
+      e.Status.gainStatus('buff', 'mov0', duration)
 
       e.HitPoint.getHP()[1] < e.HitPoint.getMax()
         ? message(Game.text.pcStatus('heal'))
@@ -408,7 +412,7 @@ Game.system.pcCast = function (spellID) {
     if (e.Status.getStatus('debuff').size > 0) {
       let maxTurn = Math.min(4, 1 + e.Status.getStatus('debuff').size)
 
-      e.Status.gainStatus('buff', 'acc0', lastTurn, maxTurn)
+      e.Status.gainStatus('buff', 'acc0', duration, maxTurn)
       message(Game.text.pcStatus('lucky'))
 
       return true
@@ -436,8 +440,8 @@ Game.system.pcCast = function (spellID) {
     }
 
     function hulk1 () {
-      e.Status.gainStatus('buff', 'acc1', lastTurn)
-      e.Status.gainStatus('buff', 'def1', lastTurn)
+      e.Status.gainStatus('buff', 'acc1', duration)
+      e.Status.gainStatus('buff', 'def1', duration)
       message(Game.text.pcStatus('puppet'))
 
       return true
@@ -465,7 +469,7 @@ Game.system.pcCast = function (spellID) {
     }
 
     function hulk2 () {
-      e.Status.gainStatus('buff', 'cst1', lastTurn)
+      e.Status.gainStatus('buff', 'cst1', duration)
       message(Game.text.pcStatus('castFaster'))
 
       return true
@@ -577,9 +581,7 @@ Game.system.exploreMode = function (callback, range) {
     if (e.shiftKey) {
       if (action(e, 'fastMove')) {
         for (let i = 0; i < pc.getSight(); i++) {
-          if (!Game.system.move(action(e, 'fastMove'), marker)) {
-            break
-          }
+          if (!Game.system.move(action(e, 'fastMove'), marker)) { break }
         }
       }
     } else if (action(e, 'move')) {
@@ -589,6 +591,7 @@ Game.system.exploreMode = function (callback, range) {
       spacePressed = targetFound !== null
     } else if (action(e, 'fixed') === 'esc') {
       escPressed = true
+      // testing
     } else if (Game.getDevelop()) {
       if (e.key === 'd') {
         Game.system.createDummy()
@@ -626,6 +629,7 @@ Game.system.createDummy = function () {
 
   e.Position.setX(x)
   e.Position.setY(y)
+  e.HitPoint.setMax(64)
 }
 
 Game.system.printActorData = function (e) {
@@ -647,4 +651,14 @@ Game.system.viewDescription = function (target) {    // actor selected by marker
       console.log('space pressed')
     }
   }
+}
+
+Game.system.unlockEngine = function (duration, e) {
+  Game.system.isPC(e) && e.ActorClock.setLastAction(duration)
+
+  Game.entities.get('timer').scheduler.setDuration(duration)
+  Game.entities.get('timer').engine.unlock()
+
+  Game.display.clear()
+  Game.screens.main.display()
 }

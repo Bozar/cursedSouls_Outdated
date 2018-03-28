@@ -843,6 +843,8 @@ Game.screens.main.keyInput = function (e) {
   } else if (keyAction(e, 'move')) {
     acted = Game.system.move(keyAction(e, 'move'), ePC)
   } else if (keyAction(e, 'cast')) {
+    // for spells that require aiming (attack & control),
+    // the engine is unlocked in Game.system
     acted = Game.system.pcCast(keyAction(e, 'cast'))
   } else if (keyAction(e, 'pause')) {
     Game.system.exploreMode(Game.system.viewDescription)
