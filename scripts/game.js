@@ -828,24 +828,21 @@ Game.screens.main.display = function () {
 }
 
 Game.screens.main.keyInput = function (e) {
-  let ePC = Game.entities.get('pc')
+  let pc = Game.entities.get('pc')
   let keyAction = Game.keyboard.getAction
 
-  let acted = false
   let keyPressed = false
 
   if (e.shiftKey) {
     if (keyAction(e, 'fastMove')) {
-      acted = Game.system.fastMove(keyAction(e, 'fastMove'))
+      Game.system.fastMove(keyAction(e, 'fastMove'))
     }
   } else if (keyAction(e, 'fixed') === 'space') {
-    keyPressed = ePC.Curse.setScreenLevel()
+    keyPressed = pc.Curse.setScreenLevel()
   } else if (keyAction(e, 'move')) {
-    acted = Game.system.move(keyAction(e, 'move'), ePC)
+    Game.system.move(keyAction(e, 'move'), pc)
   } else if (keyAction(e, 'cast')) {
-    // for spells that require aiming (attack & control),
-    // the engine is unlocked in Game.system
-    acted = Game.system.pcCast(keyAction(e, 'cast'))
+    Game.system.pcCast(keyAction(e, 'cast'))
   } else if (keyAction(e, 'pause')) {
     Game.system.exploreMode(Game.system.viewDescription)
   }
@@ -854,30 +851,22 @@ Game.screens.main.keyInput = function (e) {
   if (Game.getDevelop()) {
     switch (e.key) {
       case '5':   // print pc data
-        Game.system.printActorData(ePC)
+        Game.system.printActorData(pc)
         break
       case '4':   // take damage
         let damage = Math.floor((Math.random() * 10 + 20) / 100 *
-          ePC.HitPoint.getMax())
-        ePC.HitPoint.loseHP(damage)
+          pc.HitPoint.getMax())
+        pc.HitPoint.loseHP(damage)
         Game.screens.drawMessage('You are hit: ' + damage + '!')
         break
       case '0':   // print seed
         console.log(Game.entities.get('seed').Seed.getSeed())
         break
     }
-    Game.display.clear()
-    Game.screens.main.display()
+    keyPressed = true
   }
 
-  if (acted) {
-    Game.keyboard.listenEvent('remove', 'main')
-
-    Game.entities.get('timer').engine.unlock()
-  }
-
-  if (acted || keyPressed) {
-    acted = false
+  if (keyPressed) {
     keyPressed = false
 
     Game.display.clear()

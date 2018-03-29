@@ -191,37 +191,17 @@ Game.system.targetInSight = function (observer, sight, target) {
 }
 
 Game.system.pcAct = function () {
-  let e = Game.entities.get('pc')
-  let fast = e.FastMove
-  let npc = Game.entities.get('npc')
+  let pc = Game.entities.get('pc')
 
   Game.entities.get('timer').engine.lock()
 
-  Game.system.updateStatus(e)
+  Game.system.updateStatus(pc)
+  pc.FastMove.getFastMove() && Game.system.fastMove()
 
-  if (fast.getFastMove()) {
-    if (!Game.system.targetInSight(e, e.Position.getSight(), npc) &&
-      fast.getCurrentStep() < fast.getMaxStep() &&
-      Game.system.move(fast.getDirection(), e)) {
-      fast.setCurrentStep(fast.getCurrentStep() + 1)
-
-      Game.entities.get('timer').engine.unlock()
-
-      Game.display.clear()
-      Game.screens.main.display()
-    } else {
-      fast.setFastMove(false)
-      fast.setCurrentStep(0)
-      fast.setDirection(null)
-
-      Game.keyboard.listenEvent('add', 'main')
-    }
-  } else {
-    Game.keyboard.listenEvent('add', 'main')
-  }
+  Game.keyboard.listenEvent('add', 'main')
 }
 
-Game.system.move = function (direction, e) {
+Game.system.move = function (direction, e, lockEngine) {
   let pos = e.Position
   let uiDungeon = Game.UI.dungeon
   let eDungeon = Game.entities.get('dungeon').Dungeon
@@ -229,7 +209,7 @@ Game.system.move = function (direction, e) {
   let dy = eDungeon.getDeltaY()
 
   let duration = Game.system.updateAttribute('moveSpeed', e, null)
-  let scheduler = Game.entities.get('timer').scheduler
+  let hasMoved = false
 
   let where = new Map()
   where.set('left', moveLeft)
@@ -238,103 +218,97 @@ Game.system.move = function (direction, e) {
   where.set('down', moveDown)
   where.set('wait', wait1Turn)
 
-  return e && e.Position && where.get(direction)
-    ? where.get(direction)()
-    : false
+  if (e && e.Position && where.get(direction)) {
+    where.get(direction)()
+
+    if (hasMoved && !lockEngine) {
+      Game.keyboard.listenEvent('remove', 'main')
+      Game.system.unlockEngine(duration, e)
+    }
+  }
+  return hasMoved
 
   function wait1Turn () {
-    scheduler.setDuration(1)
-    Game.system.isPC(e) && e.ActorClock.setLastAction(1)
-
-    return true
+    duration = 1
+    hasMoved = true
   }
 
   function moveLeft () {
     if (Game.system.isWalkable(pos.getX() - 1, pos.getY(), e)) {
-      scheduler.setDuration(duration)
       pos.setX(pos.getX() - 1)
 
-      if (Game.system.isPC(e)) {
-        e.ActorClock.setLastAction(duration)
-
+      Game.system.isPC(e) &&
         pos.getX() - dx <= eDungeon.getBoundary() &&
-          dx >= 0 &&      // dx === -1, draw map border on the screen
-          eDungeon.setDeltaX(dx - 1)
-      }
-      return true
+        dx >= 0 &&      // dx === -1, draw map border on the screen
+        eDungeon.setDeltaX(dx - 1)
+
+      hasMoved = true
     }
-    return false
   }
 
   function moveRight () {
     if (Game.system.isWalkable(pos.getX() + 1, pos.getY(), e)) {
-      scheduler.setDuration(duration)
       pos.setX(pos.getX() + 1)
 
-      if (Game.system.isPC(e)) {
-        e.ActorClock.setLastAction(duration)
-
+      Game.system.isPC(e) &&
         pos.getX() - dx >= uiDungeon.getWidth() - 1 - eDungeon.getBoundary() &&
-          dx <= eDungeon.getWidth() - uiDungeon.getWidth() &&
-          eDungeon.setDeltaX(dx + 1)
-      }
-      return true
+        dx <= eDungeon.getWidth() - uiDungeon.getWidth() &&
+        eDungeon.setDeltaX(dx + 1)
+
+      hasMoved = true
     }
-    return false
   }
 
   function moveUp () {
     if (Game.system.isWalkable(pos.getX(), pos.getY() - 1, e)) {
-      scheduler.setDuration(duration)
       pos.setY(pos.getY() - 1)
 
-      if (Game.system.isPC(e)) {
-        e.ActorClock.setLastAction(duration)
-
+      Game.system.isPC(e) &&
         pos.getY() - dy <= eDungeon.getBoundary() &&
-          dy >= 0 &&
-          eDungeon.setDeltaY(dy - 1)
-      }
-      return true
+        dy >= 0 &&
+        eDungeon.setDeltaY(dy - 1)
+
+      hasMoved = true
     }
-    return false
   }
 
   function moveDown () {
     if (Game.system.isWalkable(pos.getX(), pos.getY() + 1, e)) {
-      scheduler.setDuration(duration)
       pos.setY(pos.getY() + 1)
 
-      if (Game.system.isPC(e)) {
-        e.ActorClock.setLastAction(duration)
-
+      Game.system.isPC(e) &&
         pos.getY() - dy >= uiDungeon.getHeight() - 1 - eDungeon.getBoundary() &&
-          dy <= eDungeon.getHeight() - uiDungeon.getHeight() &&
-          eDungeon.setDeltaY(dy + 1)
-      }
-      return true
+        dy <= eDungeon.getHeight() - uiDungeon.getHeight() &&
+        eDungeon.setDeltaY(dy + 1)
+
+      hasMoved = true
     }
-    return false
   }
 }
 
 // refer: Game.system.pcAct
 Game.system.fastMove = function (direction, e) {
   let who = e || Game.entities.get('pc')
+  let whoFast = who.FastMove
   let npc = Game.entities.get('npc')
+
+  whoFast.setFastMove(true)
+  direction && whoFast.setDirection(direction)
 
   if (Game.system.isPC(who) &&
     Game.system.targetInSight(who, who.Position.getSight(), npc)) {
-    return false
+    resetFastMove()
+  } else if (!(whoFast.getCurrentStep() <= whoFast.getMaxStep() &&
+    whoFast.setCurrentStep(whoFast.getCurrentStep() + 1) &&
+    Game.system.move(whoFast.getDirection(), who))) {
+    resetFastMove()
   }
 
-  if (Game.system.move(direction, who)) {
-    who.FastMove.setFastMove(true)
-    who.FastMove.setDirection(direction)
-
-    return true
+  function resetFastMove () {
+    whoFast.setFastMove(false)
+    whoFast.setCurrentStep(0)
+    whoFast.setDirection(null)
   }
-  return false
 }
 
 /* How to add a spell
@@ -366,21 +340,11 @@ Game.system.pcCast = function (spellID) {
   spellMap.set('spc1', special1)
   spellMap.set('spc2', special2)
 
-  return castSpell()
-
-  function castSpell () {
-    if (spellMap.get(spellID) && spellMap.get(spellID)()) {
-      e.ActorClock.setLastAction(duration)
-      Game.entities.get('timer').scheduler.setDuration(duration)
-
-      return true
-    }
-    return false
-  }
+  spellMap.get(spellID) && spellMap.get(spellID)()
 
   function attack1 () {
     Game.keyboard.listenEvent('remove', 'main')
-    Game.system.exploreMode(inform, range.getRange('atk1'))
+    Game.system.exploreMode(inform, range.getRange('atk1'), true)
 
     function inform (target) {
       console.log('target locked')
@@ -401,10 +365,10 @@ Game.system.pcCast = function (spellID) {
         ? message(Game.text.pcStatus('heal'))
         : message(Game.text.pcStatus('heal2Max'))
 
-      return true
+      Game.keyboard.listenEvent('remove', 'main')
+      Game.system.unlockEngine(duration, e)
     } else {
       message(Game.text.pcStatus('maxHP'))
-      return false
     }
   }
 
@@ -415,11 +379,10 @@ Game.system.pcCast = function (spellID) {
       e.Status.gainStatus('buff', 'acc0', duration, maxTurn)
       message(Game.text.pcStatus('lucky'))
 
-      return true
+      Game.keyboard.listenEvent('remove', 'main')
+      Game.system.unlockEngine(duration, e)
     } else {
       message(Game.text.pcStatus('unlucky'))
-
-      return false
     }
   }
 
@@ -431,8 +394,6 @@ Game.system.pcCast = function (spellID) {
         return hulk1()
       case 'lasombra':
         return lasombra1()
-      default:
-        return false
     }
 
     function dio1 () {
@@ -444,7 +405,8 @@ Game.system.pcCast = function (spellID) {
       e.Status.gainStatus('buff', 'def1', duration)
       message(Game.text.pcStatus('puppet'))
 
-      return true
+      Game.keyboard.listenEvent('remove', 'main')
+      Game.system.unlockEngine(duration, e)
     }
 
     function lasombra1 () {
@@ -460,8 +422,6 @@ Game.system.pcCast = function (spellID) {
         return hulk2()
       case 'lasombra':
         return lasombra2()
-      default:
-        return false
     }
 
     function dio2 () {
@@ -472,7 +432,8 @@ Game.system.pcCast = function (spellID) {
       e.Status.gainStatus('buff', 'cst1', duration)
       message(Game.text.pcStatus('castFaster'))
 
-      return true
+      Game.keyboard.listenEvent('remove', 'main')
+      Game.system.unlockEngine(duration, e)
     }
 
     function lasombra2 () {
@@ -581,11 +542,11 @@ Game.system.exploreMode = function (callback, range) {
     if (e.shiftKey) {
       if (action(e, 'fastMove')) {
         for (let i = 0; i < pc.getSight(); i++) {
-          if (!Game.system.move(action(e, 'fastMove'), marker)) { break }
+          if (!Game.system.move(action(e, 'fastMove'), marker, true)) { break }
         }
       }
     } else if (action(e, 'move')) {
-      Game.system.move(action(e, 'move'), marker)
+      Game.system.move(action(e, 'move'), marker, true)
     } else if (action(e, 'fixed') === 'space') {
       targetFound = npcHere(markerPos.getX(), markerPos.getY())
       spacePressed = targetFound !== null
