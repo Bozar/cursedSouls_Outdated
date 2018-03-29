@@ -202,10 +202,19 @@ Game.Component.Combat = function (acc, def, dmg) {
   this._accuracy = acc || null
   this._defense = def || null
   this._damage = dmg || null
+  this._dmgBonus = [1, 2, 2.5, 3]
 
   this.getAccuracy = function () { return this._accuracy }
   this.getDefense = function () { return this._defense }
-  this.getDamage = function () { return this._damage }
+  this.getDamage = function (delta, addBonus) {   // delta = attack - defense
+    if (addBonus) {
+      let index = Math.min(Math.floor(delta / 5), this._dmgBonus.length - 1)
+      // console.log('dmgBonus: ' + this._dmgBonus[index])
+      return Math.floor(this._damage * this._dmgBonus[index])
+    } else {
+      return this._damage
+    }
+  }
 
   this.setAccuracy = function (acc) {
     this._accuracy = acc

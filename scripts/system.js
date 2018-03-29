@@ -344,13 +344,16 @@ Game.system.pcCast = function (spellID) {
 
   function attack1 () {
     Game.keyboard.listenEvent('remove', 'main')
-    Game.system.exploreMode(inform, range.getRange('atk1'), true)
+    Game.system.exploreMode(dealDamage, range.getRange('atk1'), true)
 
-    function inform (target) {
-      console.log('target locked')
-      console.log(target.ActorName.getStageName())
+    function dealDamage (target) {
+      let isHit = Game.system.hitTarget(e, target)
 
-      target.HitPoint.loseHP(e.Combat.getDamage())
+      if (isHit > 0) {
+        console.log('hit: ' + isHit)
+      } else {
+        console.log('miss')
+      }
 
       Game.system.unlockEngine(duration, e)
     }
@@ -461,7 +464,7 @@ Game.system.updateStatus = function (e) {
 }
 
 // attribute: data that is changed by status
-Game.system.updateAttribute = function (attrID, defender, attacker) {
+Game.system.updateAttribute = function (attrID, actor) {
   let duration = Game.entities.get('data').Duration
   let modAttr = Game.entities.get('data').ModAttribute
   let attrMap = new Map()
@@ -471,34 +474,34 @@ Game.system.updateAttribute = function (attrID, defender, attacker) {
   attrMap.set('defense', defense)
   attrMap.set('castSpeed', castSpeed)
 
-  return attrID && attrMap.get(attrID) && defender && defender.Status
+  return attrID && attrMap.get(attrID) && actor && actor.Status
     ? attrMap.get(attrID)()
     : null
 
   function moveSpeed () {
     return duration.getMove() - modAttr.getMod('buff', 'mov0',
-      defender.Status.isActive('buff', 'mov0'))
+      actor.Status.isActive('buff', 'mov0'))
   }
 
   function accuracy () {
-    return defender.Combat
-      ? defender.Combat.getAccuracy() +
+    return actor.Combat
+      ? actor.Combat.getAccuracy() +
       modAttr.getMod('buff', 'acc1',
-        defender.Status.isActive('buff', 'acc1')) +
+        actor.Status.isActive('buff', 'acc1')) +
       modAttr.getMod('buff', 'acc0',
-        defender.Status.isActive('buff', 'acc0')) -
+        actor.Status.isActive('buff', 'acc0')) -
       modAttr.getMod('debuff', 'acc0',
-        defender.Status.isActive('debuff', 'acc0'))
+        actor.Status.isActive('debuff', 'acc0'))
       : 0
   }
 
   function defense () {
-    return defender.Combat
-      ? defender.Combat.getDefense() +
+    return actor.Combat
+      ? actor.Combat.getDefense() +
       modAttr.getMod('buff', 'def1',
-        defender.Status.isActive('buff', 'def1')) -
+        actor.Status.isActive('buff', 'def1')) -
       modAttr.getMod('debuff', 'def0',
-        defender.Status.isActive('debuff', 'def0'))
+        actor.Status.isActive('debuff', 'def0'))
       : 0
   }
 
@@ -508,7 +511,7 @@ Game.system.updateAttribute = function (attrID, defender, attacker) {
     let level3 = duration.getSpell(3)
 
     let buff = modAttr.getMod('buff', 'cst1',
-      defender.Status.isActive('buff', 'cst1'))
+      actor.Status.isActive('buff', 'cst1'))
 
     return new Map([
       [1, level1 - buff],
@@ -591,6 +594,7 @@ Game.system.createDummy = function () {
   e.Position.setX(x)
   e.Position.setY(y)
   e.HitPoint.setMax(64)
+  e.Combat.setDefense(4)
 }
 
 Game.system.printActorData = function (e) {
@@ -622,4 +626,41 @@ Game.system.unlockEngine = function (duration, e) {
 
   Game.display.clear()
   Game.screens.main.display()
+}
+
+Game.system.rollDx = function (min, max) {
+  return Math.floor(ROT.RNG.getUniform() * (max - min + 1)) + min
+}
+
+Game.system.rollD20 = function () {
+  return Game.system.rollDx(1, 20)
+}
+
+Game.system.hitTarget = function (attacker, defender, reRoll) {
+  let accuracy = Game.system.updateAttribute('accuracy', attacker)
+  let defense = Game.system.updateAttribute('defense', defender)
+  let defaultDmg = attacker.Combat.getDamage()
+  let modDmg = 0
+
+  let atkRoll = Game.system.rollD20()
+  let defRoll = Game.system.rollD20()
+  let reRollList = []
+  let delta = 0
+
+  if (reRoll) {
+    reRollList = reRoll()
+    atkRoll = reRollList[0]
+    defRoll = reRollList[1]
+  }
+  delta = (atkRoll + accuracy) - (defRoll + defense)
+
+  if (delta > 0) {
+    // TODO: mod damage based on debuffs
+    // TODO: kill dummy
+    modDmg = attacker.Combat.getDamage(delta, true)
+    defender.HitPoint.loseHP(modDmg)
+
+    return modDmg / defaultDmg
+  }
+  return 0
 }
