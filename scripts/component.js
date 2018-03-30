@@ -243,15 +243,13 @@ Game.Component.Status = function () {
   this.gainStatus = function (type, id, castTurn, maxTurn) {
     let typeMap = this['_' + type]
     // some status's maxTurn needs to be set on-site
+    // refer: Game.system.pcCast, enhance2
     let max = maxTurn || duration['get' + capital(type)](id)
 
-    typeMap.set(id, new Map())
-
-    // {buffId  =>  {'duration' => maxTurn, 'start' => startTurn}}
-    // {'mov'   =>  {'duration' => 1.5,     'start' => 2.0}}
-    typeMap.get(id).set('duration', max)
+    typeMap.set(id, [])   // [maxTurn, startTurn]
+    typeMap.get(id).push(max)
     // the buff/debuff will take effect AFTER the actor's turn
-    typeMap.get(id).set('start', scheduler.getTime() + castTurn)
+    typeMap.get(id).push(scheduler.getTime() + castTurn)
 
     return true
   }
@@ -260,13 +258,13 @@ Game.Component.Status = function () {
     let status = this['_' + type].get(id)
     let now = scheduler.getTime()
 
-    return status && now < status.get('start') + status.get('duration')
+    return status && now < status[0] + status[1]
   }
 
   this.getRemain = function (type, id) {
     let now = scheduler.getTime()
-    let start = this['_' + type].get(id).get('start')
-    let maxTurn = this['_' + type].get(id).get('duration')
+    let start = this['_' + type].get(id)[1]
+    let maxTurn = this['_' + type].get(id)[0]
 
     return (maxTurn - (now - start)).toFixed(1)
   }

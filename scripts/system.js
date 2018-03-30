@@ -614,8 +614,14 @@ Game.system.createDummy = function () {
 
 Game.system.printActorData = function (e) {
   e.print()
-  console.log(e.Status.getStatus('buff'))
-  console.log(e.Status.getStatus('debuff'))
+  for (const [key, value] of e.Status.getStatus('buff')) {
+    console.log('[+' + key + '] Max:' + value[0] +
+      ', Start:' + Number.parseFloat(value[1]).toFixed(1))
+  }
+  for (const [key, value] of e.Status.getStatus('debuff')) {
+    console.log('[-' + key + '] Max:' + value[0] +
+      ', Start:' + Number.parseFloat(value[1]).toFixed(1))
+  }
 }
 
 Game.system.viewDescription = function (target) {    // actor selected by marker
