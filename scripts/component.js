@@ -416,7 +416,7 @@ Game.Component.Description = function () {
   this._stageName = ''
 
   this.gainActorInfo = function (e) {
-    this._flavorText = Game.text.flavor(e.ActorName.getTrueName())
+    this._flavorText = Game.text.actor(e.ActorName.getTrueName())
     this._stageName = e.ActorName.getStageName()
   }
 

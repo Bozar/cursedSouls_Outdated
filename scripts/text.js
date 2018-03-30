@@ -84,7 +84,7 @@ Game.text.spellKeyHint = function (column, level, trueName) {
   return text.get([column, level, trueName].join(','))
 }
 
-Game.text.spellName = function (id) {
+Game.text.spellName = function (key) {
   let text = new Map()
 
   text.set('atk1', 'Fire Arrow')
@@ -109,7 +109,7 @@ Game.text.spellName = function (id) {
   text.set('lsb2', 'Vile Tentacle')
   text.set('lsb3', 'Confessional')
 
-  return text.get(id)
+  return text.get(key)
 }
 
 Game.text.modeLine = function (mode) {
@@ -228,7 +228,7 @@ Game.text.devNote = function (note) {
   return '[Note] ' + text.get(note)
 }
 
-Game.text.flavor = function (trueName) {
+Game.text.actor = function (trueName) {
   let text = new Map()
 
   text.set('dmy', 'This is a dummy.\n' +
@@ -236,4 +236,15 @@ Game.text.flavor = function (trueName) {
     'So stop wasting your time here.')
 
   return text.get(trueName)
+}
+
+Game.text.combat = function (key, e) {
+  let name = e.ActorName.getStageName()
+  let text = new Map()
+
+  text.set('pcHit', `You hit the ${name}.`)
+  text.set('pcCrit', `You critical hit the ${name}!`)
+  text.set('pcMiss', `You miss the ${name}.`)
+
+  return text.get(key)
 }

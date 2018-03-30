@@ -330,7 +330,9 @@ Game.system.fastMove = function (direction, e) {
 Game.system.pcCast = function (spellID) {
   let e = Game.entities.get('pc')
   let range = Game.entities.get('data').Range
-  let message = Game.screens.drawMessage
+  let mainScreen = Game.screens.main
+  let drawMsg = Game.screens.drawMessage
+  let recordMsg = Game.entities.get('record').Message
 
   let spellLevel = Number.parseInt(spellID.match(/\d$/)[0])
   let duration = Game.system.updateAttribute('castSpeed', e).get(spellLevel)
@@ -345,17 +347,19 @@ Game.system.pcCast = function (spellID) {
   spellMap.get(spellID) && spellMap.get(spellID)()
 
   function attack1 () {
-    Game.screens.main.setMode('aim', Game.text.spellName('atk1'))
+    mainScreen.setMode('aim', Game.text.spellName('atk1'))
     Game.keyboard.listenEvent('remove', 'main')
     Game.system.exploreMode(dealDamage, range.getRange('atk1'), true)
 
     function dealDamage (target) {
       let isHit = Game.system.hitTarget(e, target)
 
-      if (isHit > 0) {
-        console.log('hit: ' + isHit)
+      if (isHit > 1) {
+        recordMsg.gainMessage(Game.text.combat('pcCrit', target))
+      } else if (isHit === 1) {
+        recordMsg.gainMessage(Game.text.combat('pcHit', target))
       } else {
-        console.log('miss')
+        recordMsg.gainMessage(Game.text.combat('pcMiss', target))
       }
 
       Game.system.unlockEngine(duration, e)
@@ -371,16 +375,16 @@ Game.system.pcCast = function (spellID) {
 
       e.HitPoint.getHP()[1] < e.HitPoint.getMax()
         ? moveBuff
-          ? message(Game.text.pcStatus('healMove'))
-          : message(Game.text.pcStatus('heal'))
+          ? drawMsg(Game.text.pcStatus('healMove'))
+          : drawMsg(Game.text.pcStatus('heal'))
         : moveBuff
-          ? message(Game.text.pcStatus('heal2MaxMove'))
-          : message(Game.text.pcStatus('heal2Max'))
+          ? drawMsg(Game.text.pcStatus('heal2MaxMove'))
+          : drawMsg(Game.text.pcStatus('heal2Max'))
 
       Game.keyboard.listenEvent('remove', 'main')
       Game.system.unlockEngine(duration, e)
     } else {
-      message(Game.text.pcStatus('maxHP'))
+      drawMsg(Game.text.pcStatus('maxHP'))
     }
   }
 
@@ -393,12 +397,12 @@ Game.system.pcCast = function (spellID) {
     }
 
     if (acted) {
-      message(Game.text.pcStatus('lucky'))
+      drawMsg(Game.text.pcStatus('lucky'))
 
       Game.keyboard.listenEvent('remove', 'main')
       Game.system.unlockEngine(duration, e)
     } else {
-      message(Game.text.pcStatus('unlucky'))
+      drawMsg(Game.text.pcStatus('unlucky'))
     }
   }
 
@@ -422,12 +426,12 @@ Game.system.pcCast = function (spellID) {
         e.Status.gainStatus('buff', 'def1', duration)
 
       if (acted) {
-        message(Game.text.pcStatus('puppet'))
+        drawMsg(Game.text.pcStatus('puppet'))
 
         Game.keyboard.listenEvent('remove', 'main')
         Game.system.unlockEngine(duration, e)
       } else {
-        message(Game.text.pcStatus('maxBuff'))
+        drawMsg(Game.text.pcStatus('maxBuff'))
       }
     }
 
@@ -455,12 +459,12 @@ Game.system.pcCast = function (spellID) {
       acted = e.Status.gainStatus('buff', 'cst1', duration)
 
       if (acted) {
-        message(Game.text.pcStatus('castFaster'))
+        drawMsg(Game.text.pcStatus('castFaster'))
 
         Game.keyboard.listenEvent('remove', 'main')
         Game.system.unlockEngine(duration, e)
       } else {
-        message(Game.text.pcStatus('maxBuff'))
+        drawMsg(Game.text.pcStatus('maxBuff'))
       }
     }
 
@@ -639,7 +643,7 @@ Game.system.createDummy = function () {
   e.Position.setX(x)
   e.Position.setY(y)
   e.HitPoint.setMax(64)
-  e.Combat.setDefense(4)
+  e.Combat.setDefense(14)
 }
 
 Game.system.printActorData = function (e) {
@@ -687,31 +691,29 @@ Game.system.rollD20 = function () {
   return Game.system.rollDx(1, 20)
 }
 
-Game.system.hitTarget = function (attacker, defender, reRoll) {
+Game.system.hitTarget = function (attacker, defender, noDamage, reRoll) {
   let accuracy = Game.system.updateAttribute('accuracy', attacker)
   let defense = Game.system.updateAttribute('defense', defender)
   let defaultDmg = attacker.Combat.getDamage()
   let modDmg = 0
 
-  let atkRoll = Game.system.rollD20()
-  let defRoll = Game.system.rollD20()
-  let reRollList = []
+  let combatRoll = Game.system.rollD20()
   let delta = 0
 
-  if (reRoll) {
-    reRollList = reRoll()
-    atkRoll = reRollList[0]
-    defRoll = reRollList[1]
-  }
-  delta = (atkRoll + accuracy) - (defRoll + defense)
+  if (reRoll) { combatRoll = reRoll() }
+  delta = combatRoll + accuracy - defense
 
   if (delta > 0) {
-    // TODO: mod damage based on debuffs
-    // TODO: kill dummy
-    modDmg = attacker.Combat.getDamage(delta, true)
-    defender.HitPoint.loseHP(modDmg)
+    if (noDamage) {                   // cast debuff
+      return Math.floor(delta / 5)    // how many critical hits
+    } else {
+      // TODO: mod damage based on debuffs
+      // TODO: kill dummy
+      modDmg = attacker.Combat.getDamage(delta, true)
+      defender.HitPoint.loseHP(modDmg)
 
-    return modDmg / defaultDmg
+      return modDmg / defaultDmg
+    }
   }
   return 0
 }
