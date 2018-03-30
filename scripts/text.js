@@ -227,3 +227,13 @@ Game.text.devNote = function (note) {
 
   return '[Note] ' + text.get(note)
 }
+
+Game.text.flavor = function (trueName) {
+  let text = new Map()
+
+  text.set('dmy', 'This is a dummy.\n' +
+    'There is nothing special.\n' +
+    'So stop wasting your time here.')
+
+  return text.get(trueName)
+}

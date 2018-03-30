@@ -146,7 +146,7 @@ Game.system.isPC = function (e) {
 }
 
 Game.system.npcHere = function (x, y) {
-  let npcList = []
+  let npcFound = null
   let npcX = null
   let npcY = null
 
@@ -154,10 +154,12 @@ Game.system.npcHere = function (x, y) {
     npcX = keyValue[1].Position.getX()
     npcY = keyValue[1].Position.getY()
 
-    if (x === npcX && y === npcY) { npcList.push(keyValue[1]) }
+    if (x === npcX && y === npcY) {
+      npcFound = keyValue[1]
+      break
+    }
   }
-
-  return npcList.length > 0 ? npcList : null
+  return npcFound
 }
 
 Game.system.targetInSight = function (observer, sight, target) {
@@ -550,6 +552,8 @@ Game.system.exploreMode = function (callback, range) {
   let pc = Game.entities.get('pc').Position
   let action = Game.keyboard.getAction
   let npcHere = Game.system.npcHere
+  let mainScreen = Game.screens.main
+  let description = Game.entities.get('record').Description
 
   let saveSight = pc.getSight()
   let spacePressed = false
@@ -560,9 +564,9 @@ Game.system.exploreMode = function (callback, range) {
   markerPos.setY(pc.getY())
   Number.isInteger(range) && range >= 0 && pc.setSight(range)
 
-  Game.screens.main.getMode() === 'main' &&
-    Game.screens.main.setMode('explore',
-      Game.text.modeLine('range') + getRange())
+  if (mainScreen.getMode() === 'main') {
+    mainScreen.setMode('explore', Game.text.modeLine('range') + getRange())
+  }
 
   Game.keyboard.listenEvent('remove', 'main')
   Game.keyboard.listenEvent('add', moveMarker)
@@ -587,7 +591,7 @@ Game.system.exploreMode = function (callback, range) {
         Game.system.createDummy()
       } else if (e.key === '5') {
         targetFound = npcHere(markerPos.getX(), markerPos.getY())
-        targetFound && Game.system.printActorData(targetFound[0])
+        targetFound && Game.system.printActorData(targetFound)
       }
     }
 
@@ -595,18 +599,22 @@ Game.system.exploreMode = function (callback, range) {
       markerPos.setX(null)
       markerPos.setY(null)
       pc.setSight(saveSight)
-      Game.screens.main.setMode('main')
+      mainScreen.setMode('main')
     }
 
-    Game.screens.main.getMode() === 'explore' &&
-      Game.screens.main.setMode('explore',
-        Game.text.modeLine('range') + getRange())
+    mainScreen.getMode() === 'explore' &&
+      mainScreen.setMode('explore', Game.text.modeLine('range') + getRange())
+
+    npcHere(markerPos.getX(), markerPos.getY()) &&
+      description.gainActorInfo(npcHere(markerPos.getX(), markerPos.getY()))
+
     Game.display.clear()
-    Game.screens.main.display()
+    mainScreen.display()
+    description.resetTextList()
 
     if (spacePressed) {
       Game.keyboard.listenEvent('remove', moveMarker)
-      callback.apply(callback, targetFound)
+      callback.call(callback, targetFound)
     } else if (escPressed) {
       Game.keyboard.listenEvent('remove', moveMarker)
       Game.keyboard.listenEvent('add', 'main')

@@ -111,6 +111,7 @@ Game.entity.record = function () {
   let e = new Game.Factory('record')
 
   e.addComponent(new Game.Component.Message())
+  e.addComponent(new Game.Component.Description())
 
   Game.entities.set('record', e)
 }

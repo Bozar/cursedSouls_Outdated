@@ -407,3 +407,27 @@ Game.Component.Message = function () {
     return true
   }
 }
+
+Game.Component.Description = function () {
+  this._name = 'Description'
+  this._flavorText = ''
+  this._buff = ''
+  this._debuff = ''
+  this._stageName = ''
+
+  this.gainActorInfo = function (e) {
+    this._flavorText = Game.text.flavor(e.ActorName.getTrueName())
+    this._stageName = e.ActorName.getStageName()
+  }
+
+  this.getTextList = function () {
+    return [this._flavorText, this._buff, this._debuff, this._stageName]
+  }
+
+  this.resetTextList = function () {
+    this._flavorText = ''
+    this._buff = ''
+    this._debuff = ''
+    this._stageName = ''
+  }
+}

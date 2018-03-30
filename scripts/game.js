@@ -410,6 +410,17 @@ Game.screens.drawMessage = function (message) {
   }
 }
 
+Game.screens.drawDescription = function () {
+  let x = Game.UI.message.getX()
+  let y = Game.UI.message.getY()
+  let width = Game.UI.message.getWidth()
+  let height = Game.UI.message.getHeight()
+  let textList = Game.entities.get('record').Description.getTextList()
+
+  Game.display.drawText(x, y, textList[0], width)
+  Game.display.drawText(x, y + height - 1, textList[3])
+}
+
 Game.screens.drawSpell = function () {
   let ui = Game.UI
   let duration = Game.system.updateAttribute
@@ -826,7 +837,7 @@ Game.screens.main.display = function () {
   if (this.getMode() === 'main') {
     Game.screens.drawMessage()
   } else {
-    Game.display.drawText(Game.UI.message.getX(), Game.UI.message.getY(), 'hello world')
+    Game.screens.drawDescription()
     Game.screens.drawModeLine(this.getText())
   }
 
