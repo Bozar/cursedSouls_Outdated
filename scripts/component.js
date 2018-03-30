@@ -239,12 +239,19 @@ Game.Component.Status = function () {
 
   this._buff = new Map()
   this._debuff = new Map()
+  this._maxStatus = 4
 
   this.gainStatus = function (type, id, castTurn, maxTurn) {
     let typeMap = this['_' + type]
     // some status's maxTurn needs to be set on-site
     // refer: Game.system.pcCast, enhance2
     let max = maxTurn || duration['get' + capital(type)](id)
+
+    if (typeMap.size >= this._maxStatus) {
+      Game.getDevelop() && console.log(
+        Game.text.devNote('max' + Game.screens.capitalizeFirst(type)))
+      return false
+    }
 
     typeMap.set(id, [])   // [maxTurn, startTurn]
     typeMap.get(id).push(max)

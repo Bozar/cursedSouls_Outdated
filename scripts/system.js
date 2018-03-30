@@ -361,13 +361,19 @@ Game.system.pcCast = function (spellID) {
   }
 
   function enhance1 () {
+    let moveBuff = false
+
     if (e.HitPoint.getHP()[1] < e.HitPoint.getMax()) {
       e.HitPoint.gainHP(e.HitPoint.getMax())
-      e.Status.gainStatus('buff', 'mov0', duration)
+      moveBuff = e.Status.gainStatus('buff', 'mov0', duration)
 
       e.HitPoint.getHP()[1] < e.HitPoint.getMax()
-        ? message(Game.text.pcStatus('heal'))
-        : message(Game.text.pcStatus('heal2Max'))
+        ? moveBuff
+          ? message(Game.text.pcStatus('healMove'))
+          : message(Game.text.pcStatus('heal'))
+        : moveBuff
+          ? message(Game.text.pcStatus('heal2MaxMove'))
+          : message(Game.text.pcStatus('heal2Max'))
 
       Game.keyboard.listenEvent('remove', 'main')
       Game.system.unlockEngine(duration, e)
@@ -377,10 +383,14 @@ Game.system.pcCast = function (spellID) {
   }
 
   function enhance2 () {
+    let acted = false
+
     if (e.Status.getStatus('debuff').size > 0) {
       let maxTurn = Math.min(4, 1 + e.Status.getStatus('debuff').size)
+      acted = e.Status.gainStatus('buff', 'acc0', duration, maxTurn)
+    }
 
-      e.Status.gainStatus('buff', 'acc0', duration, maxTurn)
+    if (acted) {
       message(Game.text.pcStatus('lucky'))
 
       Game.keyboard.listenEvent('remove', 'main')
@@ -405,12 +415,18 @@ Game.system.pcCast = function (spellID) {
     }
 
     function hulk1 () {
-      e.Status.gainStatus('buff', 'acc1', duration)
-      e.Status.gainStatus('buff', 'def1', duration)
-      message(Game.text.pcStatus('puppet'))
+      let acted = false
+      acted = e.Status.gainStatus('buff', 'acc1', duration) &&
+        e.Status.gainStatus('buff', 'def1', duration)
 
-      Game.keyboard.listenEvent('remove', 'main')
-      Game.system.unlockEngine(duration, e)
+      if (acted) {
+        message(Game.text.pcStatus('puppet'))
+
+        Game.keyboard.listenEvent('remove', 'main')
+        Game.system.unlockEngine(duration, e)
+      } else {
+        message(Game.text.pcStatus('maxBuff'))
+      }
     }
 
     function lasombra1 () {
@@ -433,11 +449,17 @@ Game.system.pcCast = function (spellID) {
     }
 
     function hulk2 () {
-      e.Status.gainStatus('buff', 'cst1', duration)
-      message(Game.text.pcStatus('castFaster'))
+      let acted = false
+      acted = e.Status.gainStatus('buff', 'cst1', duration)
 
-      Game.keyboard.listenEvent('remove', 'main')
-      Game.system.unlockEngine(duration, e)
+      if (acted) {
+        message(Game.text.pcStatus('castFaster'))
+
+        Game.keyboard.listenEvent('remove', 'main')
+        Game.system.unlockEngine(duration, e)
+      } else {
+        message(Game.text.pcStatus('maxBuff'))
+      }
     }
 
     function lasombra2 () {

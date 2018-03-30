@@ -153,6 +153,7 @@ Game.text.curse = function (curse, returnMap) {
 Game.text.buff = function (buffID) {
   let text = new Map()
 
+  // buff or debuff name cannot be longer than 10 characters (+/- excluded)
   text.set('mov0', 'Movement+')
   text.set('acc1', 'Accuracy++')
   text.set('acc0', 'Accuracy+')
@@ -180,8 +181,10 @@ Game.text.pcStatus = function (statusID) {
   let text = new Map()
 
   // [E]: adventure time
-  text.set('heal', 'You are healed and move faster.')
-  text.set('heal2Max', 'You are fully healed and move faster.')
+  text.set('heal', 'You are healed.')
+  text.set('heal2Max', 'You are fully healed.')
+  text.set('healMove', 'You are healed and move faster.')
+  text.set('heal2MaxMove', 'You are fully healed and move faster.')
   text.set('maxHP', 'You are already at full health.')
 
   // [R, hulk]: hunter x hunter, Pitou
@@ -193,6 +196,9 @@ Game.text.pcStatus = function (statusID) {
 
   // [F, hulk]
   text.set('castFaster', 'You weave spells like an orchestra conductor.')
+
+  // cast faliure
+  text.set('maxBuff', 'You cannot be buffed further.')
 
   return text.get(statusID)
 }
@@ -216,6 +222,8 @@ Game.text.devNote = function (note) {
 
   text.set('rng', 'RNG start: ')
   text.set('initial', 'Initial settings: ')
+  text.set('maxBuff', 'No more buffs.')
+  text.set('maxDebuff', 'No more debuffs.')
 
   return '[Note] ' + text.get(note)
 }
