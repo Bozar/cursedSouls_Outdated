@@ -794,7 +794,7 @@ Game.screens.main.initialize = function () {
   Game.system.updateCursePoint(24)
   Game.system.updateCursePoint(24)
   Game.system.updateCursePoint(24)
-  Game.system.updateCursePoint(24)
+  // Game.system.updateCursePoint(24)
   Game.system.updateCursePoint(-14)
 
   Game.entities.get('record').Message.gainMessage('welcome')
