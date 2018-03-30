@@ -343,6 +343,7 @@ Game.system.pcCast = function (spellID) {
   spellMap.get(spellID) && spellMap.get(spellID)()
 
   function attack1 () {
+    Game.screens.main.setMode('aim', Game.text.spellName('atk1'))
     Game.keyboard.listenEvent('remove', 'main')
     Game.system.exploreMode(dealDamage, range.getRange('atk1'), true)
 
@@ -528,15 +529,18 @@ Game.system.exploreMode = function (callback, range) {
   let action = Game.keyboard.getAction
   let npcHere = Game.system.npcHere
 
+  let saveSight = pc.getSight()
   let spacePressed = false
   let escPressed = false
+  let targetFound = null
+
   markerPos.setX(pc.getX())
   markerPos.setY(pc.getY())
-
-  let saveSight = pc.getSight()
   Number.isInteger(range) && range >= 0 && pc.setSight(range)
 
-  let targetFound = null
+  Game.screens.main.getMode() === 'main' &&
+    Game.screens.main.setMode('explore',
+      Game.text.modeLine('range') + getRange())
 
   Game.keyboard.listenEvent('remove', 'main')
   Game.keyboard.listenEvent('add', moveMarker)
@@ -569,8 +573,12 @@ Game.system.exploreMode = function (callback, range) {
       markerPos.setX(null)
       markerPos.setY(null)
       pc.setSight(saveSight)
+      Game.screens.main.setMode('main')
     }
 
+    Game.screens.main.getMode() === 'explore' &&
+      Game.screens.main.setMode('explore',
+        Game.text.modeLine('range') + getRange())
     Game.display.clear()
     Game.screens.main.display()
 
@@ -581,6 +589,13 @@ Game.system.exploreMode = function (callback, range) {
       Game.keyboard.listenEvent('remove', moveMarker)
       Game.keyboard.listenEvent('add', 'main')
     }
+  }
+
+  function getRange () {
+    let x = Math.abs(markerPos.getX() - pc.getX())
+    let y = Math.abs(markerPos.getY() - pc.getY())
+
+    return Math.max(x, y)
   }
 }
 

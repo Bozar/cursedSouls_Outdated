@@ -122,6 +122,7 @@ Game.text.modeLine = function (mode) {
   text.set('yesNoLower', 'Press y or n')
   text.set('explore', '[Exp]')
   text.set('aim', '[Aim]')
+  text.set('range', 'Range: ')
 
   return text.get(mode)
 }

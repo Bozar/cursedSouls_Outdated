@@ -251,11 +251,19 @@ Game.keyboard.listenEvent = function (event, handler) {
 Game.Screen = function (name, mode) {
   this._name = name || 'Unnamed Screen'
   this._mode = mode || 'main'
+  this._modeLineText = ''
 }
 
 Game.Screen.prototype.getName = function () { return this._name }
 Game.Screen.prototype.getMode = function () { return this._mode }
-Game.Screen.prototype.setMode = function (mode) { this._mode = mode || 'main' }
+Game.Screen.prototype.getText = function () { return this._modeLineText }
+
+Game.Screen.prototype.setMode = function (mode, text) {
+  this._mode = mode || 'main'
+  this._modeLineText = Game.text.modeLine(this._mode) + ' ' + (text || '')
+
+  return true
+}
 
 Game.Screen.prototype.enter = function () {
   Game.screens._currentName = this.getName()
@@ -412,12 +420,12 @@ Game.screens.drawSpell = function () {
 
   // column 1
   Game.display.drawText(ui.column1.getX(), ui.column1.getY(),
-    Game.text.spell(1, screenLevel, screenLevel === 3 ? pcName : null),
+    Game.text.spellKeyHint(1, screenLevel, screenLevel === 3 ? pcName : null),
     ui.column1.getWidth())
 
   // column 2
   Game.display.drawText(ui.column2.getX(), ui.column2.getY(),
-    Game.text.spell(2, screenLevel, pcName),
+    Game.text.spellKeyHint(2, screenLevel, pcName),
     ui.column2.getWidth())
 
   // column 3
@@ -426,7 +434,7 @@ Game.screens.drawSpell = function () {
     '[' + duration('castSpeed', ePC).get(screenLevel) + ']')
 
   Game.screens.drawAlignRight(ui.spell.getX(), ui.spell.getY() + 1,
-    ui.spell.getWidth(), Game.text.spell(3),
+    ui.spell.getWidth(), Game.text.spellKeyHint(3),
     pcLevel < 2 ? 'grey' : null)
 }
 
@@ -815,7 +823,12 @@ Game.screens.main.display = function () {
 
   Game.screens.drawSpell()
   Game.screens.drawDungeon()
-  Game.screens.drawMessage()
+  if (this.getMode() === 'main') {
+    Game.screens.drawMessage()
+  } else {
+    Game.display.drawText(Game.UI.message.getX(), Game.UI.message.getY(), 'hello world')
+    Game.screens.drawModeLine(this.getText())
+  }
 
   Game.screens.drawStageName()
   Game.screens.drawHPbar()
