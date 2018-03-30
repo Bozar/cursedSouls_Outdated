@@ -45,24 +45,35 @@ as gentle as a breeze, blows in your mind.\n\n`)
 }
 
 // ----- main screen +++++
-Game.text.spell = function (column, level, trueName) {
+Game.text.spellKeyHint = function (column, level, trueName) {
   let text = new Map()
 
-  text.set('1,1,', '[Q] Fire Arrow\n[W] Bedtime Story')
-  text.set('1,2,', '[A] Flame Lance\n[S] Blind Death')
-  text.set('1,3,', '[1] Magma Eruption\n')
+  text.set('1,1,', '[Q] ' + Game.text.spellName('atk1') +
+    '\n[W] ' + Game.text.spellName('ctl1'))
+  text.set('1,2,', '[A] ' + Game.text.spellName('atk2') +
+    '\n[S] ' + Game.text.spellName('ctl2'))
+  text.set('1,3,', '[1] ' + Game.text.spellName('atk3') + '\n')
 
-  text.set('2,1,dio', '[E] Cyclops Tears\n[R] Fire Fist')
-  text.set('2,1,hulk', '[E] Cyclops Tears\n[R] Toy Repairer')
-  text.set('2,1,lasombra', '[E] Cyclops Tears\n[R] Frost Touch')
+  text.set('2,1,dio', '[E] ' + Game.text.spellName('enh1') +
+    '\n[R] ' + Game.text.spellName('dio1'))
+  text.set('2,1,hulk', '[E] ' + Game.text.spellName('enh1') +
+    '\n[R] ' + Game.text.spellName('hlk1'))
+  text.set('2,1,lasombra', '[E] ' + Game.text.spellName('enh1') +
+    '\n[R] ' + Game.text.spellName('lsb1'))
 
-  text.set('2,2,dio', '[D] Two-headed Coin\n[F] Flame Explosion')
-  text.set('2,2,hulk', '[D] Two-headed Coin\n[F] Nimble Fingers')
-  text.set('2,2,lasombra', '[D] Two-headed Coin\n[F] Vile Tentacle')
+  text.set('2,2,dio', '[D] ' + Game.text.spellName('enh2') +
+    '\n[F] ' + Game.text.spellName('dio2'))
+  text.set('2,2,hulk', '[D] ' + Game.text.spellName('enh2') +
+    '\n[F] ' + Game.text.spellName('hlk2'))
+  text.set('2,2,lasombra', '[D] ' + Game.text.spellName('enh2') +
+    '\n[F] ' + Game.text.spellName('lsb2'))
 
-  text.set('1,3,dio', text.get('1,3,') + '[2] The World')
-  text.set('1,3,hulk', text.get('1,3,') + '[2] Invincible Armor')
-  text.set('1,3,lasombra', text.get('1,3,') + '[2] Confessional')
+  text.set('1,3,dio', text.get('1,3,') +
+    '[2] ' + Game.text.spellName('dio3'))
+  text.set('1,3,hulk', text.get('1,3,') +
+    '[2] ' + Game.text.spellName('hlk3'))
+  text.set('1,3,lasombra', text.get('1,3,') +
+    '[2] ' + Game.text.spellName('lsb3'))
 
   text.set('2,3,dio', '')
   text.set('2,3,hulk', '')
@@ -73,6 +84,34 @@ Game.text.spell = function (column, level, trueName) {
   return text.get([column, level, trueName].join(','))
 }
 
+Game.text.spellName = function (id) {
+  let text = new Map()
+
+  text.set('atk1', 'Fire Arrow')
+  text.set('atk2', 'Flame Lance')
+  text.set('atk3', 'Magma Eruption')
+
+  text.set('enh1', 'Cyclops Tears')
+  text.set('enh2', 'Two-headed Coin')
+
+  text.set('ctl1', 'Bedtime Story')
+  text.set('ctl2', 'Blind Death')
+
+  text.set('dio1', 'Fire Fist')
+  text.set('dio2', 'Flame Explosion')
+  text.set('dio3', 'The World')
+
+  text.set('hlk1', 'Toy Repairer')
+  text.set('hlk2', 'Nimble Fingers')
+  text.set('hlk3', 'Invincible Armor')
+
+  text.set('lsb1', 'Frost Touch')
+  text.set('lsb2', 'Vile Tentacle')
+  text.set('lsb3', 'Confessional')
+
+  return text.get(id)
+}
+
 Game.text.modeLine = function (mode) {
   let text = new Map()
 
@@ -81,6 +120,8 @@ Game.text.modeLine = function (mode) {
   text.set('enter', 'Press Enter to confirm')
   text.set('delete', ', Esc to delete')
   text.set('yesNoLower', 'Press y or n')
+  text.set('explore', '[Exp]')
+  text.set('aim', '[Aim]')
 
   return text.get(mode)
 }
