@@ -206,10 +206,9 @@ Game.Component.Combat = function (acc, def, dmg) {
 
   this.getAccuracy = function () { return this._accuracy }
   this.getDefense = function () { return this._defense }
-  this.getDamage = function (delta, addBonus) {   // delta = attack - defense
+  this.getDamage = function (critical, addBonus) {
     if (addBonus) {
-      let index = Math.min(Math.floor(delta / 5), this._dmgBonus.length - 1)
-      // console.log('dmgBonus: ' + this._dmgBonus[index])
+      let index = Math.min(critical, this._dmgBonus.length - 1)
       return Math.floor(this._damage * this._dmgBonus[index])
     } else {
       return this._damage
@@ -336,11 +335,14 @@ Game.Component.ModAttribute = function () {
   this._buff = new Map()
   this._debuff = new Map()
 
-  this._buff.set('mov0', 0.1)    // move speed, 0.1 turn
-  this._buff.set('acc1', 2)
-  this._buff.set('acc0', 1)
-  this._buff.set('def1', 2)
+  // game turns
+  this._buff.set('mov0', 0.1)
   this._buff.set('cst1', 0.2)
+
+  // to-hit chance
+  this._buff.set('acc1', 20)
+  this._buff.set('acc0', 10)
+  this._buff.set('def1', 20)
 
   this.getMod = function (type, id, isModified) {
     let thisType = this['_' + type]

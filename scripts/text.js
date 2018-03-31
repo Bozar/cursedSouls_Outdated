@@ -243,7 +243,7 @@ Game.text.combat = function (key, e) {
   let text = new Map()
 
   text.set('pcHit', `You hit the ${name}.`)
-  text.set('pcCrit', `You critical hit the ${name}!`)
+  text.set('pcCrit', `You critical-hit the ${name}!`)
   text.set('pcMiss', `You miss the ${name}.`)
 
   return text.get(key)

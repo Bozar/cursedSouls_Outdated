@@ -364,9 +364,9 @@ Game.system.pcCast = function (spellID) {
     function dealDamage (target) {
       let isHit = Game.system.hitTarget(e, target)
 
-      if (isHit > 1) {
+      if (isHit > 0) {
         recordMsg.gainMessage(Game.text.combat('pcCrit', target))
-      } else if (isHit === 1) {
+      } else if (isHit === 0) {
         recordMsg.gainMessage(Game.text.combat('pcHit', target))
       } else {
         recordMsg.gainMessage(Game.text.combat('pcMiss', target))
@@ -663,7 +663,7 @@ Game.system.createDummy = function () {
   e.Position.setX(x)
   e.Position.setY(y)
   e.HitPoint.setMax(48)
-  e.Combat.setDefense(14)
+  e.Combat.setDefense(70)
 }
 
 Game.system.printActorData = function (e) {
@@ -699,26 +699,27 @@ Game.system.rollD20 = function () {
 Game.system.hitTarget = function (attacker, defender, noDamage, reRoll) {
   let accuracy = Game.system.updateAttribute('accuracy', attacker)
   let defense = Game.system.updateAttribute('defense', defender)
-  let defaultDmg = attacker.Combat.getDamage()
+  let delta = 0
+  let critical = -1
   let modDmg = 0
 
-  let combatRoll = Game.system.rollD20()
-  let delta = 0
+  let combatRoll = ROT.RNG.getPercentage()
 
   if (reRoll) { combatRoll = reRoll() }
   delta = combatRoll + accuracy - defense
 
+  // console.log(combatRoll)
+  // console.log(accuracy)
+  // console.log(defense)
+
   if (delta > 0) {
-    if (noDamage) {                   // cast debuff
-      return Math.floor(delta / 5)    // how many critical hits
-    } else {
+    critical = Math.floor(delta / 30)
+    if (!noDamage) {
       // TODO: mod damage based on debuffs
       // TODO: kill dummy
-      modDmg = attacker.Combat.getDamage(delta, true)
+      modDmg = attacker.Combat.getDamage(critical, true)
       defender.HitPoint.loseHP(modDmg)
-
-      return modDmg / defaultDmg
     }
   }
-  return 0
+  return critical
 }
