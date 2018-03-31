@@ -855,28 +855,23 @@ Game.screens.main.keyInput = function (e) {
   let pc = Game.entities.get('pc')
   let keyAction = Game.keyboard.getAction
 
-  let keyPressed = false
-
   if (e.shiftKey) {
     if (keyAction(e, 'fastMove')) {
       Game.system.fastMove(keyAction(e, 'fastMove'))
     }
   } else if (keyAction(e, 'fixed') === 'space') {
-    keyPressed = pc.Curse.setScreenLevel()
+    pc.Curse.setScreenLevel()
   } else if (keyAction(e, 'move')) {
     Game.system.move(keyAction(e, 'move'), pc)
   } else if (keyAction(e, 'cast')) {
     Game.system.pcCast(keyAction(e, 'cast'))
   } else if (keyAction(e, 'pause')) {
-    Game.system.exploreMode(Game.system.viewDescription)
+    Game.system.exploreMode()
   }
 
   // testing
   if (Game.getDevelop()) {
     switch (e.key) {
-      case '5':   // print pc data
-        Game.system.printActorData(pc)
-        break
       case '4':   // take damage
         let damage = Math.floor((Math.random() * 10 + 20) / 100 *
           pc.HitPoint.getMax())
@@ -887,15 +882,10 @@ Game.screens.main.keyInput = function (e) {
         console.log(Game.entities.get('seed').Seed.getSeed())
         break
     }
-    keyPressed = true
   }
 
-  if (keyPressed) {
-    keyPressed = false
-
-    Game.display.clear()
-    Game.screens.main.display()
-  }
+  Game.display.clear()
+  Game.screens.main.display()
 }
 
 // ----- Test +++++

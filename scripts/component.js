@@ -202,7 +202,7 @@ Game.Component.Combat = function (acc, def, dmg) {
   this._accuracy = acc || null
   this._defense = def || null
   this._damage = dmg || null
-  this._dmgBonus = [1, 2, 2.5, 3]
+  this._dmgBonus = [1, 1.5, 2, 2.5]
 
   this.getAccuracy = function () { return this._accuracy }
   this.getDefense = function () { return this._defense }

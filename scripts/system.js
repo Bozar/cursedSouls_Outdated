@@ -162,6 +162,16 @@ Game.system.npcHere = function (x, y) {
   return npcFound
 }
 
+Game.system.pcHere = function (x, y) {
+  let pc = Game.entities.get('pc')
+  let pcX = pc.Position.getX()
+  let pcY = pc.Position.getY()
+
+  return x === pcX && y === pcY
+    ? pc
+    : null
+}
+
 Game.system.targetInSight = function (observer, sight, target) {
   let fov = Game.entities.get('dungeon').fov
   let obsX = observer.Position.getX()
@@ -553,20 +563,22 @@ Game.system.updateAttribute = function (attrID, actor) {
 Game.system.exploreMode = function (callback, range) {
   let marker = Game.entities.get('marker')
   let markerPos = marker.Position
-  let pc = Game.entities.get('pc').Position
+  let pc = Game.entities.get('pc')
+  let pcPos = pc.Position
   let action = Game.keyboard.getAction
+  let pcHere = Game.system.pcHere
   let npcHere = Game.system.npcHere
   let mainScreen = Game.screens.main
   let description = Game.entities.get('record').Description
 
-  let saveSight = pc.getSight()
+  let saveSight = pcPos.getSight()
   let spacePressed = false
   let escPressed = false
   let targetFound = null
 
-  markerPos.setX(pc.getX())
-  markerPos.setY(pc.getY())
-  Number.isInteger(range) && range >= 0 && pc.setSight(range)
+  markerPos.setX(pcPos.getX())
+  markerPos.setY(pcPos.getY())
+  Number.isInteger(range) && range >= 0 && pcPos.setSight(range)
 
   if (mainScreen.getMode() === 'main') {
     mainScreen.setMode('explore', Game.text.modeLine('range') + getRange())
@@ -578,31 +590,39 @@ Game.system.exploreMode = function (callback, range) {
   function moveMarker (e) {
     if (e.shiftKey) {
       if (action(e, 'fastMove')) {
-        for (let i = 0; i < pc.getSight(); i++) {
+        for (let i = 0; i < pcPos.getSight(); i++) {
           if (!Game.system.move(action(e, 'fastMove'), marker, true)) { break }
         }
       }
     } else if (action(e, 'move')) {
       Game.system.move(action(e, 'move'), marker, true)
     } else if (action(e, 'fixed') === 'space') {
-      targetFound = npcHere(markerPos.getX(), markerPos.getY())
-      spacePressed = targetFound !== null
+      switch (mainScreen.getMode()) {
+        case 'explore':
+          if (Game.getDevelop()) {
+            targetFound = pcHere(markerPos.getX(), markerPos.getY()) ||
+              npcHere(markerPos.getX(), markerPos.getY())
+            targetFound && Game.system.printActorData(targetFound)
+          }
+          break
+        case 'aim':
+          targetFound = npcHere(markerPos.getX(), markerPos.getY())
+          spacePressed = targetFound !== null
+          break
+      }
     } else if (action(e, 'fixed') === 'esc') {
       escPressed = true
       // testing
     } else if (Game.getDevelop()) {
       if (e.key === 'd') {
         Game.system.createDummy()
-      } else if (e.key === '5') {
-        targetFound = npcHere(markerPos.getX(), markerPos.getY())
-        targetFound && Game.system.printActorData(targetFound)
       }
     }
 
     if (spacePressed || escPressed) {
       markerPos.setX(null)
       markerPos.setY(null)
-      pc.setSight(saveSight)
+      pcPos.setSight(saveSight)
       mainScreen.setMode('main')
     }
 
@@ -626,8 +646,8 @@ Game.system.exploreMode = function (callback, range) {
   }
 
   function getRange () {
-    let x = Math.abs(markerPos.getX() - pc.getX())
-    let y = Math.abs(markerPos.getY() - pc.getY())
+    let x = Math.abs(markerPos.getX() - pcPos.getX())
+    let y = Math.abs(markerPos.getY() - pcPos.getY())
 
     return Math.max(x, y)
   }
@@ -642,7 +662,7 @@ Game.system.createDummy = function () {
 
   e.Position.setX(x)
   e.Position.setY(y)
-  e.HitPoint.setMax(64)
+  e.HitPoint.setMax(48)
   e.Combat.setDefense(14)
 }
 
@@ -655,21 +675,6 @@ Game.system.printActorData = function (e) {
   for (const [key, value] of e.Status.getStatus('debuff')) {
     console.log('[-' + key + '] Max:' + value[0] +
       ', Start:' + Number.parseFloat(value[1]).toFixed(1))
-  }
-}
-
-Game.system.viewDescription = function (target) {    // actor selected by marker
-  Game.keyboard.listenEvent('add', view)
-
-  console.log(target.ActorName.getStageName())
-  console.log('press space to leave')
-
-  function view (e) {
-    if (Game.keyboard.getAction(e, 'fixed') === 'space') {
-      Game.keyboard.listenEvent('remove', view)
-      Game.keyboard.listenEvent('add', 'main')
-      console.log('space pressed')
-    }
   }
 }
 
