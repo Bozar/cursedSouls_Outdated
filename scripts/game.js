@@ -4,8 +4,12 @@
 var Game = {}
 Game._version = '0.0.1-dev'
 Game._develop = true
-Game.getVersion = function () { return Game._version }
-Game.getDevelop = function () { return Game._develop }
+Game.getVersion = function () { return this._version }
+Game.getDevelop = function () { return this._develop }
+Game.setDevelop = function () {
+  this._develop = !this._develop
+  return true
+}
 
 Game._dungeonSize = [55, 20]   // [width, height]
 
@@ -217,6 +221,7 @@ Game.keyboard.bindMap.get('cast').set('spc3', ['2'])
 // actions that do not take in-game time
 Game.keyboard.bindMap.set('pause', new Map())
 Game.keyboard.bindMap.get('pause').set('explore', ['x'])
+Game.keyboard.bindMap.get('pause').set('develop', ['~'])
 
 Game.keyboard.getAction = function (keyInput, mode) {
   if (!mode) {
@@ -794,7 +799,7 @@ Game.screens.main.initialize = function () {
   Game.system.updateCursePoint(24)
   Game.system.updateCursePoint(24)
   Game.system.updateCursePoint(24)
-  // Game.system.updateCursePoint(24)
+  Game.system.updateCursePoint(24)
   Game.system.updateCursePoint(-14)
 
   Game.entities.get('record').Message.gainMessage('welcome')
@@ -858,6 +863,8 @@ Game.screens.main.keyInput = function (e) {
   if (e.shiftKey) {
     if (keyAction(e, 'fastMove')) {
       Game.system.fastMove(keyAction(e, 'fastMove'))
+    } else if (keyAction(e, 'pause') === 'develop') {
+      Game.setDevelop()
     }
   } else if (keyAction(e, 'fixed') === 'space') {
     pc.Curse.setScreenLevel()
@@ -865,7 +872,7 @@ Game.screens.main.keyInput = function (e) {
     Game.system.move(keyAction(e, 'move'), pc)
   } else if (keyAction(e, 'cast')) {
     Game.system.pcCast(keyAction(e, 'cast'))
-  } else if (keyAction(e, 'pause')) {
+  } else if (keyAction(e, 'pause') === 'explore') {
     Game.system.exploreMode()
   }
 
