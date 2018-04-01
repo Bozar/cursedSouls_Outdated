@@ -222,6 +222,8 @@ Game.keyboard.bindMap.get('cast').set('spc3', ['2'])
 Game.keyboard.bindMap.set('pause', new Map())
 Game.keyboard.bindMap.get('pause').set('explore', ['x'])
 Game.keyboard.bindMap.get('pause').set('develop', ['~'])
+Game.keyboard.bindMap.get('pause').set('nextTarget', ['PageDown', 'o'])
+Game.keyboard.bindMap.get('pause').set('previousTarget', ['PageUp', 'i'])
 
 Game.keyboard.getAction = function (keyInput, mode) {
   if (!mode) {
