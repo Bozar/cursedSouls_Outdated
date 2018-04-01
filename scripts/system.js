@@ -582,6 +582,7 @@ Game.system.exploreMode = function (callback, range) {
   Number.isInteger(range) && range >= 0 && pcPos.setSight(range)
 
   let targetList = Game.system.targetInSight(pc, pcPos.getSight(), npc) || []
+  sortTarget()
 
   if (mainScreen.getMode() === 'main') {
     mainScreen.setMode('explore', Game.text.modeLine('range') + getRange())
@@ -657,6 +658,42 @@ Game.system.exploreMode = function (callback, range) {
     let y = Math.abs(markerPos.getY() - pcPos.getY())
 
     return Math.max(x, y)
+  }
+
+  function sortTarget () {
+    if (!targetList.length) {
+      return false
+    }
+
+    targetList.sort((left, right) => {
+      let pcX = pcPos.getX()
+      let leftX = left.Position.getX()
+      let leftY = left.Position.getY()
+      let rightX = right.Position.getX()
+      let rightY = right.Position.getY()
+
+      if (leftX > pcX && rightX > pcX) {
+        if (leftX > rightX) {
+          return true
+        } else if (leftX === rightX) {
+          return leftY > rightY
+        } else {
+          return false
+        }
+      } else if (leftX <= pcX && rightX <= pcX) {
+        if (leftX > rightX) {
+          return false
+        } else if (leftX === rightX) {
+          return leftY < rightY
+        } else {
+          return true
+        }
+      } else {
+        return leftX < rightX
+      }
+    })
+
+    return true
   }
 
   function lockTarget (order) {
