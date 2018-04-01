@@ -564,6 +564,7 @@ Game.system.exploreMode = function (callback, range) {
   let marker = Game.entities.get('marker')
   let markerPos = marker.Position
   let pc = Game.entities.get('pc')
+  let npc = Game.entities.get('npc')
   let pcPos = pc.Position
   let action = Game.keyboard.getAction
   let pcHere = Game.system.pcHere
@@ -579,6 +580,8 @@ Game.system.exploreMode = function (callback, range) {
   markerPos.setX(pcPos.getX())
   markerPos.setY(pcPos.getY())
   Number.isInteger(range) && range >= 0 && pcPos.setSight(range)
+
+  let targetList = Game.system.targetInSight(pc, pcPos.getSight(), npc) || []
 
   if (mainScreen.getMode() === 'main') {
     mainScreen.setMode('explore', Game.text.modeLine('range') + getRange())
@@ -597,9 +600,9 @@ Game.system.exploreMode = function (callback, range) {
     } else if (action(e, 'move')) {
       Game.system.move(action(e, 'move'), marker, true)
     } else if (action(e, 'pause') === 'nextTarget') {
-      Game.system.lockTarget(action(e, 'pause'))
+      lockTarget(action(e, 'pause'))
     } else if (action(e, 'pause') === 'previousTarget') {
-      Game.system.lockTarget(action(e, 'pause'))
+      lockTarget(action(e, 'pause'))
     } else if (action(e, 'fixed') === 'space') {
       switch (mainScreen.getMode()) {
         case 'explore':
@@ -654,6 +657,38 @@ Game.system.exploreMode = function (callback, range) {
     let y = Math.abs(markerPos.getY() - pcPos.getY())
 
     return Math.max(x, y)
+  }
+
+  function lockTarget (order) {
+    let nextIndex = 0
+    let previousIndex = targetList.length - 1
+
+    if (previousIndex < 0) {
+      return false
+    }
+
+    for (let i = 0; i < targetList.length; i++) {
+      if (targetList[i].Position.getX() === markerPos.getX() &&
+        targetList[i].Position.getY() === markerPos.getY()) {
+        nextIndex = i + 1 < targetList.length
+          ? i + 1
+          : 0
+        previousIndex = i - 1 > -1
+          ? i - 1
+          : targetList.length - 1
+      }
+    }
+
+    switch (order) {
+      case 'nextTarget':
+        markerPos.setX(targetList[nextIndex].Position.getX())
+        markerPos.setY(targetList[nextIndex].Position.getY())
+        return true
+      case 'previousTarget':
+        markerPos.setX(targetList[previousIndex].Position.getX())
+        markerPos.setY(targetList[previousIndex].Position.getY())
+        return true
+    }
   }
 }
 
@@ -726,42 +761,4 @@ Game.system.hitTarget = function (attacker, defender, noDamage, reRoll) {
     }
   }
   return critical
-}
-
-Game.system.lockTarget = function (order) {
-  let targetList = Game.system.targetInSight(Game.entities.get('pc'),
-    Game.entities.get('pc').Position.getSight(),
-    Game.entities.get('npc'))
-  let marker = Game.entities.get('marker').Position
-  let markerX = marker.getX()
-  let markerY = marker.getY()
-  let nextIndex = 0
-  let previousIndex = targetList && targetList.length - 1
-
-  if (!targetList) {
-    return false
-  }
-
-  for (let i = 0; i < targetList.length; i++) {
-    if (targetList[i].Position.getX() === markerX &&
-      targetList[i].Position.getY() === markerY) {
-      nextIndex = i + 1 < targetList.length
-        ? i + 1
-        : 0
-      previousIndex = i - 1 > -1
-        ? i - 1
-        : targetList.length - 1
-    }
-  }
-
-  switch (order) {
-    case 'nextTarget':
-      marker.setX(targetList[nextIndex].Position.getX())
-      marker.setY(targetList[nextIndex].Position.getY())
-      return true
-    case 'previousTarget':
-      marker.setX(targetList[previousIndex].Position.getX())
-      marker.setY(targetList[previousIndex].Position.getY())
-      return true
-  }
 }
