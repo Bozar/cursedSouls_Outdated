@@ -145,6 +145,15 @@ Game.system.isPC = function (e) {
   }
 }
 
+Game.system.isNPC = function (e) {
+  for (const keyValue of Game.entities.get('npc')) {
+    if (e.getID() === keyValue[0]) {
+      return true
+    }
+  }
+  return false
+}
+
 Game.system.npcHere = function (x, y) {
   let npcFound = null
   let npcX = null
@@ -371,6 +380,9 @@ Game.system.pcCast = function (spellID) {
       } else {
         recordMsg.gainMessage(Game.text.combat('pcMiss', target))
       }
+
+      Game.system.isDead(target) === 'npc' &&
+        recordMsg.gainMessage(Game.text.combat('npcIsDead', target))
 
       Game.system.unlockEngine(duration, e)
     }
@@ -846,10 +858,24 @@ Game.system.hitTarget = function (attacker, defender, noDamage, reRoll) {
     critical = Math.floor(delta / 30)
     if (!noDamage) {
       // TODO: mod damage based on debuffs
-      // TODO: kill dummy
       modDmg = attacker.Combat.getDamage(critical, true)
       defender.HitPoint.loseHP(modDmg)
     }
   }
   return critical
+}
+
+Game.system.isDead = function (e) {
+  let who = null
+
+  if (e.HitPoint.getHP()[1] >= 1) {
+    return who
+  }
+
+  if (Game.system.isNPC(e)) {
+    Game.entities.get('npc').delete(e.getID())
+    who = 'npc'
+  }
+
+  return who
 }

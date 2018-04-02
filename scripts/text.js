@@ -245,6 +245,7 @@ Game.text.combat = function (key, e) {
   text.set('pcHit', `You hit the ${name}.`)
   text.set('pcCrit', `You critical-hit the ${name}!`)
   text.set('pcMiss', `You miss the ${name}.`)
+  text.set('npcIsDead', `The ${name} is dead.`)
 
   text.set('level', new Map())
   text.get('level').set(-2, 'Trivial')
