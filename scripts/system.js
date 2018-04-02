@@ -636,13 +636,11 @@ Game.system.exploreMode = function (callback, range) {
 
     mainScreen.getMode() === 'explore' &&
       mainScreen.setMode('explore', Game.text.modeLine('range') + getRange())
-
-    npcHere(markerPos.getX(), markerPos.getY()) &&
-      description.gainActorInfo(npcHere(markerPos.getX(), markerPos.getY()))
+    updateDescription()
 
     Game.display.clear()
     mainScreen.display()
-    description.resetTextList()
+    description.reset()
 
     if (spacePressed) {
       Game.keyboard.listenEvent('remove', moveMarker)
@@ -651,6 +649,23 @@ Game.system.exploreMode = function (callback, range) {
       Game.keyboard.listenEvent('remove', moveMarker)
       Game.keyboard.listenEvent('add', 'main')
     }
+  }
+
+  function updateDescription () {
+    if (!npcHere(markerPos.getX(), markerPos.getY())) {
+      return false
+    }
+
+    let npc = npcHere(markerPos.getX(), markerPos.getY())
+    let challengeRate = Game.text.combat('level').get(
+      Math.max(-2, Math.min(3, npc.Level.getLevel() - pc.Curse.getPClevel()))
+    )
+
+    description.setFlavor(Game.text.actor(npc.ActorName.getTrueName()))
+    description.setDogTag(npc.ActorName.getStageName() +
+      '|' + challengeRate)
+
+    return true
   }
 
   function getRange () {
@@ -733,7 +748,7 @@ Game.system.createDummy = function () {
   let x = Game.entities.get('marker').Position.getX()
   let y = Game.entities.get('marker').Position.getY()
 
-  let id = Game.entity.npc('Dummy', 'dmy', 'D')
+  let id = Game.entity.npc('Dummy', 'dmy', 'D', 'white', 1)
   let e = Game.entities.get('npc').get(id)
 
   e.Position.setX(x)

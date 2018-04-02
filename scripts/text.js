@@ -239,12 +239,20 @@ Game.text.actor = function (trueName) {
 }
 
 Game.text.combat = function (key, e) {
-  let name = e.ActorName.getStageName()
+  let name = e && e.ActorName.getStageName()
   let text = new Map()
 
   text.set('pcHit', `You hit the ${name}.`)
   text.set('pcCrit', `You critical-hit the ${name}!`)
   text.set('pcMiss', `You miss the ${name}.`)
+
+  text.set('level', new Map())
+  text.get('level').set(-2, 'Trivial')
+  text.get('level').set(-1, 'Easy')
+  text.get('level').set(0, 'Normal')
+  text.get('level').set(1, 'Hard')
+  text.get('level').set(2, 'Tough')
+  text.get('level').set(3, 'Deadly')
 
   return text.get(key)
 }

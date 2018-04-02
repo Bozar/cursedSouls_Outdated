@@ -82,12 +82,13 @@ Game.entity.pc = function () {
   Game.entities.set('pc', e)
 }
 
-Game.entity.npc = function (stageName, trueName, char, fgColor) {
+Game.entity.npc = function (stageName, trueName, char, fgColor, level) {
   let e = new Game.Factory(trueName)
 
   e.addComponent(new Game.Component.ActorName(stageName, trueName))
   e.addComponent(new Game.Component.Position(6))
   e.addComponent(new Game.Component.Display(char, fgColor))
+  e.addComponent(new Game.Component.Level(level))
   e.addComponent(new Game.Component.HitPoint())
   e.addComponent(new Game.Component.Combat())
   e.addComponent(new Game.Component.Status())

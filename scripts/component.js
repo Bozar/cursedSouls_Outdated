@@ -103,8 +103,8 @@ Game.Component.Display = function (char, fgColor, bgColor) {
   this._name = 'Display'
 
   this._character = char || '烫'    // use '烫' for testing
-  this._fgColor = fgColor || ''    // default: Game.display, '#abb2bf'
-  this._bgColor = bgColor || ''    // default: Game.display, '#262626'
+  this._fgColor = Game.getColor(fgColor) || ''  // Game._color, '#abb2bf'
+  this._bgColor = Game.getColor(bgColor) || ''  // Game._color, '#262626'
 
   this.getCharacter = function () { return this._character }
   this.getFgColor = function () { return this._fgColor }
@@ -412,24 +412,51 @@ Game.Component.Message = function () {
 
 Game.Component.Description = function () {
   this._name = 'Description'
+
   this._flavorText = ''
   this._buff = ''
   this._debuff = ''
-  this._stageName = ''
-
-  this.gainActorInfo = function (e) {
-    this._flavorText = Game.text.actor(e.ActorName.getTrueName())
-    this._stageName = e.ActorName.getStageName()
-  }
+  this._dogTag = ''
 
   this.getTextList = function () {
-    return [this._flavorText, this._buff, this._debuff, this._stageName]
+    return [this._flavorText, this._buff, this._debuff, this._dogTag]
   }
 
-  this.resetTextList = function () {
+  this.setFlavor = function (text) {
+    this._flavorText = text
+    return true
+  }
+  this.setBuff = function (text) {
+    this._buff = text
+    return true
+  }
+  this.setDebuff = function (text) {
+    this._debuff = text
+    return true
+  }
+  this.setDogTag = function (text) {
+    this._dogTag = text
+    return true
+  }
+
+  this.reset = function () {
     this._flavorText = ''
     this._buff = ''
     this._debuff = ''
-    this._stageName = ''
+    this._dogTag = ''
+
+    return true
+  }
+}
+
+Game.Component.Level = function (level) {
+  this._name = 'Level'
+
+  this._level = level || 0
+
+  this.getLevel = function () { return this._level }
+  this.setLevel = function (level) {
+    this._level = level
+    return true
   }
 }
