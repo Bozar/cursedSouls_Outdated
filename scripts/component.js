@@ -173,6 +173,9 @@ Game.Component.HitPoint = function (maxHp) {
 
   this.getMax = function () { return this._maxHP }
   this.getHP = function () { return this._hitpoint }
+  this.getHPfraction = function () {
+    return Math.floor(this._hitpoint[1] / this._maxHP * 10)
+  }
 
   this.setMax = function (hp) {
     this._maxHP = hp

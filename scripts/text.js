@@ -254,5 +254,12 @@ Game.text.combat = function (key, e) {
   text.get('level').set(2, 'Tough')
   text.get('level').set(3, 'Deadly')
 
+  text.set('hitpoint', new Map())
+  text.get('hitpoint').set(10, 'Healthy')
+  text.get('hitpoint').set(7, 'Slightly Injured')
+  text.get('hitpoint').set(3, 'Injured')
+  text.get('hitpoint').set(0, 'Badly Injured')
+  text.get('hitpoint').set(-1, 'Dead')
+
   return text.get(key)
 }

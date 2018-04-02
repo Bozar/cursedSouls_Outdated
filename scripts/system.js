@@ -657,15 +657,54 @@ Game.system.exploreMode = function (callback, range) {
     }
 
     let npc = npcHere(markerPos.getX(), markerPos.getY())
-    let challengeRate = Game.text.combat('level').get(
-      Math.max(-2, Math.min(3, npc.Level.getLevel() - pc.Curse.getPClevel()))
-    )
+    let challengeRate = getChallengeRate(npc)
+    let hitpoint = getHitPoint(npc.HitPoint.getHPfraction())
 
     description.setFlavor(Game.text.actor(npc.ActorName.getTrueName()))
     description.setDogTag(npc.ActorName.getStageName() +
+      '|' + hitpoint +
       '|' + challengeRate)
 
     return true
+  }
+
+  function getHitPoint (fraction) {
+    let text = null
+    let color = null
+    let hpDescription = Game.text.combat('hitpoint')
+
+    if (fraction === 10) {
+      text = hpDescription.get(fraction)
+    } else if (fraction > 7) {
+      text = hpDescription.get(7)
+      color = 'green'
+    } else if (fraction > 3) {
+      text = hpDescription.get(3)
+      color = 'yellow'
+    } else if (fraction > 0) {
+      text = hpDescription.get(0)
+      color = 'red'
+    } else if (fraction === 0) {
+      text = hpDescription.get(-1)
+      color = 'grey'
+    }
+
+    return Game.screens.colorfulText(text, color)
+  }
+
+  function getChallengeRate (e) {
+    let color = null
+    let cr = Math.max(-2,
+      Math.min(3,
+        e.Level.getLevel() - Game.entities.get('pc').Curse.getPClevel()))
+
+    color = cr === 1
+      ? 'yellow'
+      : cr > 1
+        ? 'red'
+        : 'white'
+
+    return Game.screens.colorfulText(Game.text.combat('level').get(cr), color)
   }
 
   function getRange () {

@@ -476,20 +476,21 @@ Game.screens.drawLevelBar = function () {
 }
 
 Game.screens.drawHPbar = function () {
-  let hp = Game.entities.get('pc').HitPoint.getHP()
-  let max = Game.entities.get('pc').HitPoint.getMax()
+  let hp = Game.entities.get('pc').HitPoint
+  let current = hp.getHP()
+  let max = hp.getMax()
+  let fraction = hp.getHPfraction()
 
-  let current = Math.floor(hp[1] / max * 10)
-  let damage = Math.ceil(Math.max(hp[0] - hp[1], 0) / max * 10)
+  let damage = Math.ceil(Math.max(current[0] - current[1], 0) / max * 10)
 
-  let color = current > 6
+  let color = fraction > 7
     ? 'green'
-    : current > 3
+    : fraction > 3
       ? 'yellow'
       : 'red'
-  let hpBar = Game.screens.colorfulText('#'.repeat(current), color, color)
+  let hpBar = Game.screens.colorfulText('#'.repeat(fraction), color, color)
   let dmgBar = Game.screens.colorfulText('#'.repeat(damage), 'grey', 'grey')
-  let blank = ' '.repeat(10 - current - damage)
+  let blank = ' '.repeat(10 - fraction - damage)
 
   Game.display.drawText(Game.UI.hp.getX(), Game.UI.hp.getY(),
     'HP [' + hpBar + dmgBar + blank + ']')
