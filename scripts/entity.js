@@ -14,9 +14,9 @@ Game.entities.set('record', null)
 // ----- Create a single entity +++++
 Game.entity = {}
 
-Game.entity.dungeon = function (width, height) {
+Game.entity.dungeon = function () {
   let e = new Game.Factory('dungeon')
-  e.addComponent(new Game.Component.Dungeon(width, height))
+  e.addComponent(new Game.Component.Dungeon())
 
   cellular()
 

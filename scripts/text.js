@@ -41,7 +41,18 @@ as gentle as a breeze, blows in your mind.\n\n`)
   text.set('hulk', `choose enhancer`)
   text.set('lasombra', `choose controller`)
 
-  return text.get('para1') + text.get(choice)
+  text.set('hint', `\n\nHints:\n\n\
+* Move: ` + Game.screens.colorfulText('arrow keys & h/j/k/l', 'green') + `.\n\
+* Fast-move: ` + Game.screens.colorfulText('Shift + move', 'green') +
+    `, when no enemies in sight.\n\
+* Explore mode: ` + Game.screens.colorfulText('x/Esc', 'green') + `.\n\
+* Aim mode: ` + Game.screens.colorfulText('(q/w/...)/Esc', 'green') +
+    `.\n\
+* Hit aimed target: ` + Game.screens.colorfulText('Space', 'green') + `.\n\
+* Lock target: ` + Game.screens.colorfulText('PgUp/PgDn & i/o', 'green') +
+    `, in Explore/Aim mode.`)
+
+  return text.get('para1') + text.get(choice) + text.get('hint')
 }
 
 // ----- main screen +++++

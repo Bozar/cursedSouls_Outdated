@@ -2,11 +2,11 @@
 
 Game.Component = {}
 
-Game.Component.Dungeon = function (width, height) {
+Game.Component.Dungeon = function () {
   this._name = 'Dungeon'
 
-  this._width = width
-  this._height = height
+  this._width = 55
+  this._height = 20
   this._terrain = new Map()   // z,x,y: 0(floor) or 1(wall)
   this._deltaX = 0
   this._deltaY = 0

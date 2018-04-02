@@ -1,5 +1,6 @@
 'use strict'
 
+// Cursed Souls: Giovanni Orchestra
 // ----- Version number, development switch, seed & color +++++
 var Game = {}
 Game._version = '0.0.1-dev'
@@ -11,9 +12,11 @@ Game.setDevelop = function () {
   return true
 }
 
-Game._dungeonSize = [55, 20]   // [width, height]
-
 // set seed manually for testing
+// '#' can be omitted
+// there are no hyphens ('-') inside numbered seeds
+
+// example:
 // Game._devSeed = '#finn'
 // Game._devSeed = '#12345'
 
@@ -755,7 +758,7 @@ Game.screens.classSeed.keyInput = function (e) {
 
 Game.screens.prologue = new Game.Screen('prologue')
 Game.screens.prologue.initialize = function () {
-  Game.entity.dungeon(...Game._dungeonSize)    // Spread operator
+  Game.entity.dungeon()
 }
 
 Game.screens.prologue.display = function () {
