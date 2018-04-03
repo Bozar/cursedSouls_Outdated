@@ -347,14 +347,13 @@ Game.system.fastMove = function (direction, e) {
  *    + print text: Game.system.pcCast
  */
 Game.system.pcCast = function (spellID) {
-  let e = Game.entities.get('pc')
+  let pc = Game.entities.get('pc')
   let range = Game.entities.get('data').Range
   let mainScreen = Game.screens.main
   let drawMsg = Game.screens.drawMessage
-  let recordMsg = Game.entities.get('record').Message
 
   let spellLevel = Number.parseInt(spellID.match(/\d$/)[0])
-  let duration = Game.system.updateAttribute('castSpeed', e).get(spellLevel)
+  let duration = Game.system.updateAttribute('castSpeed', pc).get(spellLevel)
 
   let spellMap = new Map()
   spellMap.set('atk1', attack1)
@@ -371,31 +370,20 @@ Game.system.pcCast = function (spellID) {
     Game.system.exploreMode(dealDamage, range.getRange('atk1'), true)
 
     function dealDamage (target) {
-      let isHit = Game.system.hitTarget(e, target)
+      Game.system.updateCombatMsg(Game.system.hitTarget(pc, target), target)
 
-      if (isHit > 0) {
-        recordMsg.gainMessage(Game.text.combat('pcCrit', target))
-      } else if (isHit === 0) {
-        recordMsg.gainMessage(Game.text.combat('pcHit', target))
-      } else {
-        recordMsg.gainMessage(Game.text.combat('pcMiss', target))
-      }
-
-      Game.system.isDead(target) === 'npc' &&
-        recordMsg.gainMessage(Game.text.combat('npcIsDead', target))
-
-      Game.system.unlockEngine(duration, e)
+      Game.system.unlockEngine(duration, pc)
     }
   }
 
   function enhance1 () {
     let moveBuff = false
 
-    if (e.HitPoint.getHP()[1] < e.HitPoint.getMax()) {
-      e.HitPoint.gainHP(e.HitPoint.getMax())
-      moveBuff = e.Status.gainStatus('buff', 'mov0', duration)
+    if (pc.HitPoint.getHP()[1] < pc.HitPoint.getMax()) {
+      pc.HitPoint.gainHP(pc.HitPoint.getMax())
+      moveBuff = pc.Status.gainStatus('buff', 'mov0', duration)
 
-      e.HitPoint.getHP()[1] < e.HitPoint.getMax()
+      pc.HitPoint.getHP()[1] < pc.HitPoint.getMax()
         ? moveBuff
           ? drawMsg(Game.text.pcStatus('healMove'))
           : drawMsg(Game.text.pcStatus('heal'))
@@ -404,7 +392,7 @@ Game.system.pcCast = function (spellID) {
           : drawMsg(Game.text.pcStatus('heal2Max'))
 
       Game.keyboard.listenEvent('remove', 'main')
-      Game.system.unlockEngine(duration, e)
+      Game.system.unlockEngine(duration, pc)
     } else {
       drawMsg(Game.text.pcStatus('maxHP'))
     }
@@ -413,23 +401,23 @@ Game.system.pcCast = function (spellID) {
   function enhance2 () {
     let acted = false
 
-    if (e.Status.getStatus('debuff').size > 0) {
-      let maxTurn = Math.min(4, 1 + e.Status.getStatus('debuff').size)
-      acted = e.Status.gainStatus('buff', 'acc0', duration, maxTurn)
+    if (pc.Status.getStatus('debuff').size > 0) {
+      let maxTurn = Math.min(4, 1 + pc.Status.getStatus('debuff').size)
+      acted = pc.Status.gainStatus('buff', 'acc0', duration, maxTurn)
     }
 
     if (acted) {
       drawMsg(Game.text.pcStatus('lucky'))
 
       Game.keyboard.listenEvent('remove', 'main')
-      Game.system.unlockEngine(duration, e)
+      Game.system.unlockEngine(duration, pc)
     } else {
       drawMsg(Game.text.pcStatus('unlucky'))
     }
   }
 
   function special1 () {
-    switch (e.ActorName.getTrueName()) {
+    switch (pc.ActorName.getTrueName()) {
       case 'dio':
         return dio1()
       case 'hulk':
@@ -444,14 +432,14 @@ Game.system.pcCast = function (spellID) {
 
     function hulk1 () {
       let acted = false
-      acted = e.Status.gainStatus('buff', 'acc1', duration) &&
-        e.Status.gainStatus('buff', 'def1', duration)
+      acted = pc.Status.gainStatus('buff', 'acc1', duration) &&
+        pc.Status.gainStatus('buff', 'def1', duration)
 
       if (acted) {
         drawMsg(Game.text.pcStatus('puppet'))
 
         Game.keyboard.listenEvent('remove', 'main')
-        Game.system.unlockEngine(duration, e)
+        Game.system.unlockEngine(duration, pc)
       } else {
         drawMsg(Game.text.pcStatus('maxBuff'))
       }
@@ -463,7 +451,7 @@ Game.system.pcCast = function (spellID) {
   }
 
   function special2 () {
-    switch (e.ActorName.getTrueName()) {
+    switch (pc.ActorName.getTrueName()) {
       case 'dio':
         return dio2()
       case 'hulk':
@@ -478,13 +466,13 @@ Game.system.pcCast = function (spellID) {
 
     function hulk2 () {
       let acted = false
-      acted = e.Status.gainStatus('buff', 'cst1', duration)
+      acted = pc.Status.gainStatus('buff', 'cst1', duration)
 
       if (acted) {
         drawMsg(Game.text.pcStatus('castFaster'))
 
         Game.keyboard.listenEvent('remove', 'main')
-        Game.system.unlockEngine(duration, e)
+        Game.system.unlockEngine(duration, pc)
       } else {
         drawMsg(Game.text.pcStatus('maxBuff'))
       }
@@ -838,7 +826,7 @@ Game.system.rollD20 = function () {
   return Game.system.rollDx(1, 20)
 }
 
-Game.system.hitTarget = function (attacker, defender, noDamage, reRoll) {
+Game.system.hitTarget = function (attacker, defender, noDamage, reroll) {
   let accuracy = Game.system.updateAttribute('accuracy', attacker)
   let defense = Game.system.updateAttribute('defense', defender)
   let delta = 0
@@ -847,7 +835,7 @@ Game.system.hitTarget = function (attacker, defender, noDamage, reRoll) {
 
   let combatRoll = ROT.RNG.getPercentage()
 
-  if (reRoll) { combatRoll = reRoll() }
+  if (reroll) { combatRoll = reroll(combatRoll) }
   delta = combatRoll + accuracy - defense
 
   // console.log(combatRoll)
@@ -878,4 +866,19 @@ Game.system.isDead = function (e) {
   }
 
   return who
+}
+
+Game.system.updateCombatMsg = function (hit, target, isNotDamage) {
+  let record = Game.entities.get('record').Message
+
+  if (hit > 0) {
+    record.gainMessage(Game.text.combat('pcCrit', target))
+  } else if (hit === 0) {
+    record.gainMessage(Game.text.combat('pcHit', target))
+  } else {
+    record.gainMessage(Game.text.combat('pcMiss', target))
+  }
+
+  Game.system.isDead(target) === 'npc' &&
+    record.gainMessage(Game.text.combat('npcIsDead', target))
 }
