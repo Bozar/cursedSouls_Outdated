@@ -357,8 +357,11 @@ Game.system.pcCast = function (spellID) {
 
   let spellMap = new Map()
   spellMap.set('atk1', attack1)
+  spellMap.set('atk2', attack2)
+
   spellMap.set('enh1', enhance1)
   spellMap.set('enh2', enhance2)
+
   spellMap.set('spc1', special1)
   spellMap.set('spc2', special2)
 
@@ -373,6 +376,24 @@ Game.system.pcCast = function (spellID) {
       Game.system.updateCombatMsg(Game.system.hitTarget(pc, target), target)
 
       Game.system.unlockEngine(duration, pc)
+    }
+  }
+
+  function attack2 () {
+    mainScreen.setMode('aim', Game.text.spellName('atk2'))
+    Game.keyboard.listenEvent('remove', 'main')
+    Game.system.exploreMode(dealDamage, range.getRange('atk2'), true)
+
+    function dealDamage (target) {
+      Game.system.updateCombatMsg(
+        Game.system.hitTarget(pc, target, false, maxOf2), target)
+
+      Game.system.unlockEngine(duration, pc)
+    }
+
+    function maxOf2 (roll1) {
+      let roll2 = ROT.RNG.getPercentage() - 30
+      return Math.max(roll1, roll2)
     }
   }
 
