@@ -328,6 +328,7 @@ Game.Component.Range = function () {
   this._range = new Map()
 
   this._range.set('atk1', 3)
+  this._range.set('dio1', 1)
 
   this.getRange = function (id) { return this._range.get(id) }
 }

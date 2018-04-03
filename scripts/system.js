@@ -427,7 +427,21 @@ Game.system.pcCast = function (spellID) {
     }
 
     function dio1 () {
+      mainScreen.setMode('aim', Game.text.spellName('dio1'))
+      Game.keyboard.listenEvent('remove', 'main')
+      Game.system.exploreMode(dealDamage, range.getRange('dio1'), true)
 
+      function dealDamage (target) {
+        Game.system.updateCombatMsg(
+          Game.system.hitTarget(pc, target, false, maxOf2), target)
+
+        Game.system.unlockEngine(duration, pc)
+      }
+
+      function maxOf2 (roll1) {
+        let roll2 = ROT.RNG.getPercentage()
+        return Math.max(roll1, roll2)
+      }
     }
 
     function hulk1 () {
