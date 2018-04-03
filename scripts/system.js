@@ -129,7 +129,8 @@ Game.system.isWalkable = function (x, y, e) {
     walkable = inSight.indexOf(x + ',' + y) > -1
   } else {
     walkable = dungeon.Dungeon.getTerrain().get(x + ',' + y) === 0 &&
-      !Game.system.npcHere(x, y)
+      !Game.system.npcHere(x, y) &&
+      !Game.system.pcHere(x, y)
   }
 
   return walkable
@@ -496,7 +497,30 @@ Game.system.pcCast = function (spellID) {
     }
 
     function dio2 () {
+      let acted = false
+      let npcAround = Game.system.aroundActor(Game.system.npcHere)
+      let thisNPC = null
 
+      if (npcAround.length === 0) {
+        drawMsg(Game.text.combat('noNPCaround'))
+      } else {
+        for (let i = 0; i < npcAround.length; i++) {
+          thisNPC = Game.system.npcHere(npcAround[i][0], npcAround[i][1])
+
+          Game.system.updateCombatMsg(
+            Game.system.hitTarget(pc, thisNPC, false, lowerAccuracy), thisNPC)
+        }
+        acted = true
+      }
+
+      if (acted) {
+        Game.keyboard.listenEvent('remove', 'main')
+        Game.system.unlockEngine(duration, pc)
+      }
+
+      function lowerAccuracy (roll1) {
+        return roll1 - 10
+      }
     }
 
     function hulk2 () {
@@ -916,4 +940,24 @@ Game.system.updateCombatMsg = function (hit, target, isNotDamage) {
 
   Game.system.isDead(target) === 'npc' &&
     record.gainMessage(Game.text.combat('npcIsDead', target))
+}
+
+Game.system.aroundActor = function (callback, actor, maxActors) {
+  let pos = (actor && actor.Position) || Game.entities.get('pc').Position
+  let x = pos.getX()
+  let y = pos.getY()
+  let checkList = []
+  let special = []
+  let max = maxActors || 4    // 4 or 8
+
+  if (max === 4) {
+    checkList = [[x + 1, y], [x, y + 1], [x - 1, y], [x, y - 1]]
+
+    for (let i = 0; i < checkList.length; i++) {
+      if (callback.call(callback, checkList[i][0], checkList[i][1])) {
+        special.push(checkList[i])
+      }
+    }
+  }
+  return special
 }

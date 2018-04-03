@@ -255,6 +255,7 @@ Game.text.combat = function (key, e) {
 
   text.set('pcHit', `You hit the ${name}.`)
   text.set('pcCrit', `You critical-hit the ${name}!`)
+  text.set('noNPCaround', 'You are not surrounded by enemies.')
   text.set('pcMiss', `You miss the ${name}.`)
   text.set('npcIsDead', `The ${name} is dead.`)
 
