@@ -468,8 +468,9 @@ Game.system.pcCast = function (spellID) {
 
     function hulk1 () {
       let acted = false
-      acted = pc.Status.gainStatus('buff', 'acc1', duration) &&
-        pc.Status.gainStatus('buff', 'def1', duration)
+      // cast the spell if at least one buff is added
+      acted = pc.Status.gainStatus('buff', 'acc1', duration)
+      pc.Status.gainStatus('buff', 'def1', duration)
 
       if (acted) {
         drawMsg(Game.text.pcStatus('puppet'))
@@ -562,7 +563,7 @@ Game.system.updateStatus = function (e) {
 }
 
 // attribute: data that is changed by status
-Game.system.updateAttribute = function (attrID, actor) {
+Game.system.updateAttribute = function (attrID, actor, inputData) {
   let duration = Game.entities.get('data').Duration
   let modAttr = Game.entities.get('data').ModAttribute
   let attrMap = new Map()
@@ -571,9 +572,10 @@ Game.system.updateAttribute = function (attrID, actor) {
   attrMap.set('accuracy', accuracy)
   attrMap.set('defense', defense)
   attrMap.set('castSpeed', castSpeed)
+  attrMap.set('damage', damage)
 
   return attrID && attrMap.get(attrID) && actor && actor.Status
-    ? attrMap.get(attrID)()
+    ? attrMap.get(attrID)(inputData)
     : null
 
   function moveSpeed () {
@@ -616,6 +618,17 @@ Game.system.updateAttribute = function (attrID, actor) {
       [2, level2 - buff],
       [3, level3]
     ])
+  }
+
+  function damage (inputData) {
+    let debuff = modAttr.getMod('debuff', 'dmg0',
+      actor.Status.isActive('debuff', 'dmg0'))
+
+    console.log(debuff)
+    console.log(inputData)
+    return debuff === 0
+      ? inputData
+      : Math.floor(inputData * debuff)
   }
 }
 
@@ -886,8 +899,9 @@ Game.system.rollD20 = function () {
 }
 
 Game.system.hitTarget = function (attacker, defender, noDamage, reroll) {
-  let accuracy = Game.system.updateAttribute('accuracy', attacker)
-  let defense = Game.system.updateAttribute('defense', defender)
+  let update = Game.system.updateAttribute
+  let accuracy = update('accuracy', attacker)
+  let defense = update('defense', defender)
   let delta = 0
   let critical = -1
   let modDmg = 0
@@ -904,8 +918,8 @@ Game.system.hitTarget = function (attacker, defender, noDamage, reroll) {
   if (delta > 0) {
     critical = Math.floor(delta / 30)
     if (!noDamage) {
-      // TODO: mod damage based on debuffs
-      modDmg = attacker.Combat.getDamage(critical, true)
+      modDmg = update('damage', attacker,
+        attacker.Combat.getDamage(critical, true))
       defender.HitPoint.loseHP(modDmg)
     }
   }

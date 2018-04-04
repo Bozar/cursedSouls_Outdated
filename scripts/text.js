@@ -63,7 +63,6 @@ Game.text.spellKeyHint = function (column, level, trueName) {
     '\n[W] ' + Game.text.spellName('ctl1'))
   text.set('1,2,', '[A] ' + Game.text.spellName('atk2') +
     '\n[S] ' + Game.text.spellName('ctl2'))
-  text.set('1,3,', '[1] ' + Game.text.spellName('atk3') + '\n')
 
   text.set('2,1,dio', '[E] ' + Game.text.spellName('enh1') +
     '\n[R] ' + Game.text.spellName('dio1'))
@@ -79,12 +78,9 @@ Game.text.spellKeyHint = function (column, level, trueName) {
   text.set('2,2,lasombra', '[D] ' + Game.text.spellName('enh2') +
     '\n[F] ' + Game.text.spellName('lsb2'))
 
-  text.set('1,3,dio', text.get('1,3,') +
-    '[2] ' + Game.text.spellName('dio3'))
-  text.set('1,3,hulk', text.get('1,3,') +
-    '[2] ' + Game.text.spellName('hlk3'))
-  text.set('1,3,lasombra', text.get('1,3,') +
-    '[2] ' + Game.text.spellName('lsb3'))
+  text.set('1,3,dio', '[1] ' + Game.text.spellName('dio3'))
+  text.set('1,3,hulk', '[1] ' + Game.text.spellName('hlk3'))
+  text.set('1,3,lasombra', '[1] ' + Game.text.spellName('lsb3'))
 
   text.set('2,3,dio', '')
   text.set('2,3,hulk', '')
@@ -100,13 +96,12 @@ Game.text.spellName = function (key) {
 
   text.set('atk1', 'Fire Arrow')
   text.set('atk2', 'Flame Lance')
-  text.set('atk3', 'Magma Eruption')
 
   text.set('enh1', 'Cyclops Tears')
   text.set('enh2', 'Two-headed Coin')
 
-  text.set('ctl1', 'Bedtime Story')
-  text.set('ctl2', 'Blind Death')
+  text.set('ctl1', 'Good Doggy')
+  text.set('ctl2', 'One-more-turn')
 
   text.set('dio1', 'Fire Fist')
   text.set('dio2', 'Flame Explosion')
@@ -116,7 +111,7 @@ Game.text.spellName = function (key) {
   text.set('hlk2', 'Nimble Fingers')
   text.set('hlk3', 'Invincible Armor')
 
-  text.set('lsb1', 'Frost Touch')
+  text.set('lsb1', 'Bedtime Story')
   text.set('lsb2', 'Vile Tentacle')
   text.set('lsb3', 'Confessional')
 
